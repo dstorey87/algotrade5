@@ -1,5 +1,9 @@
 # AlgoTradePro5: AI-Driven Trading Application
 
+## Variables, APIs, Keys, Sensitive information
+
+All variables, should be mapped to the .env file in the root of the project, this ensures we alwayss know where to look for values in the event of an issue, and we are able to customize the app simply by editing values within here.
+
 ## Rule 1
 
 Commit and push changes to feature branches every milestone, i.e. refactoring, new component, verified core component fix, test successes.
@@ -11,6 +15,14 @@ Keep the time between commits short as not to lose context.
 Keep workspace clean! 
 
 Always clear up after your changes, redundant files to be deleted (after a commit only), structure files and code cleanly in folders, ensure integration at all times, any unintegrated files are considered rogue and to be removed.
+
+Github repo: https://github.com/dstorey87/algotrade5
+
+## Rule 3
+
+Testing, should always be built in to the code, or code built with it in mind
+
+No new code should be considered complete without a test to confirm the validity of it. Check further down for clearer instructions on how to do this.
 
 ## 1. Overview
 
