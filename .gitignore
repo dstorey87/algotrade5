@@ -1,0 +1,86 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual Environments
+.env*
+venv/
+ENV/
+.venv/
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Sensitive Data and Credentials
+**/secrets/
+**/*.key
+**/*.pem
+**/*.env
+**/*credentials*
+**/*secret*
+**/*password*
+**/token*
+**/*config.json
+**/special_tokens_map.json
+**/tokenizer*.json
+**/added_tokens.json
+**/adapter_config.json
+**/generation_config.json
+**/quantize_config.json
+
+# FreqTrade - only track our custom files
+freqtrade/*
+!freqtrade/config-algotradpro5.json
+!freqtrade/user_data/strategies/
+!freqtrade/user_data/hyperopts/
+
+# Data, logs and databases
+*.sqlite*
+*.db
+logs/
+*.log
+data/
+user_data/
+
+# Models and AI - only track structure and documentation
+models/**/*
+!models/**/
+!models/**/*.md
+!models/**/README*
+
+aimodels/**/*
+!aimodels/**/
+!aimodels/**/*.md
+!aimodels/**/README*
+
+# Model binary files
+*.pkl
+*.h5
+*.pt
+*.pth
+*.onnx
+*.pb
+*.tflite
+*.savedmodel
+*.weights
+*.bin
+*.hdf5
+*.safetensors*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Custom backups and temp files
+*_backup/
+*.tmp
+

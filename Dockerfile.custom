@@ -1,0 +1,57 @@
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV TRANSFORMERS_CACHE=/freqtrade/aimodels
+ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0"
+ENV CUDA_VISIBLE_DEVICES=0
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-dev \
+    git \
+    wget \
+    curl \
+    build-essential \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create and set working directory
+WORKDIR /freqtrade
+
+# Copy requirements files
+COPY requirements.txt requirements-llm.txt ./
+
+# Install Python dependencies in correct order
+RUN pip3 install --no-cache-dir -r requirements.txt && \
+    pip3 install --no-cache-dir -r requirements-llm.txt
+
+# Install AI/ML dependencies with specific versions for compatibility
+RUN pip3 install --no-cache-dir \
+    torch==2.1.0 \
+    torchvision==0.16.0 \
+    torchaudio==2.1.0 \
+    transformers==4.36.0 \
+    pandas==2.1.0 \
+    numpy==1.24.3 \
+    scikit-learn==1.3.0 \
+    plotly==5.18.0 \
+    qiskit==1.0.2 \
+    qiskit-aer==0.13.3 \
+    qiskit-algorithms==0.3.0 \
+    bitsandbytes>=0.41.1 \
+    pandas-ta>=0.3.0 \
+    yfinance>=0.2.0
+
+# Create necessary directories
+RUN mkdir -p /freqtrade/user_data/models \
+    && mkdir -p /freqtrade/logs \
+    && mkdir -p /freqtrade/offload
+
+# Copy the rest of the application
+COPY . /freqtrade/
+
+# Set default command
+CMD ["python", "run_algotradpro5.py"]

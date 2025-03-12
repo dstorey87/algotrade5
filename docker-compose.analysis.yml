@@ -1,0 +1,86 @@
+version: '3.8'
+services:
+  freqtrade-analysis:
+    build:
+      context: .
+      dockerfile: Dockerfile.custom
+    image: freqtrade-analysis:latest
+    container_name: freqtrade-analysis
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./logs:/freqtrade/logs
+      - c:/aimodels:/freqtrade/aimodels
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - TRANSFORMERS_CACHE=/freqtrade/aimodels
+      - FREQTRADE_BACKTESTING_DAYS=1800
+      - PYTHONUNBUFFERED=1
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+      - OMP_NUM_THREADS=8
+      - TOKENIZERS_PARALLELISM=true
+    ports:
+      - "8080:8080"  # Dashboard
+      - "8888:8888"  # Jupyter (if needed)
+      - "6006:6006"  # TensorBoard
+    command: >
+      python3 initialize_system.py &&
+      freqtrade trade
+      --strategy QuantumHybridStrategy
+      --config /freqtrade/config.json
+      --freqaimodel QuantumEnhancedPredictor
+
+  freqtrade-backtest:
+    build:
+      context: .
+      dockerfile: Dockerfile.custom
+    image: freqtrade-analysis:latest
+    container_name: freqtrade-backtest
+    restart: "no"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./logs:/freqtrade/logs
+      - c:/aimodels:/freqtrade/aimodels
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - TRANSFORMERS_CACHE=/freqtrade/aimodels
+      - FREQTRADE_BACKTESTING_DAYS=1800
+      - PYTHONUNBUFFERED=1
+    command: >
+      python3 initialize_system.py &&
+      freqtrade backtesting
+      --strategy QuantumHybridStrategy
+      --config /freqtrade/config.json
+      --freqaimodel QuantumEnhancedPredictor
+      --timerange 20200101-20250101
+      --timeframe 5m
+      --export trades
+      --export-filename user_data/backtest_results/quantum_backtest_5y.json
+
+  tensorboard:
+    image: tensorflow/tensorflow:latest
+    container_name: tensorboard
+    restart: unless-stopped
+    volumes:
+      - ./logs:/logs
+    ports:
+      - "6006:6006"
+    command: tensorboard --logdir /logs --bind_all
