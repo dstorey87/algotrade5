@@ -182,6 +182,61 @@ Market Data → FreqTrade → AI Analysis → Quantum Validation → Trade Decis
    - Data sharding
    - Automated recovery
 
+## Data Storage Architecture
+
+### Database Structure
+
+The system uses multiple SQLite databases for different purposes:
+
+### 1. Trading Database (tradesv3.dryrun.sqlite)
+- Primary database for trade operations
+- Stores active trades, orders, and trade history
+- Uses SQLAlchemy ORM for robust data management
+- Supports automatic schema migrations
+- WAL mode enabled for better concurrent access
+
+Tables:
+- trades: Trade history and active trades
+- orders: Order details and status
+- trade_custom_data: Custom metadata for trades
+
+### 2. Analysis Database (data/analysis.db)
+- Stores trading analytics and pattern recognition data
+- Used for performance analysis and strategy optimization
+
+Tables:
+- successful_patterns: Tracks pattern trading performance
+- backtest_conditions: Records backtest results and conditions
+- pattern_performance: Pattern performance across market regimes
+
+### 3. Data Persistence Features
+
+#### Trading Data
+- Automatic persistence of trades and orders
+- Custom metadata storage for trades
+- Transaction support for data integrity
+- Concurrent access handling
+
+#### Analysis Data
+- Pattern performance tracking
+- Market regime analysis
+- Backtest result storage
+- Success rate and profit metrics
+
+#### Data Access
+- SQL queries for performance analysis
+- Pandas DataFrame integration
+- Efficient data retrieval methods
+- Proper index management
+
+## Best Practices
+
+1. Use the DataManager class for all analysis database operations
+2. Use Trade and Order models for trading database operations
+3. Leverage SQLAlchemy sessions for database transactions
+4. Monitor database size and implement cleanup strategies
+5. Regular database maintenance and optimization
+
 ## Documentation Requirements
 
 ### System Documentation

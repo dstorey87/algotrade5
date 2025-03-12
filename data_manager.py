@@ -4,6 +4,8 @@ import logging
 import sqlite3
 from datetime import datetime
 import pandas as pd
+import json
+import uuid
 from typing import Dict, List, Optional
 from pathlib import Path
 
@@ -13,15 +15,27 @@ class DataManager:
     """Manages data storage and retrieval for AlgoTradPro5"""
     
     def __init__(self):
-        self.db_path = Path('data')
+        self.db_path = Path('freqtrade/user_data/data')
         self.db_path.mkdir(exist_ok=True)
         self._initialize_database()
-
+        
     def _initialize_database(self):
         """Initialize database tables"""
         try:
             with sqlite3.connect(self.db_path / 'analysis.db') as conn:
                 c = conn.cursor()
+                
+                # Create downloaded data tracking table
+                c.execute("""
+                CREATE TABLE IF NOT EXISTS downloaded_data (
+                    pair TEXT NOT NULL,
+                    timeframe TEXT NOT NULL,
+                    start_date TEXT NOT NULL,
+                    end_date TEXT NOT NULL,
+                    last_updated TEXT NOT NULL,
+                    data_path TEXT NOT NULL,
+                    PRIMARY KEY (pair, timeframe)
+                )""")
                 
                 # Create successful patterns table
                 c.execute("""
@@ -72,6 +86,38 @@ class DataManager:
         except Exception as e:
             logger.error(f"Error initializing database: {e}")
             raise
+
+    def register_downloaded_data(self, pair: str, timeframe: str, 
+                               start_date: str, end_date: str, data_path: str):
+        """Register downloaded market data in the database"""
+        try:
+            with sqlite3.connect(self.db_path / 'analysis.db') as conn:
+                c = conn.cursor()
+                c.execute("""
+                INSERT OR REPLACE INTO downloaded_data
+                (pair, timeframe, start_date, end_date, last_updated, data_path)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    pair, timeframe, start_date, end_date,
+                    datetime.now().isoformat(), data_path
+                ))
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Error registering downloaded data: {e}")
+
+    def get_downloaded_data_info(self, pair: str, timeframe: str) -> Optional[Dict]:
+        """Get information about previously downloaded data"""
+        try:
+            with sqlite3.connect(self.db_path / 'analysis.db') as conn:
+                df = pd.read_sql_query(
+                    "SELECT * FROM downloaded_data WHERE pair = ? AND timeframe = ?",
+                    conn,
+                    params=[pair, timeframe]
+                )
+                return df.to_dict('records')[0] if not df.empty else None
+        except Exception as e:
+            logger.error(f"Error getting downloaded data info: {e}")
+            return None
 
     def catalog_successful_pattern(self, pattern_data: Dict):
         """Store successful pattern in database"""

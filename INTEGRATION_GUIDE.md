@@ -215,3 +215,81 @@ python test_integration.py --test-risk
 - Testing protocols
 
 Remember: Update this guide whenever system integration changes or new features are added.
+
+# SQL Database Integration Guide
+
+## Database Configuration
+
+### Trading Database
+```ini
+# Production database
+db_url = sqlite:///data/trading.db
+
+# Dry run database 
+db_url = sqlite:///data/tradesv3.dryrun.sqlite
+```
+
+### Performance Settings
+- WAL (Write-Ahead Logging) mode is enabled by default for better performance
+- Connection pooling is configured automatically
+- Thread-safe sessions with proper scoping
+
+### Data Manager Integration
+```python
+from data_manager import DataManager
+
+# Initialize data manager
+dm = DataManager()
+
+# Store pattern results
+dm.catalog_successful_pattern({
+    'pattern_name': 'double_bottom',
+    'win_rate': 0.75,
+    'total_trades': 100,
+    'successful_trades': 75,
+    'avg_profit_ratio': 0.023,
+    'timestamp': '2023-12-01T10:00:00',
+    'market_regime': 'bullish'
+})
+
+# Query performance data
+performance = dm.get_pattern_regime_stats('double_bottom')
+```
+
+### Best Practices
+
+1. Database Operations
+- Use SQLAlchemy sessions for all database operations
+- Wrap operations in transactions when making multiple changes
+- Always close sessions and connections properly
+- Handle database errors gracefully
+
+2. Data Types
+- Use appropriate SQLite types for data storage
+- Store timestamps in UTC ISO format
+- Use proper precision for floating point numbers
+- Index frequently queried columns
+
+3. Maintenance
+- Regular database cleanup
+- Index optimization
+- Database size monitoring
+- Regular backups
+
+4. Error Handling
+```python
+try:
+    # Database operations
+    dm.update_pattern_performance(data)
+except sqlite3.Error as e:
+    logger.error(f"Database error: {e}")
+    # Implement appropriate error recovery
+```
+
+### Migration Guide
+
+When making schema changes:
+1. Use SQLAlchemy migrations
+2. Test migrations on a copy of production data
+3. Backup databases before migration
+4. Verify data integrity after migration

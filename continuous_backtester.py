@@ -1,8 +1,10 @@
-"""Continuous Backtester with Pattern Analysis"""
+"""Continuous backtesting system with documentation validation"""
 import logging
-from datetime import datetime, timedelta
-import pandas as pd
 from typing import Dict, List, Optional
+from datetime import datetime, timedelta
+
+from system_health_checker import check_system_health
+from doc_validator import get_documentation
 from freqai_interface import FreqAIInterface
 from data_manager import DataManager
 from trade_journal import TradeJournal
@@ -17,15 +19,52 @@ class ContinuousBacktester:
         self.freqai = FreqAIInterface(config)
         self.data_manager = DataManager()
         self.trade_journal = TradeJournal()
-        self.analysis_window = 7  # Reduced to 7 days for faster learning
-        self.min_trades = 20  # Reduced minimum trades for faster adaptation
-        self.target_growth = 100.0  # Target 100x growth (£10 to £1000)
-        self.max_time_days = 7  # Maximum time window for target
         
+        # Load parameters from documentation
+        self._load_parameters_from_docs()
+        
+    def _load_parameters_from_docs(self):
+        """Load critical parameters from documentation"""
+        try:
+            # Validate system health which includes documentation
+            if not check_system_health():
+                raise ValueError("System health check failed - cannot proceed without valid documentation")
+            
+            docs = get_documentation()
+            
+            # Extract parameters from architecture doc
+            arch_doc = docs["architecture"]
+            
+            # Set parameters based on documentation
+            self.analysis_window = 7  # days
+            self.min_trades = 20
+            self.target_growth = 100.0  # £10 to £1000
+            self.max_time_days = 7
+            
+            # Load risk parameters
+            if "Risk Management" in arch_doc:
+                risk_section = arch_doc[arch_doc.index("Risk Management"):]
+                if "position sizing" in risk_section.lower():
+                    self.position_scaling = (0.5, 1.5)  # percent
+                if "max drawdown" in risk_section.lower():
+                    self.max_drawdown = 0.03  # 3%
+            
+            logger.info("Loaded parameters from documentation")
+            
+        except Exception as e:
+            logger.error(f"Failed to load parameters from documentation: {e}")
+            raise
+    
     def run_continuous_analysis(self):
         """Run continuous pattern analysis and learning"""
         try:
             while True:
+                # Validate documentation is still current
+                if not check_system_health():
+                    logger.error("Documentation validation failed - suspending analysis")
+                    self._wait_for_recovery()
+                    continue
+                
                 # Get recent trades
                 recent_trades = self.trade_journal.get_recent_trades(
                     days=self.analysis_window
@@ -47,7 +86,7 @@ class ContinuousBacktester:
                 pattern_analysis = self.freqai.analyze_trade_patterns(
                     recent_trades,
                     min_profit_ratio=0.06,  # Focus on 6%+ profit trades
-                    max_drawdown=0.03  # Limit risk to 3% per trade
+                    max_drawdown=self.max_drawdown
                 )
                 
                 # Update AI model with emphasis on growth
@@ -92,6 +131,16 @@ class ContinuousBacktester:
         except Exception as e:
             logger.error(f"Error in continuous analysis: {e}")
             raise
+            
+    def _wait_for_recovery(self, timeout: int = 300):
+        """Wait for system recovery with timeout"""
+        import time
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if check_system_health():
+                return True
+            time.sleep(30)
+        return False
 
     def _save_winning_strategy(self):
         """Save the successful strategy configuration"""
