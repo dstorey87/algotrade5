@@ -1,4 +1,23 @@
-"""Continuous backtesting system with documentation validation"""
+"""
+Continuous Backtesting System
+============================
+
+CRITICAL REQUIREMENTS:
+- Continuous validation to maintain 85% win rate
+- £10 to £1000 growth monitoring
+- Pattern validation through quantum loop
+- Maximum 7-day completion target
+
+VALIDATION GATES:
+1. Documentation validation
+2. System health checks
+3. Pattern robustness testing
+4. Performance metrics validation
+
+Author: GitHub Copilot
+Last Updated: 2025-03-12
+"""
+
 import logging
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
@@ -15,38 +34,63 @@ from quantum_optimizer import QuantumOptimizer
 logger = logging.getLogger(__name__)
 
 class ContinuousBacktester:
-    """Continuously backtest and analyze trading patterns"""
+    """
+    Continuous backtesting and pattern analysis system
+    
+    CRITICAL METRICS:
+    - Win rate: 85% minimum
+    - Pattern confidence: 0.85+
+    - Growth rate: ~100% daily
+    - Maximum drawdown: 10%
+    """
     
     def __init__(self, config: Dict = None):
+        """
+        Initialize backtesting system with strict validation
+        
+        REQUIRED COMPONENTS:
+        - FreqAI interface
+        - Data manager
+        - Trade journal
+        - Quantum optimizer
+        - Documentation validation
+        """
         self.config = config or {}
         self.freqai = FreqAIInterface(config)
         self.data_manager = DataManager()
         self.trade_journal = TradeJournal()
         
-        # Initialize quantum optimizer
+        # Initialize quantum components
         self.quantum_optimizer = QuantumOptimizer(
             n_qubits=4,
             shots=1000,
             use_gpu=True
         )
         
-        # Load parameters from documentation
+        # Load critical parameters from documentation
         self._load_parameters_from_docs()
         
     def _load_parameters_from_docs(self):
-        """Load critical parameters from documentation"""
+        """
+        Load and validate parameters from documentation
+        
+        CRITICAL: Parameters must match documentation exactly
+        Validates:
+        1. System architecture
+        2. Risk parameters
+        3. Performance targets
+        4. Trading constraints
+        """
         try:
-            # Validate system health which includes documentation
+            # STRICT: Validate system health including documentation
             if not check_system_health():
-                raise ValueError("System health check failed - cannot proceed without valid documentation")
+                raise ValueError("System health check failed - documentation validation required")
             
             docs = get_documentation()
-            
-            # Extract parameters from architecture doc
             arch_doc = docs["architecture"]
             
-            # Set parameters based on documentation
-            self.analysis_window = 7  # days
+            # STRICT: Set parameters from documentation
+            self.analysis_window = 7  # days (locked)
             self.min_trades = 20
             self.target_growth = 100.0  # £10 to £1000
             self.max_time_days = 7
@@ -66,40 +110,48 @@ class ContinuousBacktester:
             raise
     
     def run_continuous_analysis(self):
-        """Run continuous pattern analysis and learning"""
+        """
+        Run continuous pattern analysis and learning
+        
+        CRITICAL RULES:
+        1. Documentation must be valid
+        2. System health must be verified
+        3. Win rate must meet target
+        4. Growth rate must be sufficient
+        """
         try:
             while True:
-                # Validate documentation is still current
+                # STRICT: Validate documentation is current
                 if not check_system_health():
                     logger.error("Documentation validation failed - suspending analysis")
                     self._wait_for_recovery()
                     continue
                 
-                # Get recent trades
+                # Get recent trades for analysis
                 recent_trades = self.trade_journal.get_recent_trades(
                     days=self.analysis_window
                 )
                 
                 if len(recent_trades) < self.min_trades:
                     logger.info(
-                        f"Not enough trades ({len(recent_trades)}) "
+                        f"Insufficient trades ({len(recent_trades)}) "
                         f"for analysis. Minimum required: {self.min_trades}"
                     )
                     self._wait_for_next_analysis()
                     continue
                 
-                # Calculate current growth rate
+                # Calculate current growth progress
                 current_capital = self.get_current_capital()
                 growth_rate = (current_capital / 10.0) - 1  # Starting from £10
                 
-                # Analyze patterns with focus on high-growth opportunities
+                # CRITICAL: Analyze patterns with focus on high-growth opportunities
                 pattern_analysis = self.freqai.analyze_trade_patterns(
                     recent_trades,
                     min_profit_ratio=0.06,  # Focus on 6%+ profit trades
                     max_drawdown=self.max_drawdown
                 )
                 
-                # Update AI model with emphasis on growth
+                # Update AI model with growth optimization
                 self.freqai.update_model(
                     recent_trades,
                     target_metric='profit_ratio',
@@ -112,13 +164,10 @@ class ContinuousBacktester:
                     min_profit_factor=2.0
                 )
                 
-                # Run quantum loop validation on winning patterns
+                # CRITICAL: Run quantum loop validation
                 validated_patterns = []
                 for pattern in winning_patterns.itertuples():
-                    # Extract pattern data and prepare for quantum validation
                     pattern_data = self._extract_pattern_data(pattern)
-                    
-                    # Perform quantum loop validation
                     validation_results = self._validate_pattern_quantum_loop(
                         pattern_data,
                         pattern_name=pattern.pattern_name,
@@ -128,10 +177,9 @@ class ContinuousBacktester:
                     
                     if validation_results['validation_status'] == 'validated':
                         validated_patterns.append(validation_results)
-                        # Store validated pattern
                         self.data_manager.store_quantum_validated_pattern(validation_results)
                 
-                # Store backtest conditions with quantum validation results
+                # Store backtest conditions with quantum validation
                 for pattern in winning_patterns.itertuples():
                     is_validated = any(
                         p['pattern_name'] == pattern.pattern_name 
@@ -154,12 +202,12 @@ class ContinuousBacktester:
                 report = self.freqai.get_performance_report()
                 self._log_performance(report)
                 
-                # Check if we've hit our target
+                # CRITICAL: Check growth target
                 if growth_rate >= self.target_growth:
                     logger.info(f"🎯 Target growth achieved! Current capital: £{current_capital:.2f}")
                     self._save_winning_strategy()
                 
-                # Sleep for shorter interval during active trading
+                # Sleep between analyses
                 self._wait_for_next_analysis()
                 
         except Exception as e:
@@ -170,21 +218,27 @@ class ContinuousBacktester:
                                      pattern_name: str, pair: str,
                                      timeframe: str) -> Dict:
         """
-        Perform quantum loop validation of a pattern
-        Returns validation metrics including confidence and regime prediction
+        Quantum loop pattern validation
+        
+        VALIDATION REQUIREMENTS:
+        1. Forward analysis confidence
+        2. Backward analysis verification
+        3. Regime alignment check
+        4. Market condition validation
+        
+        Returns: Complete validation metrics
         """
-        # Forward pass - analyze pattern as is
+        # Forward pass analysis
         forward_results = self.quantum_optimizer.analyze_pattern(pattern_data)
         
-        # Backward pass - analyze pattern in reverse to verify robustness
+        # Backward pass verification
         backward_data = np.flip(pattern_data.copy(), axis=0)
         backward_results = self.quantum_optimizer.analyze_pattern(backward_data)
         
-        # Cross-validation - compare forward and backward analysis
+        # STRICT: Validation metrics
         confidence_alignment = 1 - abs(forward_results['confidence'] - backward_results['confidence'])
         regime_alignment = (forward_results['regime'] * -backward_results['regime']) > 0
         
-        # Prepare validation results
         validation_results = {
             'pattern_name': pattern_name,
             'pair': pair,
@@ -204,7 +258,14 @@ class ContinuousBacktester:
         return validation_results
             
     def _wait_for_recovery(self, timeout: int = 300):
-        """Wait for system recovery with timeout"""
+        """
+        Wait for system recovery with timeout
+        
+        STRICT RULES:
+        - Maximum 5-minute wait
+        - Must verify system health
+        - Log all recovery attempts
+        """
         import time
         start_time = time.time()
         while time.time() - start_time < timeout:
@@ -214,9 +275,15 @@ class ContinuousBacktester:
         return False
 
     def _extract_pattern_data(self, pattern) -> np.ndarray:
-        """Extract pattern data in the correct format for quantum analysis"""
+        """
+        Extract pattern data for quantum analysis
+        
+        REQUIRED FEATURES:
+        - OHLCV data
+        - Proper normalization
+        - Verified data quality
+        """
         try:
-            # Convert pattern features to numpy array
             pattern_features = [
                 pattern.open_prices,
                 pattern.high_prices,
@@ -231,7 +298,15 @@ class ContinuousBacktester:
             return np.array([])
 
     def _get_current_market_conditions(self) -> Dict:
-        """Get current market conditions"""
+        """
+        Get current market conditions snapshot
+        
+        TRACKED METRICS:
+        - Volatility levels
+        - Market regime
+        - Volume profile
+        - Temporal factors
+        """
         try:
             return {
                 'volatility': self.freqai.get_market_volatility(),
@@ -244,7 +319,15 @@ class ContinuousBacktester:
             return {}
 
     def _save_winning_strategy(self):
-        """Save the successful strategy configuration"""
+        """
+        Save successful strategy configuration
+        
+        REQUIRED DATA:
+        - Winning patterns
+        - Model parameters
+        - Market conditions
+        - Validation results
+        """
         winning_config = {
             'patterns': self.freqai.get_optimal_patterns(),
             'model_params': self.freqai.get_model_params(),

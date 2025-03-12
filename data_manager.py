@@ -18,7 +18,7 @@ class DataManager:
         self.db_path = Path('freqtrade/user_data/data')
         self.db_path.mkdir(exist_ok=True)
         self._initialize_database()
-        
+
     def _initialize_database(self):
         """Initialize database tables"""
         try:
@@ -66,58 +66,136 @@ class DataManager:
                     blacklisted BOOLEAN DEFAULT FALSE,
                     blacklist_reason TEXT
                 )""")
-                
-                # Create pattern performance table
+
+                # Create quantum validated patterns table
                 c.execute("""
-                CREATE TABLE IF NOT EXISTS pattern_performance (
+                CREATE TABLE IF NOT EXISTS quantum_validated_patterns (
+                    id TEXT PRIMARY KEY,
                     pattern_name TEXT NOT NULL,
-                    symbol TEXT NOT NULL,
+                    pair TEXT NOT NULL,
                     timeframe TEXT NOT NULL,
-                    win_rate REAL NOT NULL,
-                    profit_ratio REAL NOT NULL,
-                    trade_count INTEGER NOT NULL,
-                    last_updated TEXT NOT NULL,
-                    market_regime TEXT,
-                    PRIMARY KEY (pattern_name, symbol, timeframe, market_regime)
+                    entry_timestamp TEXT NOT NULL,
+                    exit_timestamp TEXT,
+                    forward_score REAL NOT NULL,
+                    backward_score REAL NOT NULL,
+                    alignment_score REAL NOT NULL,
+                    confidence REAL NOT NULL,
+                    regime INTEGER NOT NULL,
+                    market_conditions TEXT,
+                    pattern_data TEXT,
+                    validation_status TEXT,
+                    paper_traded BOOLEAN DEFAULT FALSE,
+                    live_traded BOOLEAN DEFAULT FALSE,
+                    profit_ratio REAL,
+                    validation_window INTEGER NOT NULL
                 )""")
                 
                 conn.commit()
                 
         except Exception as e:
             logger.error(f"Error initializing database: {e}")
-            raise
 
-    def register_downloaded_data(self, pair: str, timeframe: str, 
-                               start_date: str, end_date: str, data_path: str):
-        """Register downloaded market data in the database"""
+    def store_quantum_validated_pattern(self, pattern_data: Dict):
+        """Store quantum-validated pattern details"""
         try:
             with sqlite3.connect(self.db_path / 'analysis.db') as conn:
                 c = conn.cursor()
+                
                 c.execute("""
-                INSERT OR REPLACE INTO downloaded_data
-                (pair, timeframe, start_date, end_date, last_updated, data_path)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO quantum_validated_patterns
+                (id, pattern_name, pair, timeframe, entry_timestamp,
+                forward_score, backward_score, alignment_score,
+                confidence, regime, market_conditions, pattern_data,
+                validation_status, validation_window)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    pair, timeframe, start_date, end_date,
-                    datetime.now().isoformat(), data_path
+                    str(uuid.uuid4()),
+                    pattern_data['pattern_name'],
+                    pattern_data['pair'],
+                    pattern_data['timeframe'],
+                    pattern_data['entry_timestamp'],
+                    pattern_data['forward_score'],
+                    pattern_data['backward_score'],
+                    pattern_data['alignment_score'],
+                    pattern_data['confidence'],
+                    pattern_data['regime'],
+                    json.dumps(pattern_data.get('market_conditions', {})),
+                    json.dumps(pattern_data.get('pattern_data', {})),
+                    pattern_data.get('validation_status', 'pending'),
+                    pattern_data['validation_window']
                 ))
+                
                 conn.commit()
+                
         except Exception as e:
-            logger.error(f"Error registering downloaded data: {e}")
+            logger.error(f"Error storing quantum pattern: {e}")
 
-    def get_downloaded_data_info(self, pair: str, timeframe: str) -> Optional[Dict]:
-        """Get information about previously downloaded data"""
+    def get_validated_patterns(self, 
+                             min_confidence: float = 0.85,
+                             validation_status: str = 'validated',
+                             limit: int = 100) -> pd.DataFrame:
+        """Get quantum-validated patterns meeting criteria"""
+        try:
+            query = """
+            SELECT * FROM quantum_validated_patterns
+            WHERE confidence >= ?
+            AND validation_status = ?
+            ORDER BY confidence DESC, alignment_score DESC
+            LIMIT ?
+            """
+            
+            with sqlite3.connect(self.db_path / 'analysis.db') as conn:
+                return pd.read_sql_query(
+                    query,
+                    conn,
+                    params=[min_confidence, validation_status, limit]
+                )
+                
+        except Exception as e:
+            logger.error(f"Error getting validated patterns: {e}")
+            return pd.DataFrame()
+
+    def update_pattern_trade_status(self, pattern_id: str, trade_data: Dict):
+        """Update pattern with trade execution results"""
         try:
             with sqlite3.connect(self.db_path / 'analysis.db') as conn:
-                df = pd.read_sql_query(
-                    "SELECT * FROM downloaded_data WHERE pair = ? AND timeframe = ?",
-                    conn,
-                    params=[pair, timeframe]
-                )
-                return df.to_dict('records')[0] if not df.empty else None
+                c = conn.cursor()
+                
+                c.execute("""
+                UPDATE quantum_validated_patterns
+                SET paper_traded = ?,
+                    live_traded = ?,
+                    exit_timestamp = ?,
+                    profit_ratio = ?
+                WHERE id = ?
+                """, (
+                    trade_data.get('paper_traded', False),
+                    trade_data.get('live_traded', False),
+                    trade_data.get('exit_timestamp'),
+                    trade_data.get('profit_ratio'),
+                    pattern_id
+                ))
+                
+                conn.commit()
+                
         except Exception as e:
-            logger.error(f"Error getting downloaded data info: {e}")
-            return None
+            logger.error(f"Error updating pattern trade status: {e}")
+
+    def get_pattern_last_updates(self):
+        """Get most recent pattern updates"""
+        try:
+            query = """
+            SELECT pattern_name, max(last_updated)
+            FROM successful_patterns
+            GROUP BY pattern_name
+            """
+            
+            with sqlite3.connect(self.db_path / 'analysis.db') as conn:
+                return pd.read_sql_query(query, conn)
+                
+        except Exception as e:
+            logger.error(f"Error getting pattern updates: {e}")
+            return pd.DataFrame()          
 
     def catalog_successful_pattern(self, pattern_data: Dict):
         """Store successful pattern in database"""

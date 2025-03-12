@@ -1,10 +1,25 @@
 # AlgoTradePro5: AI-Driven Trading Application
 
+## Rule 1
+
+Commit and push changes to feature branches every milestone, i.e. refactoring, new component, verified core component fix, test successes.
+
+Keep the time between commits short as not to lose context.
+
+## Rule 2
+
+Keep workspace clean! 
+
+Always clear up after your changes, redundant files to be deleted (after a commit only), structure files and code cleanly in folders, ensure integration at all times, any unintegrated files are considered rogue and to be removed.
+
 ## 1. Overview
 
 AlgoTradePro5 is an AI-driven cryptocurrency trading system built on the FreqTrade framework. Its primary objective is to transform an initial £10 investment into £1000 within one week. This is achieved through continuous AI-powered strategy refinement, machine learning (ML), large language models (LLMs), and rigorous quantum loop backtesting.
 
 **Audience:** GitHub Copilot will act as the sole developer, responsible for creating, maintaining, and updating this system. All processes, changes, and documentation updates are to be automated where possible.
+
+### Commands:
+All commands should use Powershell by default, we are running Windows 11 as the host system, be mindful of this
 
 ---
 

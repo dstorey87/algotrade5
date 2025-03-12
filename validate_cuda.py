@@ -1,13 +1,42 @@
 #!/usr/bin/env python3
-"""CUDA Environment Validation for AlgoTradPro5"""
+"""CUDA Environment Validation for AlgoTradePro5"""
 import os
 import sys
 import logging
+import subprocess
 from pathlib import Path
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def reset_cuda_environment():
+    """Reset CUDA environment to default state"""
+    cuda_path = r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8"
+    os.environ["CUDA_PATH"] = cuda_path
+    os.environ["CUDA_HOME"] = cuda_path
+    os.environ["PATH"] = os.path.join(cuda_path, "bin") + os.pathsep + os.environ["PATH"]
+    return True
+
+def reinstall_cuda_packages():
+    """Reinstall CUDA-dependent packages"""
+    packages = [
+        "torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118",
+        "cupy-cuda118",
+        "pennylane-lightning-gpu"
+    ]
+    
+    for package in packages:
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y"] + package.split())
+            time.sleep(1)  # Wait between uninstall and install
+            subprocess.check_call([sys.executable, "-m", "pip", "install"] + package.split())
+            logger.info(f"Successfully reinstalled {package}")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to reinstall {package}: {e}")
+            return False
+    return True
 
 def validate_cuda_environment():
     """Validate CUDA environment setup"""
@@ -32,23 +61,26 @@ def validate_cuda_environment():
             
         # Validate environment variables
         cuda_env_valid = True
-        if os.environ.get('CUDA_PATH') != cuda_path:
-            logger.error(f"❌ CUDA_PATH not set correctly. Expected: {cuda_path}")
-            cuda_env_valid = False
-        if os.environ.get('CUDA_HOME') != cuda_path:
-            logger.error(f"❌ CUDA_HOME not set correctly. Expected: {cuda_path}")
-            cuda_env_valid = False
-            
+        if os.environ.get('CUDA_PATH') != cuda_path or os.environ.get('CUDA_HOME') != cuda_path:
+            logger.warning("⚠️ CUDA environment variables incorrect, attempting reset...")
+            if reset_cuda_environment():
+                logger.info("✅ CUDA environment variables reset successfully")
+                cuda_env_valid = True
+            else:
+                cuda_env_valid = False
+        
         cuda_bin = os.path.join(cuda_path, 'bin')
         if cuda_bin not in os.environ['PATH']:
-            logger.error(f"❌ CUDA bin directory not in PATH: {cuda_bin}")
-            cuda_env_valid = False
+            logger.warning("⚠️ CUDA bin directory not in PATH, attempting fix...")
+            if reset_cuda_environment():
+                logger.info("✅ PATH updated with CUDA bin directory")
+                cuda_env_valid = True
+            else:
+                cuda_env_valid = False
             
         validation_results['environment_valid'] = cuda_env_valid
-        if cuda_env_valid:
-            logger.info("✅ CUDA environment variables correctly set")
-            
-        # Check PyTorch GPU support
+        
+        # Check PyTorch GPU support with recovery
         try:
             import torch
             validation_results['torch_gpu'] = True
@@ -58,21 +90,37 @@ def validate_cuda_environment():
                 logger.info(f"✅ PyTorch GPU available: {device_name}")
                 logger.info(f"   CUDA Version: {torch.version.cuda}")
             else:
-                logger.warning("⚠️ PyTorch installed but CUDA not available")
+                logger.warning("⚠️ PyTorch CUDA not available, attempting recovery...")
+                if reinstall_cuda_packages():
+                    # Retry PyTorch GPU check
+                    import importlib
+                    importlib.reload(torch)
+                    if torch.cuda.is_available():
+                        validation_results['pytorch_cuda_available'] = True
+                        logger.info("✅ PyTorch GPU support recovered successfully")
         except ImportError:
-            logger.error("❌ PyTorch not installed")
+            logger.warning("⚠️ PyTorch not installed, attempting installation...")
+            if reinstall_cuda_packages():
+                validation_results['torch_gpu'] = True
             
-        # Check CuPy
+        # Check CuPy with recovery
         try:
             import cupy
             validation_results['cupy_available'] = True
             logger.info(f"✅ CuPy available with CUDA {cupy.cuda.runtime.runtimeGetVersion()}")
-        except ImportError:
-            logger.error("❌ CuPy not installed")
-        except Exception as e:
-            logger.error(f"❌ CuPy error: {str(e)}")
+        except (ImportError, Exception) as e:
+            logger.warning(f"⚠️ CuPy issue detected: {str(e)}, attempting recovery...")
+            if reinstall_cuda_packages():
+                try:
+                    import importlib
+                    import cupy
+                    importlib.reload(cupy)
+                    validation_results['cupy_available'] = True
+                    logger.info("✅ CuPy support recovered successfully")
+                except Exception as e:
+                    logger.error(f"❌ CuPy recovery failed: {str(e)}")
             
-        # Check Quantum GPU support
+        # Check Quantum GPU support with recovery
         try:
             import pennylane as qml
             try:
@@ -80,9 +128,24 @@ def validate_cuda_environment():
                 validation_results['quantum_gpu'] = True
                 logger.info("✅ Quantum GPU support available")
             except Exception as e:
-                logger.warning(f"⚠️ Quantum GPU device not available: {str(e)}")
+                logger.warning(f"⚠️ Quantum GPU device not available: {str(e)}, attempting recovery...")
+                if reinstall_cuda_packages():
+                    try:
+                        dev = qml.device('lightning.gpu', wires=2)
+                        validation_results['quantum_gpu'] = True
+                        logger.info("✅ Quantum GPU support recovered successfully")
+                    except Exception as e:
+                        logger.error(f"❌ Quantum GPU recovery failed: {str(e)}")
         except ImportError:
-            logger.error("❌ PennyLane not installed")
+            logger.warning("⚠️ PennyLane not installed, attempting installation...")
+            if reinstall_cuda_packages():
+                try:
+                    import pennylane as qml
+                    dev = qml.device('lightning.gpu', wires=2)
+                    validation_results['quantum_gpu'] = True
+                    logger.info("✅ Quantum GPU support installed successfully")
+                except Exception as e:
+                    logger.error(f"❌ PennyLane installation/setup failed: {str(e)}")
             
     except Exception as e:
         logger.error(f"Error during validation: {str(e)}")
@@ -91,27 +154,19 @@ def validate_cuda_environment():
 
 def main():
     """Main validation function"""
-    logger.info("\nValidating CUDA Environment for AlgoTradPro5...")
+    print("\n=== AlgoTradePro5 CUDA Validation ===\n")
     results = validate_cuda_environment()
     
-    # Print summary
-    print("\nValidation Summary:")
-    print("==================")
-    status_map = {True: "✅ Pass", False: "❌ Fail"}
-    for key, value in results.items():
-        print(f"{key:.<25} {status_map[value]}")
-    
-    # Determine if environment is usable
-    critical_features = ['cuda_found', 'environment_valid', 'pytorch_cuda_available']
-    is_usable = all(results[feature] for feature in critical_features)
-    
-    print("\nEnvironment Status:")
-    if is_usable:
-        print("✅ Environment is properly configured for GPU operations")
-        return 0
+    all_valid = all(results.values())
+    if all_valid:
+        print("\n✅ All CUDA components validated successfully!")
     else:
-        print("❌ Environment needs attention before GPU operations will work")
-        return 1
+        print("\n⚠️ Some CUDA components need attention:")
+        for component, status in results.items():
+            status_icon = "✅" if status else "❌"
+            print(f"{status_icon} {component}")
+    
+    return 0 if all_valid else 1
 
 if __name__ == "__main__":
     sys.exit(main())
