@@ -18,6 +18,8 @@ ENV/
 # Dependencies
 node_modules/
 package-lock.json
+dependencies/
+dependencies/**/*
 
 # Sensitive Data and Credentials
 **/secrets/
