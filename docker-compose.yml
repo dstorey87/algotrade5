@@ -1,0 +1,38 @@
+version: '3'
+services:
+  freqtrade:
+    image: freqtradeorg/freqtrade:stable
+    restart: unless-stopped
+    container_name: freqtrade
+    volumes:
+      - ./config.json:/freqtrade/config.json
+      - ./models:/freqtrade/models
+      - ./strategies:/freqtrade/strategies
+      - ./user_data:/freqtrade/user_data
+    env_file:
+      - .env
+
+  db:
+    image: postgres:14
+    container_name: algotrade_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT}:5432"
+
+  monitoring:
+    build: 
+      context: ./monitoring
+    container_name: algotrade_monitoring
+    depends_on:
+      - db
+      - freqtrade
+    volumes:
+      - ./trade_logs:/app/logs
+    env_file:
+      - .env

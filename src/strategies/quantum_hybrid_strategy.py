@@ -83,14 +83,7 @@ class QuantumHybridStrategy(IStrategy):
     startup_candle_count = 30
 
     def __init__(self, config: Dict[str, Any]) -> None:
-        """
-        Initialize strategy with quantum and AI components
-        
-        REQUIRED COMPONENTS:
-        - Quantum optimizer with GPU acceleration
-        - AI model manager for pattern recognition
-        - Validation tracker for quantum loop testing
-        """
+        """Initialize strategy with quantum and AI components"""
         super().__init__(config)
         
         # Initialize quantum optimizer
@@ -108,8 +101,12 @@ class QuantumHybridStrategy(IStrategy):
         self.min_validation_confidence = 0.85  # LOCKED: 85% minimum confidence
         self.validation_window = 12  # Required window for pattern validation
         
+        # TODO: Implement adaptive validation window based on volatility
+        # TODO: Add correlation analysis between validated patterns
+        # TODO: Develop pattern catalog for reuse of validated setups
+        
         logger.info("Quantum Hybrid Strategy initialized with strict constraints")
-
+        
     def validate_pattern_quantum_loop(self, pattern_data: np.ndarray) -> Dict[str, Any]:
         """
         Quantum loop validation of trading patterns
@@ -133,8 +130,10 @@ class QuantumHybridStrategy(IStrategy):
         confidence_alignment = 1 - abs(forward_results['confidence'] - backward_results['confidence'])
         regime_alignment = (forward_results['regime'] * -backward_results['regime']) > 0
         
-        # TODO: Add quantum decoherence check
-        # TODO: Implement pattern entropy analysis
+        # TODO: Add quantum decoherence analysis
+        # TODO: Implement entropy-based pattern stability check
+        # TODO: Add market regime transition detection
+        # TODO: Incorporate volume profile in validation
         
         return {
             'pattern_validated': confidence_alignment > 0.8 and regime_alignment,

@@ -28,6 +28,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
+from config_manager import get_config
+
 logger = logging.getLogger(__name__)
 
 class DataManager:
@@ -51,12 +53,10 @@ class DataManager:
         - Index optimization
         - Backup procedures
         """
-        self.data_path = Path("data")
+        config = get_config()
+        self.data_path = Path(config['data_path'])
         self.analysis_db = self.data_path / "analysis.db"
         self.trading_db = self.data_path / "trading.db"
-        
-        # Ensure data directory exists
-        self.data_path.mkdir(exist_ok=True)
         
         # Initialize databases
         self._initialize_databases()
@@ -128,6 +128,12 @@ class DataManager:
                     parameters TEXT
                 )""")
                 
+                # Create index for quantum loop queries
+                c.execute("""
+                CREATE INDEX IF NOT EXISTS idx_quantum_strategy 
+                ON quantum_loop_results(strategy_id, timestamp)
+                """)
+                
             # Trading database
             with sqlite3.connect(self.trading_db) as conn:
                 c = conn.cursor()
@@ -170,15 +176,7 @@ class DataManager:
             raise
             
     def store_validated_pattern(self, pattern_data: Dict) -> bool:
-        """
-        Store quantum-validated pattern
-        
-        REQUIRED DATA:
-        - Pattern metrics
-        - Validation status
-        - Market conditions
-        - Performance data
-        """
+        """Store validated pattern with full tracking"""
         try:
             with sqlite3.connect(self.analysis_db) as conn:
                 c = conn.cursor()
@@ -201,8 +199,8 @@ class DataManager:
                     pattern_data['alignment_score'],
                     pattern_data['confidence'],
                     pattern_data['regime'],
-                    str(pattern_data.get('market_conditions', {})),
-                    str(pattern_data.get('pattern_data', [])),
+                    pattern_data.get('market_conditions', '{}'),
+                    pattern_data.get('pattern_data', '{}'),
                     pattern_data['validation_status'],
                     pattern_data['validation_window']
                 ))
@@ -217,28 +215,21 @@ class DataManager:
                              min_confidence: float = 0.85,
                              validation_status: str = 'validated',
                              limit: int = 100) -> pd.DataFrame:
-        """
-        Retrieve validated patterns meeting criteria
-        
-        FILTERS:
-        - Minimum confidence
-        - Validation status
-        - Recent patterns
-        """
+        """Get validated patterns matching criteria"""
         try:
-            query = """
-            SELECT * FROM validated_patterns
-            WHERE confidence >= ?
-            AND validation_status = ?
-            ORDER BY entry_timestamp DESC
-            LIMIT ?
-            """
-            
             with sqlite3.connect(self.analysis_db) as conn:
+                query = f"""
+                SELECT * FROM validated_patterns
+                WHERE confidence >= ?
+                AND validation_status = ?
+                ORDER BY entry_timestamp DESC
+                LIMIT ?
+                """
+                
                 return pd.read_sql_query(
-                    query,
+                    query, 
                     conn,
-                    params=[min_confidence, validation_status, limit]
+                    params=(min_confidence, validation_status, limit)
                 )
                 
         except Exception as e:
@@ -246,15 +237,7 @@ class DataManager:
             return pd.DataFrame()
             
     def store_performance_metrics(self, metrics: Dict) -> bool:
-        """
-        Store system performance metrics
-        
-        METRICS:
-        - Win rate
-        - Pattern confidence
-        - System health
-        - Resource usage
-        """
+        """Store system performance metrics"""
         try:
             with sqlite3.connect(self.analysis_db) as conn:
                 c = conn.cursor()
@@ -283,43 +266,23 @@ class DataManager:
             return False
             
     def get_performance_history(self, days: int = 7) -> pd.DataFrame:
-        """
-        Get historical performance data
-        
-        INCLUDES:
-        - Win rate trends
-        - Pattern confidence
-        - System metrics
-        - Resource usage
-        """
+        """Get historical performance metrics"""
         try:
-            query = """
-            SELECT * FROM performance_metrics
-            WHERE timestamp >= datetime('now', ?)
-            ORDER BY timestamp DESC
-            """
-            
             with sqlite3.connect(self.analysis_db) as conn:
-                return pd.read_sql_query(
-                    query,
-                    conn,
-                    params=[f"-{days} days"]
-                )
+                query = f"""
+                SELECT * FROM performance_metrics
+                WHERE datetime(timestamp) >= datetime('now', '-{days} days')
+                ORDER BY timestamp DESC
+                """
+                
+                return pd.read_sql_query(query, conn)
                 
         except Exception as e:
             logger.error(f"Error retrieving performance history: {e}")
             return pd.DataFrame()
             
     def store_trade(self, trade_data: Dict) -> bool:
-        """
-        Store trade details with validation
-        
-        REQUIRED DATA:
-        - Trade parameters
-        - Performance metrics
-        - Validation status
-        - Pattern reference
-        """
+        """Store trade details with validation"""
         try:
             with sqlite3.connect(self.trading_db) as conn:
                 c = conn.cursor()
@@ -349,14 +312,7 @@ class DataManager:
             return False
             
     def update_trade(self, trade_id: str, exit_data: Dict) -> bool:
-        """
-        Update trade with exit information
-        
-        UPDATES:
-        - Exit price/time
-        - Profit calculation
-        - Performance metrics
-        """
+        """Update trade with exit information"""
         try:
             with sqlite3.connect(self.trading_db) as conn:
                 c = conn.cursor()
@@ -381,50 +337,80 @@ class DataManager:
             return False
             
     def get_trade_history(self, days: int = 7, trade_type: str = 'all') -> pd.DataFrame:
-        """
-        Get historical trade data
-        
-        FILTERS:
-        - Time period
-        - Trade type
-        - Performance metrics
-        """
+        """Get trading history with filters"""
         try:
-            query = """
-            SELECT * FROM trades
-            WHERE entry_time >= datetime('now', ?)
-            """
-            
-            if trade_type != 'all':
-                query += " AND trade_type = ?"
-                params = [f"-{days} days", trade_type]
-            else:
-                params = [f"-{days} days"]
-                
-            query += " ORDER BY entry_time DESC"
-            
             with sqlite3.connect(self.trading_db) as conn:
-                return pd.read_sql_query(query, conn, params=params)
+                query = f"""
+                SELECT * FROM trades
+                WHERE datetime(entry_time) >= datetime('now', '-{days} days')
+                """
+                
+                if trade_type != 'all':
+                    query += f" AND trade_type = '{trade_type}'"
+                    
+                query += " ORDER BY entry_time DESC"
+                
+                return pd.read_sql_query(query, conn)
                 
         except Exception as e:
             logger.error(f"Error retrieving trade history: {e}")
             return pd.DataFrame()
             
-    def calculate_win_rate(self, days: int = 7) -> float:
-        """
-        Calculate win rate from trade history
-        
-        CRITICAL METRIC:
-        - Must maintain 85% or higher
-        """
-        try:
-            trades = self.get_trade_history(days=days)
-            if trades.empty:
-                return 0.0
-                
-            winning_trades = trades[trades['profit_ratio'] > 0]
-            return len(winning_trades) / len(trades)
+    def initialize_quantum_tables(self):
+        """Initialize quantum loop tracking tables"""
+        with self.connection() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS quantum_loop_results (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    strategy_id TEXT,
+                    loop_iteration INTEGER,
+                    universe_branch TEXT,
+                    win_rate REAL,
+                    profit_factor REAL,
+                    sharpe_ratio REAL,
+                    sortino_ratio REAL,
+                    max_drawdown REAL,
+                    trade_count INTEGER,
+                    branch_probability REAL,
+                    convergence_score REAL,
+                    validation_status TEXT
+                )
+            """)
             
-        except Exception as e:
-            logger.error(f"Error calculating win rate: {e}")
-            return 0.0
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS quantum_strategy_evolution (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    parent_strategy_id TEXT,
+                    evolved_strategy_id TEXT,
+                    evolution_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    improvement_metrics JSON,
+                    validation_status TEXT
+                )
+            """)
+    
+    def log_quantum_result(self, result_data):
+        """Log individual quantum loop iteration results"""
+        with self.connection() as conn:
+            conn.execute("""
+                INSERT INTO quantum_loop_results (
+                    strategy_id, loop_iteration, universe_branch,
+                    win_rate, profit_factor, sharpe_ratio,
+                    sortino_ratio, max_drawdown, trade_count,
+                    branch_probability, convergence_score,
+                    validation_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                result_data['strategy_id'],
+                result_data['iteration'],
+                result_data['branch'],
+                result_data['win_rate'],
+                result_data['profit_factor'],
+                result_data['sharpe_ratio'],
+                result_data['sortino_ratio'],
+                result_data['max_drawdown'],
+                result_data['trade_count'],
+                result_data['probability'],
+                result_data['convergence'],
+                'validated' if result_data['win_rate'] >= 0.85 else 'rejected'
+            ))

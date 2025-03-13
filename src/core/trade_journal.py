@@ -418,6 +418,44 @@ class TradeJournal:
             logger.error(f"Error retrieving trade: {e}")
             return None
             
+    def calculate_risk_adjusted_returns(self, window_days: int = 7) -> float:
+        """Calculate Sharpe-like ratio for risk-adjusted returns"""
+        try:
+            with sqlite3.connect('data/journal.db') as conn:
+                df = pd.read_sql_query(
+                    """
+                    SELECT daily_profit 
+                    FROM performance_metrics 
+                    WHERE timestamp >= date('now', ?)
+                    """, 
+                    conn,
+                    params=(f'-{window_days} days',)
+                )
+                if len(df) < 2:
+                    return 0.0
+                return df['daily_profit'].mean() / df['daily_profit'].std()
+        except Exception as e:
+            logger.error(f"Error calculating risk-adjusted returns: {e}")
+            return 0.0
+
+    def analyze_pattern_correlations(self) -> Dict[str, float]:
+        """Analyze success rate of different trading patterns"""
+        try:
+            with sqlite3.connect('data/journal.db') as conn:
+                df = pd.read_sql_query(
+                    """
+                    SELECT pattern_id, validation_status 
+                    FROM trade_records 
+                    WHERE pattern_id IS NOT NULL
+                    """, 
+                    conn
+                )
+                pattern_success = df.groupby('pattern_id')['validation_status'].mean()
+                return pattern_success.to_dict()
+        except Exception as e:
+            logger.error(f"Error analyzing pattern correlations: {e}")
+            return {}
+
     def get_performance_report(self) -> Dict:
         """
         Generate comprehensive performance report
@@ -428,7 +466,7 @@ class TradeJournal:
         3. Risk analysis
         4. Time remaining
         """
-        return {
+        report = {
             'current_capital': self.get_current_capital(),
             'win_rate': self.calculate_win_rate(),
             'growth_progress': self.calculate_growth_progress(),
@@ -436,8 +474,12 @@ class TradeJournal:
             'validated_patterns': self.count_validated_patterns(),
             'daily_profit': self.calculate_daily_profit(),
             'time_remaining': self.calculate_time_remaining(),
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'risk_adjusted_returns': self.calculate_risk_adjusted_returns(),
+            'pattern_correlations': self.analyze_pattern_correlations(),
+            'rolling_win_rate': self.calculate_win_rate(days=3),  # 3-day rolling window
         }
+        return report
         
     def count_validated_patterns(self) -> int:
         """Count validated trading patterns"""
