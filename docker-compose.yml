@@ -1,4 +1,3 @@
-version: '3'
 services:
   freqtrade:
     build:
@@ -7,26 +6,19 @@ services:
     restart: unless-stopped
     container_name: freqtrade
     ports:
-      - "8080:8080"
+      - "8080:8080"  # API port
+      - "9999:9999"  # WebUI port (optional)
     volumes:
       - "./user_data:/freqtrade/user_data"
       - "./src:/freqtrade/src"
+      - "./src/quantum:/freqtrade/user_data/strategies/quantum"
+      - "./src/core:/freqtrade/user_data/strategies/core"
       - "./models:/freqtrade/models"
-      - "./dependencies:/freqtrade/dependencies"
       - "./data:/freqtrade/data"
-      # Mount pip cache directory to persist packages
-      - "pip-cache:/root/.cache/pip"
     environment:
       - PYTHONPATH=/freqtrade/src:/freqtrade/user_data/strategies
     command: >
       trade
       --strategy QuantumHybridStrategy
       --config /freqtrade/user_data/config.json
-    entrypoint: >
-      /bin/sh -c "
-      python -c 'from src.core.dependency_manager import DependencyManager; DependencyManager().ensure_dependencies()' &&
-      freqtrade trade --strategy QuantumHybridStrategy --config /freqtrade/user_data/config.json"
-
-volumes:
-  pip-cache:
-    driver: local
+      --db-url sqlite:///data/tradesv3.sqlite
