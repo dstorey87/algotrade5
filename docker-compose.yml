@@ -1,38 +1,32 @@
 version: '3'
 services:
   freqtrade:
-    image: freqtradeorg/freqtrade:stable
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     container_name: freqtrade
-    volumes:
-      - ./config.json:/freqtrade/config.json
-      - ./models:/freqtrade/models
-      - ./strategies:/freqtrade/strategies
-      - ./user_data:/freqtrade/user_data
-    env_file:
-      - .env
-
-  db:
-    image: postgres:14
-    container_name: algotrade_db
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - ./data:/var/lib/postgresql/data
     ports:
-      - "${DB_PORT}:5432"
-
-  monitoring:
-    build: 
-      context: ./monitoring
-    container_name: algotrade_monitoring
-    depends_on:
-      - db
-      - freqtrade
+      - "8080:8080"
     volumes:
-      - ./trade_logs:/app/logs
-    env_file:
-      - .env
+      - "./user_data:/freqtrade/user_data"
+      - "./src:/freqtrade/src"
+      - "./models:/freqtrade/models"
+      - "./dependencies:/freqtrade/dependencies"
+      - "./data:/freqtrade/data"
+      # Mount pip cache directory to persist packages
+      - "pip-cache:/root/.cache/pip"
+    environment:
+      - PYTHONPATH=/freqtrade/src:/freqtrade/user_data/strategies
+    command: >
+      trade
+      --strategy QuantumHybridStrategy
+      --config /freqtrade/user_data/config.json
+    entrypoint: >
+      /bin/sh -c "
+      python -c 'from src.core.dependency_manager import DependencyManager; DependencyManager().ensure_dependencies()' &&
+      freqtrade trade --strategy QuantumHybridStrategy --config /freqtrade/user_data/config.json"
+
+volumes:
+  pip-cache:
+    driver: local

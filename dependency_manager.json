@@ -1,0 +1,38 @@
+{
+    "cache_version": "1.0.0",
+    "last_update": "2024-03-14",
+    "package_groups": {
+        "core": {
+            "pandas": "2.2.3",
+            "numpy": "2.2.3",
+            "scipy": "1.15.2",
+            "scikit-learn": "1.6.1"
+        },
+        "quantum": {
+            "pennylane": "0.40.0",
+            "qiskit": "1.4.1",
+            "cupy-cuda12x": "13.4.0"
+        },
+        "ml": {
+            "torch": "2.6.0",
+            "transformers": "4.49.0",
+            "safetensors": "0.5.3",
+            "accelerate": "1.5.1"
+        }
+    },
+    "cache_paths": {
+        "site-packages": "dependencies/site-packages",
+        "wheels": "dependencies/wheels",
+        "checkpoints": "dependencies/checkpoints"
+    },
+    "build_context": {
+        "max_size_gb": 2,
+        "cleanup_trigger_gb": 1.5,
+        "exclude_patterns": [
+            "**/__pycache__",
+            "**/*.pyc",
+            "**/test*",
+            "**/docs"
+        ]
+    }
+}
