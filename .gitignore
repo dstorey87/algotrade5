@@ -1,8 +1,18 @@
 # Python
 __pycache__/
+*/__pycache__/
+*/*/__pycache__/
 *.py[cod]
 *$py.class
 *.so
+
+# FreqTrade - only track our custom files
+user_data/*
+!user_data/strategies/
+!user_data/strategies/**/*
+!user_data/hyperopts/
+user_data/strategies/**/__pycache__/
+user_data/strategies/**/*.pyc
 
 # Distribution / packaging
 dist/
@@ -37,12 +47,6 @@ dependencies/**/*
 **/adapter_config.json
 **/generation_config.json
 **/quantize_config.json
-
-# FreqTrade - only track our custom files
-freqtrade/*
-!freqtrade/config-algotradpro5.json
-!freqtrade/user_data/strategies/
-!freqtrade/user_data/hyperopts/
 
 # Data, logs and databases
 *.sqlite*
