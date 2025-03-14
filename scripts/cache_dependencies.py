@@ -1,79 +1,45 @@
 #!/usr/bin/env python3
-"""
-Dependency Cache Manager
-=====================
-
-Handles downloading and caching of Python packages for Docker builds.
-Ensures packages are downloaded only once and stored locally.
-"""
-
 import os
-import sys
 import subprocess
-from pathlib import Path
+import sys
 import shutil
-import json
-import logging
+from pathlib import Path
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+def ensure_dir(path):
+    Path(path).mkdir(parents=True, exist_ok=True)
 
-class DependencyCacheManager:
-    def __init__(self):
-        self.project_root = Path(__file__).parent.parent
-        self.cache_dir = self.project_root / "dependencies" / "site-packages"
-        self.requirements_files = [
-            "requirements.txt",
-            "requirements-quantum.txt",
-            "requirements-llm.txt"
-        ]
-        self.cache_index = self.project_root / "dependency_cache.json"
-        
-    def ensure_cache_dir(self):
-        """Ensure cache directory exists"""
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        
-    def get_cached_packages(self):
-        """Get list of currently cached packages"""
-        if self.cache_index.exists():
-            with open(self.cache_index) as f:
-                return json.load(f)
-        return {}
-        
-    def cache_packages(self):
-        """Download and cache all required packages"""
-        self.ensure_cache_dir()
-        cached = self.get_cached_packages()
-        
-        for req_file in self.requirements_files:
-            req_path = self.project_root / req_file
-            if not req_path.exists():
+def download_dependencies():
+    base_dir = Path(__file__).parent.parent
+    deps_dir = base_dir / 'dependencies' / 'site-packages'
+    
+    # Ensure directories exist
+    ensure_dir(deps_dir)
+    
+    # List of requirements files to process
+    req_files = [
+        'requirements.txt',
+        'requirements-quantum.txt',
+        'requirements-llm.txt'
+    ]
+    
+    for req_file in req_files:
+        req_path = base_dir / req_file
+        if req_path.exists():
+            print(f"Processing {req_file}...")
+            
+            # Download packages to local directory
+            cmd = [
+                sys.executable, '-m', 'pip', 'download',
+                '--dest', str(deps_dir),
+                '-r', str(req_path)
+            ]
+            
+            try:
+                subprocess.run(cmd, check=True)
+                print(f"Successfully downloaded dependencies from {req_file}")
+            except subprocess.CalledProcessError as e:
+                print(f"Error downloading dependencies from {req_file}: {e}")
                 continue
-                
-            logger.info(f"Processing {req_file}")
-            subprocess.run([
-                sys.executable, "-m", "pip", "install",
-                "-t", str(self.cache_dir),
-                "-r", str(req_path)
-            ], check=True)
-            
-            # Update cache index
-            with open(req_path) as f:
-                for line in f:
-                    if line.strip() and not line.startswith("#"):
-                        package = line.split("==")[0].strip()
-                        cached[package] = {"source": req_file}
-                        
-        # Save cache index
-        with open(self.cache_index, "w") as f:
-            json.dump(cached, f, indent=2)
-            
-        logger.info(f"Cached {len(cached)} packages in {self.cache_dir}")
 
 if __name__ == "__main__":
-    try:
-        cache_manager = DependencyCacheManager()
-        cache_manager.cache_packages()
-    except Exception as e:
-        logger.error(f"Failed to cache dependencies: {e}")
-        sys.exit(1)
+    download_dependencies()

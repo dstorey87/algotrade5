@@ -1,24 +1,16 @@
 services:
   freqtrade:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
+    image: freqtradeorg/freqtrade:develop_freqai
     container_name: freqtrade
-    ports:
-      - "8080:8080"  # API port
-      - "9999:9999"  # WebUI port (optional)
+    restart: unless-stopped
     volumes:
       - "./user_data:/freqtrade/user_data"
-      - "./src:/freqtrade/src"
-      - "./src/quantum:/freqtrade/user_data/strategies/quantum"
-      - "./src/core:/freqtrade/user_data/strategies/core"
       - "./models:/freqtrade/models"
-      - "./data:/freqtrade/data"
-    environment:
-      - PYTHONPATH=/freqtrade/src:/freqtrade/user_data/strategies
+    ports:
+      - "8080:8080"
+      - "9999:9999"
     command: >
       trade
       --strategy QuantumHybridStrategy
       --config /freqtrade/user_data/config.json
-      --db-url sqlite:///data/tradesv3.sqlite
+      --freqaimodel LightGBMRegressor

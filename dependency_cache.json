@@ -89,5 +89,8 @@
   },
   "safetensors>=0.4.0": {
     "source": "requirements-llm.txt"
-  }
+  },
+  "requirements.txt": "20ea83dbadf9287c01796cb9a665292a8f74dfac3ace37c2c7630d950e02c05c",
+  "requirements-quantum.txt": "f518efe94e562c19a782e602f7b0b2dee59d86b490428d07271cf2db47d83e18",
+  "requirements-llm.txt": "c19ffbec64e2857728ad083116bd446f4db0d431183de1416b8ad129d2785c57"
 }
