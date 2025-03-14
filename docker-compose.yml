@@ -1,16 +1,39 @@
+version: '3'
 services:
   freqtrade:
-    image: freqtradeorg/freqtrade:develop_freqai
+    image: freqtradeorg/freqtrade:stable
     container_name: freqtrade
-    restart: unless-stopped
     volumes:
       - "./user_data:/freqtrade/user_data"
-      - "./models:/freqtrade/models"
+      - "./user_data/strategies:/freqtrade/user_data/strategies"
+      - "./docker/programdata/pip_cache:/root/.cache/pip"  # Updated pip cache
+      - "./docker/programdata/model_cache:/root/.cache/huggingface"  # Updated model cache
+      - "./docker/programdata/build_cache:/var/lib/docker/buildkit"  # Updated build cache
+      - "./data:/freqtrade/data"  # Trade data
+      - "./logs:/freqtrade/logs"  # Log files
+    env_file:
+      - .env
+    environment:
+      - PIP_CACHE_DIR=/root/.cache/pip
+      - TRANSFORMERS_CACHE=/root/.cache/huggingface
+      - DOCKER_BUILDKIT=1
+      - COMPOSE_DOCKER_CLI_BUILD=1
+      - PYTHONPATH=/freqtrade/user_data/strategies:/freqtrade/src:/freqtrade
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
-      - "8080:8080"
-      - "9999:9999"
+      - "8080:8080"  # API
+      - "9999:9999"  # WebUI
     command: >
       trade
       --strategy QuantumHybridStrategy
       --config /freqtrade/user_data/config.json
-      --freqaimodel LightGBMRegressor
+      --db-url sqlite:///data/tradesv3.sqlite
+      --logfile /freqtrade/logs/freqtrade.log
+      -v  # Use -v for verbose logging instead of --verbosity
+
+volumes:
+  pip-cache:
+    driver: local

@@ -1,13 +1,13 @@
 $ErrorActionPreference = "Stop"
-$CacheDir = "C:/ProgramData/AlgoTradePro5"
+$CacheDir = $env:DOCKER_CACHE_DIR
 
 # Ensure cache directories exist
 $cacheDirs = @(
     "$CacheDir/docker_cache",
-    "$CacheDir/pip_cache",
-    "$CacheDir/model_cache",
-    "$CacheDir/build_cache",
-    "$CacheDir/dependency_cache"
+    "$env:PIP_CACHE_DIR",
+    "$env:MODEL_CACHE_DIR",
+    "$env:BUILD_CACHE_DIR",
+    "$env:DEPENDENCY_CACHE_DIR"
 )
 
 foreach ($dir in $cacheDirs) {
@@ -22,7 +22,7 @@ Write-Host "Building with cache..."
 docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
 
 # Verify cache
-if (Test-Path "$CacheDir/build_cache") {
+if (Test-Path "$env:BUILD_CACHE_DIR") {
     Write-Host "Build cache verified"
 } else {
     Write-Error "Build cache not created properly"

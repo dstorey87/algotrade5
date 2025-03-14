@@ -1,33 +1,70 @@
-# Version control
-.git
-.gitignore
-
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-*.egg-info/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+.installed.cfg
+*.egg
 
-# Virtual environments
+# Dependencies - Only include what's needed
+dependencies/site-packages/**/__pycache__/
+dependencies/site-packages/**/*.pyc
+dependencies/site-packages/**/*.pyo
+dependencies/site-packages/**/*.pyd
+dependencies/site-packages/**/*.so
+dependencies/site-packages/**/*.dll
+dependencies/site-packages/**/tests/
+dependencies/site-packages/**/test/
+dependencies/site-packages/**/docs/
+dependencies/site-packages/**/.git/
+dependencies/site-packages/**/*.dist-info/
+dependencies/site-packages/**/*.egg-info/
+dependencies/site-packages/**/numpy/doc/
+dependencies/site-packages/**/torch/test/
+dependencies/site-packages/**/transformers/tests/
+
+# Keep only essential model files
+models/**/*.bin
+models/**/*.onnx
+models/**/*.pt
+!models/**/config.json
+
+# Development
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and databases
+*.log
+logs/
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
+# Environment
 .env
-.venv
+.venv/
+env/
 venv/
 ENV/
 
-# IDE
-.vscode/
-.idea/
-
-# Large directories not needed in image
-models/
-data/
-logs/
-tests/
-archive/
-
-# Keep only requirements files and local dependencies
-!requirements*.txt
-!dependencies/site-packages/
-!pip.conf
+# Documentation
+docs/
+*.md
+!README.md
+!CHANGELOG.md
