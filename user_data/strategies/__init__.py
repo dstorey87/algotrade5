@@ -1,0 +1,3 @@
+"""
+FreqTrade bot strategies
+"""

@@ -1,26 +1,39 @@
-import { Button, Grid, Paper, Typography } from '@mui/material'
+import { Button, Grid, Paper, Typography, Chip, Box } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../store'
-import { updateBalance, updateTotalProfit, updateWinRate, updateActiveTrades } from '../../store/slices/tradingSlice'
+import { startTrading, stopTrading, emergencyStop } from '../../store/slices/tradingSlice'
 
 const Item = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   color: theme.palette.text.secondary,
 }))
 
+const StatusChip = styled(Chip)(({ theme }) => ({
+  margin: theme.spacing(0.5),
+}))
+
 const TradingControls = () => {
   const dispatch = useDispatch()
-  const { balance, totalProfit, winRate, activeTrades } = useSelector((state: RootState) => state.trading)
+  const { 
+    balance, 
+    totalProfit, 
+    winRate, 
+    activeTrades,
+    tradingEnabled,
+    systemStatus
+  } = useSelector((state: RootState) => state.trading)
 
   const handleStartTrading = () => {
-    // In a real implementation, this would connect to the trading system
-    console.log('Starting trading...')
+    dispatch(startTrading())
   }
 
   const handleStopTrading = () => {
-    // In a real implementation, this would stop the trading system
-    console.log('Stopping trading...')
+    dispatch(stopTrading())
+  }
+
+  const handleEmergencyStop = () => {
+    dispatch(emergencyStop())
   }
 
   return (
@@ -33,7 +46,7 @@ const TradingControls = () => {
 
       <Grid item xs={12} md={6}>
         <Item>
-          <Typography variant="h6">Account Status</Typography>
+          <Typography variant="h6" gutterBottom>Account Status</Typography>
           <Typography>Balance: £{balance.toFixed(2)}</Typography>
           <Typography>Total Profit: £{totalProfit.toFixed(2)}</Typography>
           <Typography>Win Rate: {(winRate * 100).toFixed(2)}%</Typography>
@@ -43,21 +56,58 @@ const TradingControls = () => {
 
       <Grid item xs={12} md={6}>
         <Item>
-          <Typography variant="h6">Controls</Typography>
-          <Button 
-            variant="contained" 
-            color="success" 
-            onClick={handleStartTrading}
-            sx={{ marginRight: 2 }}
+          <Typography variant="h6" gutterBottom>System Status</Typography>
+          <Box sx={{ mb: 2 }}>
+            <StatusChip 
+              label={`FreqTrade: ${systemStatus?.freqtrade ? 'Online' : 'Offline'}`}
+              color={systemStatus?.freqtrade ? 'success' : 'error'}
+              variant="outlined"
+            />
+            <StatusChip 
+              label={`Database: ${systemStatus?.database ? 'Connected' : 'Disconnected'}`}
+              color={systemStatus?.database ? 'success' : 'error'}
+              variant="outlined"
+            />
+            <StatusChip 
+              label={`Models: ${systemStatus?.models ? 'Loaded' : 'Not Loaded'}`}
+              color={systemStatus?.models ? 'success' : 'error'}
+              variant="outlined"
+            />
+            <StatusChip 
+              label={`Quantum: ${systemStatus?.quantum ? 'Ready' : 'Not Ready'}`}
+              color={systemStatus?.quantum ? 'success' : 'error'}
+              variant="outlined"
+            />
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button 
+              variant="contained" 
+              color="success" 
+              onClick={handleStartTrading}
+              disabled={tradingEnabled}
+              fullWidth
+            >
+              Start Trading
+            </Button>
+            <Button 
+              variant="contained" 
+              color="error" 
+              onClick={handleStopTrading}
+              disabled={!tradingEnabled}
+              fullWidth
+            >
+              Stop Trading
+            </Button>
+          </Box>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={handleEmergencyStop}
+            fullWidth
+            sx={{ mt: 2 }}
           >
-            Start Trading
-          </Button>
-          <Button 
-            variant="contained" 
-            color="error" 
-            onClick={handleStopTrading}
-          >
-            Stop Trading
+            Emergency Stop
           </Button>
         </Item>
       </Grid>

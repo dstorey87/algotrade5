@@ -1,9 +1,19 @@
+"""
+Quantum-Enhanced Hybrid Trading Strategy
+======================================
+
+Optimized for FreqTrade with strict risk management.
+"""
+
 from freqtrade.strategy import IStrategy
-import pandas as pd
-from pandas import DataFrame
-from functools import reduce
-from freqtrade.strategy import IntParameter
 import logging
+from pandas import DataFrame
+import pandas as pd
+from functools import reduce
+from datetime import datetime, timezone
+from freqtrade.persistence import Trade
+from freqtrade.exchange import timeframe_to_minutes
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +54,6 @@ class QuantumHybridStrategy(IStrategy):
 
     # Strategy parameters
     timeframe = '5m'
-
-    # Hyperopt parameters
-    buy_rsi = IntParameter(low=20, high=35, default=30, space='buy', optimize=True)
-    sell_rsi = IntParameter(low=65, high=80, default=70, space='sell', optimize=True)
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         """Generate strategy indicators."""
@@ -91,8 +97,8 @@ class QuantumHybridStrategy(IStrategy):
             (dataframe['ema_13'] > dataframe['ema_21'])
         )
 
-        # RSI not overbought - using hyperopt parameter
-        rsi_ok = dataframe['rsi'] < self.sell_rsi.value
+        # RSI not overbought
+        rsi_ok = dataframe['rsi'] < 70
 
         # Risk check
         risk_check = (dataframe['close'] > dataframe['ema_21'])
@@ -102,11 +108,10 @@ class QuantumHybridStrategy(IStrategy):
         conditions.append(rsi_ok)
         conditions.append(risk_check)
 
-        if conditions:
-            dataframe.loc[
-                reduce(lambda x, y: x & y, conditions),
-                'buy'
-            ] = 1
+        dataframe.loc[
+            reduce(lambda x, y: x & y, conditions),
+            'buy'
+        ] = 1
 
         return dataframe
 
@@ -123,17 +128,16 @@ class QuantumHybridStrategy(IStrategy):
             (dataframe['volume'] > dataframe['volume_mean'])
         )
 
-        # RSI overbought - using hyperopt parameter
-        rsi_high = dataframe['rsi'] > self.sell_rsi.value
+        # RSI overbought
+        rsi_high = dataframe['rsi'] > 70
 
         conditions.append(momentum_down)
         conditions.append(ema_cross_down)
         conditions.append(rsi_high)
 
-        if conditions:
-            dataframe.loc[
-                reduce(lambda x, y: x | y, conditions),
-                'sell'
-            ] = 1
+        dataframe.loc[
+            reduce(lambda x, y: x | y, conditions),
+            'sell'
+        ] = 1
 
         return dataframe
