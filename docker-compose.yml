@@ -1,39 +1,16 @@
-version: '3'
+version: '3.8'
 services:
   freqtrade:
-    image: freqtradeorg/freqtrade:stable
     container_name: freqtrade
+    image: freqtradeorg/freqtrade:stable
+    restart: unless-stopped
     volumes:
       - "./user_data:/freqtrade/user_data"
-      - "./user_data/strategies:/freqtrade/user_data/strategies"
-      - "./docker/programdata/pip_cache:/root/.cache/pip"  # Updated pip cache
-      - "./docker/programdata/model_cache:/root/.cache/huggingface"  # Updated model cache
-      - "./docker/programdata/build_cache:/var/lib/docker/buildkit"  # Updated build cache
-      - "./data:/freqtrade/data"  # Trade data
-      - "./logs:/freqtrade/logs"  # Log files
-    env_file:
-      - .env
-    environment:
-      - PIP_CACHE_DIR=/root/.cache/pip
-      - TRANSFORMERS_CACHE=/root/.cache/huggingface
-      - DOCKER_BUILDKIT=1
-      - COMPOSE_DOCKER_CLI_BUILD=1
-      - PYTHONPATH=/freqtrade/user_data/strategies:/freqtrade/src:/freqtrade
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
+      - "./config.json:/freqtrade/user_data/config.json"
     ports:
-      - "8080:8080"  # API
-      - "9999:9999"  # WebUI
+      - "127.0.0.1:8080:8080"
+    environment:
+      - FT_SERVER_PORT=8080
     command: >
-      trade
-      --strategy QuantumHybridStrategy
+      webserver
       --config /freqtrade/user_data/config.json
-      --db-url sqlite:///data/tradesv3.sqlite
-      --logfile /freqtrade/logs/freqtrade.log
-      -v  # Use -v for verbose logging instead of --verbosity
-
-volumes:
-  pip-cache:
-    driver: local

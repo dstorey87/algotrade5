@@ -1,0 +1,31 @@
+[registry."docker.io"]
+  mirrors = ["https://registry-1.docker.io"]
+
+[worker.oci]
+  max-parallelism = 4
+  gc = true
+  gckeepstorage = 20000
+
+[worker.containerd]
+  enabled = true
+  namespace = "buildkit"
+  gc = true
+  gckeepstorage = 20000
+
+[worker.containerd.gc]
+  enabled = true
+
+# Cache configuration
+[registry."docker.io".cache]
+  max-total-size = "10GB"
+
+[[worker.oci.gcpolicy]]
+  keepBytes = 20000000000
+  keepDuration = 604800
+  filters = ["type==source.local", "type==exec.cachemount", "type==source.git.checkout"]
+
+[registry."docker.io".mirrors."mirror.gcr.io"]
+  endpoint = ["https://mirror.gcr.io"]
+
+[registry."docker.io".mirrors]
+  endpoint = ["https://registry-1.docker.io"]

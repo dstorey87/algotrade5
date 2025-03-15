@@ -68,3 +68,84 @@ docs/
 *.md
 !README.md
 !CHANGELOG.md
+
+# Ignore everything
+*
+
+# Allow specific directories and files
+!docker/programdata/pip_cache
+!docker/programdata/model_cache
+!docker/programdata/dependency_cache
+!requirements*.txt
+!dependencies/site-packages
+!user_data/strategies
+!Dockerfile
+!.env
+
+# Never ignore .dockerignore
+!.dockerignore
+
+# Ensure no sensitive data is included
+**/*.env
+**/*secret*
+**/*password*
+**/*.key
+**/*.pem
+
+# Don't include cache metadata
+**/*.pyc
+**/__pycache__
+**/.pytest_cache
+**/.coverage
+
+# Preserve cache directories
+!docker/programdata/docker_cache/
+!docker/programdata/pip_cache/
+!docker/programdata/model_cache/
+!docker/programdata/build_cache/
+!docker/programdata/dependency_cache/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+
+# VS Code settings
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Logs and databases
+logs/
+*.log
+*.sqlite*
+
+# Model binaries (handled by model cache)
+*.pkl
+*.h5
+*.pt
+*.pth
+*.onnx
+*.pb
+*.tflite
+*.savedmodel
+*.weights
+*.bin
+*.hdf5
+*.safetensors*
+
+# Preserve key files
+!config.json
+!docker-compose.yml
+!requirements*.txt

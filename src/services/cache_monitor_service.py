@@ -28,16 +28,17 @@ class CacheMonitorService(threading.Thread):
         self.cache_manager = get_cache_manager()
         self.error_manager = ErrorManager()
         
-        # Get workspace paths
-        workspace_root = Path(self.config.get('paths', 'BASE_PATH'))
+        # Get workspace paths with defaults
+        workspace_root = Path(self.config.get('paths', 'BASE_PATH', str(Path.cwd())))
         self.programdata_dir = workspace_root / 'docker' / 'programdata'
+        self.programdata_dir.mkdir(parents=True, exist_ok=True)
         
         # Service control
         self._stop_event = threading.Event()
         self._last_cleanup = {}
         self._last_check = datetime.now()
         
-        # Alert settings from config
+        # Alert settings from config with defaults
         self.alert_settings = {
             'check_interval': int(self.config.get('resources', 'health_check_interval', 300)),
             'cleanup_interval': int(self.config.get('resources', 'backup_interval', 3600)),
@@ -49,7 +50,7 @@ class CacheMonitorService(threading.Thread):
         self._last_alert = {}
         
         logger.info(f"Cache Monitor Service initialized with workspace path: {workspace_root}")
-    
+
     def run(self) -> None:
         """Main service loop"""
         while not self._stop_event.is_set():
@@ -85,9 +86,10 @@ class CacheMonitorService(threading.Thread):
                 cache_path = self.programdata_dir / f"{cache_type}_cache"
                 if not cache_path.exists():
                     logger.warning(f"Cache directory missing: {cache_path}")
+                    cache_path.mkdir(parents=True, exist_ok=True)
                     continue
                     
-                current_usage = stats['usage_percent']
+                current_usage = stats.get('usage_percent', 0)
                 if current_usage > 90:
                     self._send_alert(cache_type, 'CRITICAL', f"Cache usage critical: {current_usage:.1f}%")
                 elif current_usage > 80:
@@ -99,7 +101,7 @@ class CacheMonitorService(threading.Thread):
                 ErrorSeverity.MEDIUM.value,
                 "CacheMonitorService"
             )
-    
+            
     def _run_maintenance(self) -> None:
         """Run maintenance tasks if needed"""
         try:
@@ -112,7 +114,7 @@ class CacheMonitorService(threading.Thread):
                 # Clean up caches over 80% usage
                 cache_stats = self.cache_manager.get_cache_stats()
                 for cache_type, stats in cache_stats.items():
-                    if stats['usage_percent'] > 80:
+                    if stats.get('usage_percent', 0) > 80:
                         self.cache_manager.cleanup_cache(cache_type)
                         
                 self._last_check = current_time
@@ -123,7 +125,7 @@ class CacheMonitorService(threading.Thread):
                 ErrorSeverity.MEDIUM.value,
                 "CacheMonitorService"
             )
-    
+            
     def _send_alert(self, cache_type: str, severity: str, message: str) -> None:
         """Send alert if cooldown has expired"""
         if not self.alert_settings['alert_enabled']:

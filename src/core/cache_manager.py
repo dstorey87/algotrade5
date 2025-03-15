@@ -1,23 +1,22 @@
 """
-Cache Management System
-===================
+Cache Manager
+===========
 
-Handles all caching operations, monitoring, and cleanup for AlgoTradePro5.
+Manages cache operations and statistics for AlgoTradePro5.
 
 CRITICAL REQUIREMENTS:
-- Cache size monitoring
-- Automatic cleanup
-- Cache performance tracking
-- Resource optimization
+- Cache usage monitoring
+- Cleanup policies
+- Size tracking
+- Performance optimization
 """
 
 import logging
-import os
+import shutil
+import time
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
-from datetime import datetime
-import json
-import psutil
 
 from src.core.config_manager import get_config
 from src.core.error_manager import ErrorManager, ErrorSeverity
@@ -25,155 +24,140 @@ from src.core.error_manager import ErrorManager, ErrorSeverity
 logger = logging.getLogger(__name__)
 
 class CacheManager:
-    """Manages all system caching operations"""
+    """Manages cache operations and statistics"""
     
     def __init__(self):
-        """Initialize cache management system"""
+        """Initialize cache manager"""
         self.config = get_config()
         self.error_manager = ErrorManager()
         
-        # Get workspace root from config
-        workspace_root = Path(self.config.get('paths', 'BASE_PATH'))
-        programdata_dir = workspace_root / 'docker' / 'programdata'
+        # Get workspace paths with defaults
+        workspace_root = Path(self.config.get('paths', 'BASE_PATH', str(Path.cwd())))
+        self.programdata_dir = workspace_root / 'docker' / 'programdata'
+        self.programdata_dir.mkdir(parents=True, exist_ok=True)
         
-        # Load cache paths from environment, falling back to workspace paths
-        self.cache_paths = {
-            'docker': Path(os.getenv('DOCKER_CACHE_DIR', programdata_dir / 'docker_cache')),
-            'pip': Path(os.getenv('PIP_CACHE_DIR', programdata_dir / 'pip_cache')),
-            'model': Path(os.getenv('MODEL_CACHE_DIR', programdata_dir / 'model_cache')),
-            'build': Path(os.getenv('BUILD_CACHE_DIR', programdata_dir / 'build_cache')),
-            'dependency': Path(os.getenv('DEPENDENCY_CACHE_DIR', programdata_dir / 'dependency_cache'))
-        }
-        
-        # Cache size limits in MB
-        self.cache_limits = {
-            'docker': 5000,    # 5GB
-            'pip': 2000,       # 2GB
-            'model': 10000,    # 10GB
-            'build': 1000,     # 1GB
-            'dependency': 500   # 500MB
+        # Cache settings from config
+        self.cache_config = {
+            'max_size_gb': float(self.config.get('resources', 'CACHE_SIZE_LIMIT', 10)),
+            'cleanup_threshold': float(self.config.get('resources', 'CACHE_CLEANUP_THRESHOLD', 0.85)),
+            'monitor_interval': int(self.config.get('resources', 'CACHE_MONITOR_INTERVAL', 300))
         }
         
         # Initialize cache directories
         self._init_cache_dirs()
-        
-        # Cache statistics
-        self.cache_stats = {}
-        self.last_cleanup = {}
-        
-        # Load initial statistics
-        self._update_cache_stats()
-        
-        logger.info("Cache Manager initialized with workspace paths")
+        logger.info("Cache Manager initialized")
         
     def _init_cache_dirs(self) -> None:
         """Initialize cache directories"""
-        for cache_type, path in self.cache_paths.items():
-            try:
-                path.mkdir(parents=True, exist_ok=True)
-                logger.debug(f"Cache directory verified: {cache_type}")
-            except Exception as e:
-                self.error_manager.log_error(
-                    f"Failed to create cache directory for {cache_type}: {e}",
-                    ErrorSeverity.HIGH.value,
-                    "CacheManager"
-                )
-                
-    def _update_cache_stats(self) -> None:
-        """Update cache usage statistics"""
-        for cache_type, path in self.cache_paths.items():
-            if path.exists():
-                total_size = sum(f.stat().st_size for f in path.rglob('*') if f.is_file())
-                total_files = sum(1 for _ in path.rglob('*') if _.is_file())
-                oldest_file = min((f.stat().st_mtime, f) for f in path.rglob('*') if f.is_file())[1] if total_files > 0 else None
-                
-                self.cache_stats[cache_type] = {
-                    'size_mb': total_size / (1024 * 1024),
-                    'total_files': total_files,
-                    'last_accessed': datetime.fromtimestamp(oldest_file.stat().st_atime).isoformat() if oldest_file else None,
-                    'usage_percent': (total_size / (1024 * 1024)) / self.cache_limits[cache_type] * 100
-                }
-                
+        cache_types = ['docker', 'pip', 'model', 'build', 'dependency']
+        for cache_type in cache_types:
+            cache_dir = self.programdata_dir / f"{cache_type}_cache"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            
     def get_cache_stats(self) -> Dict:
-        """Get current cache statistics"""
-        self._update_cache_stats()
-        return self.cache_stats
-        
-    def cleanup_cache(self, cache_type: Optional[str] = None, force: bool = False) -> bool:
-        """Clean up cache directories based on size limits and age"""
-        cache_types = [cache_type] if cache_type else self.cache_paths.keys()
-        
-        for c_type in cache_types:
-            if c_type not in self.cache_paths:
-                logger.warning(f"Invalid cache type: {c_type}")
-                continue
-                
-            path = self.cache_paths[c_type]
-            if not path.exists():
-                continue
-                
-            try:
-                # Get current cache size
-                current_size = self.cache_stats[c_type]['size_mb']
-                
-                # Check if cleanup is needed
-                if force or current_size > self.cache_limits[c_type]:
-                    logger.info(f"Cleaning up {c_type} cache...")
-                    
-                    # Get list of files sorted by last access time
-                    files = sorted(
-                        ((f, f.stat()) for f in path.rglob('*') if f.is_file()),
-                        key=lambda x: x[1].st_atime
-                    )
-                    
-                    # Remove oldest files until under limit
-                    for file, _ in files:
-                        if current_size <= self.cache_limits[c_type] * 0.8 and not force:
-                            break
-                            
-                        try:
-                            size = file.stat().st_size / (1024 * 1024)
-                            file.unlink()
-                            current_size -= size
-                            logger.debug(f"Removed cache file: {file.name}")
-                        except Exception as e:
-                            logger.warning(f"Failed to remove cache file {file}: {e}")
-                            
-                    self.last_cleanup[c_type] = datetime.now()
-                    self._update_cache_stats()
-                    
-            except Exception as e:
-                self.error_manager.log_error(
-                    f"Cache cleanup failed for {c_type}: {e}",
-                    ErrorSeverity.MEDIUM.value,
-                    "CacheManager"
-                )
+        """Get statistics for all cache directories"""
+        stats = {}
+        try:
+            for cache_dir in self.programdata_dir.glob("*_cache"):
+                if cache_dir.is_dir():
+                    cache_type = cache_dir.name.replace("_cache", "")
+                    stats[cache_type] = self._get_dir_stats(cache_dir)
+            return stats
+        except Exception as e:
+            self.error_manager.log_error(
+                f"Failed to get cache stats: {e}",
+                ErrorSeverity.MEDIUM.value,
+                "CacheManager"
+            )
+            return {}
+            
+    def _get_dir_stats(self, path: Path) -> Dict:
+        """Get statistics for a directory"""
+        try:
+            total_size = sum(f.stat().st_size for f in path.rglob('*') if f.is_file())
+            total_files = sum(1 for _ in path.rglob('*') if _.is_file())
+            size_mb = total_size / (1024 * 1024)  # Convert to MB
+            size_limit_mb = self.cache_config['max_size_gb'] * 1024  # Convert GB to MB
+            usage_percent = (size_mb / size_limit_mb) * 100 if size_limit_mb > 0 else 0
+            
+            return {
+                'size_mb': size_mb,
+                'total_files': total_files,
+                'usage_percent': usage_percent,
+                'last_access': max((f.stat().st_atime for f in path.rglob('*') if f.is_file()), default=0)
+            }
+        except Exception as e:
+            self.error_manager.log_error(
+                f"Failed to get directory stats for {path}: {e}",
+                ErrorSeverity.LOW.value,
+                "CacheManager"
+            )
+            return {
+                'size_mb': 0,
+                'total_files': 0,
+                'usage_percent': 0,
+                'last_access': 0
+            }
+            
+    def cleanup_cache(self, cache_type: str) -> bool:
+        """Clean up a specific cache directory"""
+        try:
+            cache_dir = self.programdata_dir / f"{cache_type}_cache"
+            if not cache_dir.exists():
                 return False
                 
-        return True
-        
-    def monitor_cache_usage(self) -> Dict:
-        """Monitor cache usage and trigger cleanup if needed"""
-        self._update_cache_stats()
-        alerts = {}
-        
-        for cache_type, stats in self.cache_stats.items():
-            usage = stats['usage_percent']
-            if usage > 90:
-                alerts[cache_type] = {
-                    'severity': 'HIGH',
-                    'message': f"Cache usage critical: {usage:.1f}%",
-                    'action': 'Immediate cleanup required'
-                }
-                self.cleanup_cache(cache_type)
-            elif usage > 80:
-                alerts[cache_type] = {
-                    'severity': 'MEDIUM',
-                    'message': f"Cache usage high: {usage:.1f}%",
-                    'action': 'Monitoring'
-                }
+            # Get current stats
+            stats = self._get_dir_stats(cache_dir)
+            if stats['usage_percent'] <= self.cache_config['cleanup_threshold']:
+                return True
                 
-        return alerts
+            # Find oldest files
+            files = [(f, f.stat().st_atime) for f in cache_dir.rglob('*') if f.is_file()]
+            files.sort(key=lambda x: x[1])  # Sort by access time
+            
+            # Remove oldest files until below threshold
+            target_size = (self.cache_config['max_size_gb'] * 1024 * 
+                         self.cache_config['cleanup_threshold'])  # MB
+            
+            current_size = stats['size_mb']
+            for file_path, _ in files:
+                if current_size <= target_size:
+                    break
+                try:
+                    size = file_path.stat().st_size / (1024 * 1024)  # Convert to MB
+                    file_path.unlink()
+                    current_size -= size
+                except Exception as e:
+                    logger.warning(f"Failed to remove cache file {file_path}: {e}")
+                    
+            return True
+            
+        except Exception as e:
+            self.error_manager.log_error(
+                f"Failed to clean up cache {cache_type}: {e}",
+                ErrorSeverity.MEDIUM.value,
+                "CacheManager"
+            )
+            return False
+            
+    def clear_cache(self, cache_type: str) -> bool:
+        """Clear entire cache directory"""
+        try:
+            cache_dir = self.programdata_dir / f"{cache_type}_cache"
+            if not cache_dir.exists():
+                return False
+                
+            shutil.rmtree(cache_dir)
+            cache_dir.mkdir(parents=True)
+            return True
+            
+        except Exception as e:
+            self.error_manager.log_error(
+                f"Failed to clear cache {cache_type}: {e}",
+                ErrorSeverity.HIGH.value,
+                "CacheManager"
+            )
+            return False
 
 # Global instance
 _cache_manager = None
