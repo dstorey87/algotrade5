@@ -1,13 +1,22 @@
-import sys
-import os
+"""Test module for pre-commit hook functionality."""
+from typing import Union, Optional
 
-def some_function():
-    unused_var = "test"  # This will trigger a pylint warning
-    x = 5  # This will trigger a warning about single-character variable names
-    return None  # This will trigger a warning about explicit return of None
+def some_function() -> None:
+    """Demonstrate a function that follows good practices."""
+    # Implementation can go here
+    pass
 
-# This will trigger a type checking warning
-def add_numbers(a, b):
+def add_numbers(a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    """Add two numbers together.
+    
+    Args:
+        a: First number to add
+        b: Second number to add
+        
+    Returns:
+        The sum of a and b
+    """
     return a + b
 
-result = add_numbers("5", 10)  # Type mismatch that mypy should catch
+# Example usage with proper type safety
+result = add_numbers(5, 10)  # Now using proper numeric types
