@@ -24,7 +24,7 @@ export default function ActiveTrades() {
   useEffect(() => {
     // Set up WebSocket connection for real-time price updates
     const ws = new WebSocket('ws://localhost:8080/ws/prices')
-    
+
     ws.onmessage = (event) => {
       const prices = JSON.parse(event.data)
       dispatch(updateCurrentPrices(prices))
@@ -70,7 +70,7 @@ export default function ActiveTrades() {
                 <TableCell>£{trade.currentPrice?.toFixed(2) || '-'}</TableCell>
                 <TableCell>
                   <Text color={trade.unrealizedProfit >= 0 ? "green" : "red"}>
-                    £{trade.unrealizedProfit?.toFixed(2) || '-'} 
+                    £{trade.unrealizedProfit?.toFixed(2) || '-'}
                     ({trade.unrealizedProfitPercentage?.toFixed(2) || '-'}%)
                   </Text>
                 </TableCell>
@@ -78,7 +78,7 @@ export default function ActiveTrades() {
                 <TableCell>
                   <Badge
                     color={
-                      trade.confidence > 0.85 ? "green" : 
+                      trade.confidence > 0.85 ? "green" :
                       trade.confidence > 0.7 ? "yellow" : "red"
                     }
                   >

@@ -29,10 +29,10 @@ const QuantumControl = () => {
 
   return (
     <Box sx={{ py: 3 }}>
-      <Typography 
-        variant="h4" 
-        gutterBottom 
-        sx={{ 
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{
           color: theme.palette.primary.main,
           mb: 3,
           fontWeight: 'bold'
@@ -47,8 +47,8 @@ const QuantumControl = () => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Paper 
-            sx={{ 
+          <Paper
+            sx={{
               p: 3,
               background: `linear-gradient(45deg, ${theme.palette.background.paper} 30%, ${theme.palette.background.default} 90%)`,
               boxShadow: theme.shadows[10]
@@ -62,8 +62,8 @@ const QuantumControl = () => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Paper 
-            sx={{ 
+          <Paper
+            sx={{
               p: 3,
               background: `linear-gradient(45deg, ${theme.palette.background.paper} 30%, ${theme.palette.background.default} 90%)`,
               boxShadow: theme.shadows[10]
@@ -77,8 +77,8 @@ const QuantumControl = () => {
         </Grid>
       </Grid>
 
-      <Snackbar 
-        open={!!error} 
+      <Snackbar
+        open={!!error}
         autoHideDuration={6000}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >

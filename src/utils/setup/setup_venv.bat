@@ -65,7 +65,7 @@ if exist dependency_manager.py (
     if exist requirements.txt (
         python -m pip install -r requirements.txt
     )
-    
+
     REM Check for additional requirements files
     if exist requirements-full.txt (
         set /p install_full="Do you want to install full dependencies (includes AI and quantum)? (y/n): "

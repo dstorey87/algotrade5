@@ -14,17 +14,17 @@ import { ExclamationCircleIcon } from '@heroicons/react/24/solid'
 
 export default function DashboardPage() {
   const { balance, totalProfit, winRate, isLoading, error } = useSelector((state: RootState) => state.trading)
-  
+
   useDataPolling(5000)
 
   return (
     <div className="p-6">
       <Title className="mb-6">Trading Dashboard</Title>
-      
+
       {error && (
-        <Callout 
-          className="mb-6" 
-          title="Error" 
+        <Callout
+          className="mb-6"
+          title="Error"
           color="rose"
           icon={ExclamationCircleIcon}
         >

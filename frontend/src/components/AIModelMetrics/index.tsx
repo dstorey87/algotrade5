@@ -125,17 +125,17 @@ const AIModelMetrics = () => {
 
           <Grid item xs={12}>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip 
+              <Chip
                 label={`Ensemble Accuracy: ${(aiMetrics?.ensembleAccuracy * 100 || 0).toFixed(1)}%`}
                 color="primary"
                 variant="outlined"
               />
-              <Chip 
+              <Chip
                 label={`Active Models: ${aiMetrics?.activeModels || 0}`}
                 color="secondary"
                 variant="outlined"
               />
-              <Chip 
+              <Chip
                 label={`Training Status: ${aiMetrics?.trainingInProgress ? 'In Progress' : 'Idle'}`}
                 color={aiMetrics?.trainingInProgress ? 'warning' : 'success'}
                 variant="outlined"

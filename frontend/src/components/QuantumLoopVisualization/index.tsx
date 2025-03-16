@@ -28,18 +28,18 @@ const QuantumLoopVisualization = () => {
         <Typography variant="h6" gutterBottom>
           Quantum Loop Status
         </Typography>
-        
+
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 Current Confidence
               </Typography>
-              <LinearProgress 
-                variant="determinate" 
+              <LinearProgress
+                variant="determinate"
                 value={quantum?.confidence * 100 || 0}
-                sx={{ 
-                  height: 8, 
+                sx={{
+                  height: 8,
                   borderRadius: 4,
                   backgroundColor: theme.palette.grey[800],
                   '& .MuiLinearProgress-bar': {

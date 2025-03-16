@@ -134,15 +134,15 @@ const modelPerformanceData = [
   },
 ]
 
-const MetricCard = ({ title, value, maxValue = 100, suffix = '%', color = 'primary' }: { 
-  title: string; 
-  value: number; 
+const MetricCard = ({ title, value, maxValue = 100, suffix = '%', color = 'primary' }: {
+  title: string;
+  value: number;
   maxValue?: number;
   suffix?: string;
   color?: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
 }) => {
   const percentage = (value / maxValue) * 100;
-  
+
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
       <CardContent>
@@ -157,9 +157,9 @@ const MetricCard = ({ title, value, maxValue = 100, suffix = '%', color = 'prima
             {maxValue}
           </Typography>
         </Box>
-        <LinearProgress 
-          variant="determinate" 
-          value={percentage} 
+        <LinearProgress
+          variant="determinate"
+          value={percentage}
           color={color}
           sx={{ height: 8, borderRadius: 4 }}
         />
@@ -175,9 +175,9 @@ const ModelMetrics = () => {
   const [value, setValue] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
-  const { 
-    modelAccuracy, 
+
+  const {
+    modelAccuracy,
     modelConfidence,
     quantumCircuitStatus
   } = useSelector((state: RootState) => state.system)
@@ -217,24 +217,24 @@ const ModelMetrics = () => {
         <Grid container spacing={3}>
           {/* Key Metrics */}
           <Grid item xs={12} md={4}>
-            <MetricCard 
-              title="Model Accuracy" 
-              value={modelAccuracy * 100} 
+            <MetricCard
+              title="Model Accuracy"
+              value={modelAccuracy * 100}
               color="primary"
             />
           </Grid>
           <Grid item xs={12} md={4}>
-            <MetricCard 
-              title="Prediction Confidence" 
-              value={modelConfidence * 100} 
+            <MetricCard
+              title="Prediction Confidence"
+              value={modelConfidence * 100}
               color="success"
             />
           </Grid>
           <Grid item xs={12} md={4}>
-            <MetricCard 
-              title="Processing Speed" 
-              value={95.3} 
-              suffix=" ms" 
+            <MetricCard
+              title="Processing Speed"
+              value={95.3}
+              suffix=" ms"
               maxValue={1000}
               color="info"
             />
@@ -257,11 +257,11 @@ const ModelMetrics = () => {
                     <YAxis domain={[0.7, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
                     <Tooltip formatter={(value) => `${(Number(value) * 100).toFixed(2)}%`} />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="accuracy" 
-                      stroke="#8884d8" 
-                      activeDot={{ r: 8 }} 
+                    <Line
+                      type="monotone"
+                      dataKey="accuracy"
+                      stroke="#8884d8"
+                      activeDot={{ r: 8 }}
                       name="Accuracy"
                     />
                   </LineChart>
@@ -286,11 +286,11 @@ const ModelMetrics = () => {
                     <YAxis domain={[0.8, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
                     <Tooltip formatter={(value) => `${(Number(value) * 100).toFixed(2)}%`} />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="confidence" 
-                      stroke="#82ca9d" 
-                      activeDot={{ r: 8 }} 
+                    <Line
+                      type="monotone"
+                      dataKey="confidence"
+                      stroke="#82ca9d"
+                      activeDot={{ r: 8 }}
                       name="Confidence"
                     />
                   </LineChart>
@@ -373,9 +373,9 @@ const ModelMetrics = () => {
                     <Typography variant="body1">Double Top</Typography>
                     <Typography variant="body1" fontWeight="bold">82%</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={82} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={82}
                     color="success"
                     sx={{ height: 8, borderRadius: 4, mt: 1 }}
                   />
@@ -387,9 +387,9 @@ const ModelMetrics = () => {
                     <Typography variant="body1">Double Bottom</Typography>
                     <Typography variant="body1" fontWeight="bold">89%</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={89} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={89}
                     color="success"
                     sx={{ height: 8, borderRadius: 4, mt: 1 }}
                   />
@@ -401,9 +401,9 @@ const ModelMetrics = () => {
                     <Typography variant="body1">Head & Shoulders</Typography>
                     <Typography variant="body1" fontWeight="bold">75%</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={75} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={75}
                     color="primary"
                     sx={{ height: 8, borderRadius: 4, mt: 1 }}
                   />
@@ -415,9 +415,9 @@ const ModelMetrics = () => {
                     <Typography variant="body1">Triangle</Typography>
                     <Typography variant="body1" fontWeight="bold">79%</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={79} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={79}
                     color="primary"
                     sx={{ height: 8, borderRadius: 4, mt: 1 }}
                   />
@@ -429,9 +429,9 @@ const ModelMetrics = () => {
                     <Typography variant="body1">Rectangle</Typography>
                     <Typography variant="body1" fontWeight="bold">68%</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={68} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={68}
                     color="warning"
                     sx={{ height: 8, borderRadius: 4, mt: 1 }}
                   />
@@ -481,9 +481,9 @@ const ModelMetrics = () => {
                   <Typography variant="subtitle2" gutterBottom>
                     Circuit Validation Rate
                   </Typography>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={96} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={96}
                     color="success"
                     sx={{ height: 8, borderRadius: 4 }}
                   />
@@ -498,9 +498,9 @@ const ModelMetrics = () => {
                   <Typography variant="subtitle2" gutterBottom>
                     Quantum Error Correction
                   </Typography>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={89} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={89}
                     color="primary"
                     sx={{ height: 8, borderRadius: 4 }}
                   />
@@ -525,9 +525,9 @@ const ModelMetrics = () => {
                     <Typography variant="body1">Grover's Search</Typography>
                     <Typography variant="body1" fontWeight="bold">94%</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={94} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={94}
                     color="success"
                     sx={{ height: 8, borderRadius: 4, mt: 1 }}
                   />
@@ -538,9 +538,9 @@ const ModelMetrics = () => {
                     <Typography variant="body1">Quantum Fourier Transform</Typography>
                     <Typography variant="body1" fontWeight="bold">87%</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={87} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={87}
                     color="primary"
                     sx={{ height: 8, borderRadius: 4, mt: 1 }}
                   />
@@ -551,9 +551,9 @@ const ModelMetrics = () => {
                     <Typography variant="body1">Quantum Neural Network</Typography>
                     <Typography variant="body1" fontWeight="bold">91%</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={91} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={91}
                     color="success"
                     sx={{ height: 8, borderRadius: 4, mt: 1 }}
                   />
@@ -564,9 +564,9 @@ const ModelMetrics = () => {
                     <Typography variant="body1">Variational Quantum Eigensolver</Typography>
                     <Typography variant="body1" fontWeight="bold">82%</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={82} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={82}
                     color="primary"
                     sx={{ height: 8, borderRadius: 4, mt: 1 }}
                   />

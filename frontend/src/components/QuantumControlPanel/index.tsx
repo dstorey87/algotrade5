@@ -34,7 +34,7 @@ const QuantumControlPanel = () => {
   const [autoOptimize, setAutoOptimize] = useState(true);
   const [circuitDepth, setCircuitDepth] = useState(3);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   // Mock data - replace with actual Redux state
   const metrics: QuantumMetrics = {
     confidence: 0.87,
@@ -76,7 +76,7 @@ const QuantumControlPanel = () => {
   };
 
   return (
-    <Card sx={{ 
+    <Card sx={{
       height: '100%',
       background: `linear-gradient(45deg, ${theme.palette.background.paper} 30%, ${theme.palette.background.default} 90%)`,
       boxShadow: theme.shadows[10]

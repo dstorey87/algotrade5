@@ -63,7 +63,7 @@ const TradingOperationsDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tradingEnabled, setTradingEnabled] = useState(false);
-  
+
   // Load initial data
   useEffect(() => {
     Promise.all([
@@ -82,7 +82,7 @@ const TradingOperationsDashboard: React.FC = () => {
       setIsLoading(false);
     });
   }, []);
-  
+
   // Fetch active trades
   const fetchActiveTrades = async () => {
     try {
@@ -93,13 +93,13 @@ const TradingOperationsDashboard: React.FC = () => {
       throw error;
     }
   };
-  
+
   // Fetch available pairs
   const fetchAvailablePairs = async () => {
     try {
       const response = await tradingService.getAvailablePairs();
       setAvailablePairs(response.data);
-      
+
       // Set default selected pair if none is selected
       if (!selectedPair && response.data.length > 0) {
         setSelectedPair(response.data[0].symbol);
@@ -109,13 +109,13 @@ const TradingOperationsDashboard: React.FC = () => {
       throw error;
     }
   };
-  
+
   // Fetch available strategies
   const fetchStrategies = async () => {
     try {
       const response = await tradingService.getAvailableStrategies();
       setStrategies(response.data);
-      
+
       // Set default selected strategy if none is selected
       if (!selectedStrategy && response.data.length > 0) {
         const activeStrategies = response.data.filter(s => s.status === 'active');
@@ -130,7 +130,7 @@ const TradingOperationsDashboard: React.FC = () => {
       throw error;
     }
   };
-  
+
   // Fetch system settings
   const fetchSystemSettings = async () => {
     try {
@@ -142,11 +142,11 @@ const TradingOperationsDashboard: React.FC = () => {
       throw error;
     }
   };
-  
+
   // Execute trade
   const executeTrade = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedPair || !selectedStrategy || amount === '') {
       setFeedback({
         message: 'Please fill in all required fields',
@@ -154,11 +154,11 @@ const TradingOperationsDashboard: React.FC = () => {
       });
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
       setFeedback({ message: 'Executing trade...', isError: false });
-      
+
       const tradeParams = {
         pair: selectedPair,
         strategyId: selectedStrategy,
@@ -168,17 +168,17 @@ const TradingOperationsDashboard: React.FC = () => {
         takeProfitPercentage,
         amount: typeof amount === 'number' ? amount : parseFloat(amount)
       };
-      
+
       const response = await tradingService.executeTrade(tradeParams);
-      
+
       setFeedback({
         message: `Trade executed successfully! Order ID: ${response.data.orderId}`,
         isError: false
       });
-      
+
       // Refresh active trades
       fetchActiveTrades();
-      
+
       // Reset form
       if (orderType === 'limit') {
         setLimitPrice('');
@@ -194,23 +194,23 @@ const TradingOperationsDashboard: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   // Close a trade
   const closeTrade = async (tradeId: string) => {
     if (!confirm('Are you sure you want to close this trade?')) {
       return;
     }
-    
+
     try {
       setFeedback({ message: 'Closing trade...', isError: false });
-      
+
       await tradingService.closeTrade(tradeId);
-      
+
       setFeedback({
         message: 'Trade closed successfully',
         isError: false
       });
-      
+
       // Refresh active trades
       fetchActiveTrades();
     } catch (error) {
@@ -221,23 +221,23 @@ const TradingOperationsDashboard: React.FC = () => {
       });
     }
   };
-  
+
   // Cancel all trades
   const cancelAllTrades = async () => {
     if (!confirm('Are you sure you want to cancel all active trades? This will close all positions.')) {
       return;
     }
-    
+
     try {
       setFeedback({ message: 'Cancelling all trades...', isError: false });
-      
+
       await tradingService.cancelAllTrades();
-      
+
       setFeedback({
         message: 'All trades cancelled successfully',
         isError: false
       });
-      
+
       // Refresh active trades
       fetchActiveTrades();
     } catch (error) {
@@ -248,24 +248,24 @@ const TradingOperationsDashboard: React.FC = () => {
       });
     }
   };
-  
+
   // Toggle trading
   const toggleTradingSystem = async () => {
     try {
       const newStatus = !tradingEnabled;
-      setFeedback({ 
-        message: `${newStatus ? 'Enabling' : 'Disabling'} trading system...`, 
-        isError: false 
+      setFeedback({
+        message: `${newStatus ? 'Enabling' : 'Disabling'} trading system...`,
+        isError: false
       });
-      
+
       await tradingService.setTradingEnabled(newStatus);
-      
+
       setTradingEnabled(newStatus);
       setFeedback({
         message: `Trading system ${newStatus ? 'enabled' : 'disabled'} successfully`,
         isError: false
       });
-      
+
       // Refresh system settings
       fetchSystemSettings();
     } catch (error) {
@@ -278,17 +278,17 @@ const TradingOperationsDashboard: React.FC = () => {
       setTradingEnabled(!tradingEnabled);
     }
   };
-  
+
   // Get a trading pair by symbol
   const getPairBySymbol = (symbol: string) => {
     return availablePairs.find(pair => pair.symbol === symbol);
   };
-  
+
   // Get a strategy by ID
   const getStrategyById = (id: string) => {
     return strategies.find(strategy => strategy.id === id);
   };
-  
+
   // Format currency
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -298,17 +298,17 @@ const TradingOperationsDashboard: React.FC = () => {
       maximumFractionDigits: 6
     }).format(value);
   };
-  
+
   // Format percentage
   const formatPercentage = (value: number) => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
-  
+
   // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
-  
+
   // Handle order type change
   const handleOrderTypeChange = (type: 'market' | 'limit') => {
     setOrderType(type);
@@ -321,25 +321,25 @@ const TradingOperationsDashboard: React.FC = () => {
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Trading Operations</h1>
-        
+
         <div className="flex items-center space-x-3">
           <span className={`px-3 py-1 rounded-full text-white ${
             tradingEnabled ? 'bg-green-500' : 'bg-red-500'
           }`}>
             Trading {tradingEnabled ? 'Enabled' : 'Disabled'}
           </span>
-          
+
           <button
             onClick={toggleTradingSystem}
             className={`px-4 py-2 rounded-md text-white ${
-              tradingEnabled 
-                ? 'bg-red-600 hover:bg-red-700' 
+              tradingEnabled
+                ? 'bg-red-600 hover:bg-red-700'
                 : 'bg-green-600 hover:bg-green-700'
             }`}
           >
             {tradingEnabled ? 'Disable Trading' : 'Enable Trading'}
           </button>
-          
+
           {activeTrades.length > 0 && (
             <button
               onClick={cancelAllTrades}
@@ -350,7 +350,7 @@ const TradingOperationsDashboard: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {/* Feedback message */}
       {feedback.message && (
         <div className={`mb-4 p-3 rounded ${
@@ -359,7 +359,7 @@ const TradingOperationsDashboard: React.FC = () => {
           {feedback.message}
         </div>
       )}
-      
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
@@ -371,7 +371,7 @@ const TradingOperationsDashboard: React.FC = () => {
             <div className="p-4 border-b">
               <h2 className="text-xl font-semibold">Active Trades</h2>
             </div>
-            
+
             {activeTrades.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -401,8 +401,8 @@ const TradingOperationsDashboard: React.FC = () => {
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            trade.profitLossPercentage >= 0 
-                              ? 'bg-green-100 text-green-800' 
+                            trade.profitLossPercentage >= 0
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
                           }`}>
                             {formatPercentage(trade.profitLossPercentage)}
@@ -445,13 +445,13 @@ const TradingOperationsDashboard: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {/* New Trade Form */}
           <div className="bg-white rounded-lg shadow">
             <div className="p-4 border-b">
               <h2 className="text-xl font-semibold">New Trade</h2>
             </div>
-            
+
             <form onSubmit={executeTrade} className="p-4">
               {/* Trading Pair Selection */}
               <div className="mb-4">
@@ -471,7 +471,7 @@ const TradingOperationsDashboard: React.FC = () => {
                   ))}
                 </select>
               </div>
-              
+
               {/* Strategy Selection */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -496,7 +496,7 @@ const TradingOperationsDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Order Type */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -529,7 +529,7 @@ const TradingOperationsDashboard: React.FC = () => {
                   </button>
                 </div>
               </div>
-              
+
               {/* Limit Price (for limit orders) */}
               {orderType === 'limit' && (
                 <div className="mb-4">
@@ -548,7 +548,7 @@ const TradingOperationsDashboard: React.FC = () => {
                   />
                 </div>
               )}
-              
+
               {/* Amount */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -571,7 +571,7 @@ const TradingOperationsDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Stop Loss */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -593,7 +593,7 @@ const TradingOperationsDashboard: React.FC = () => {
                   <span>10%</span>
                 </div>
               </div>
-              
+
               {/* Take Profit */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -615,7 +615,7 @@ const TradingOperationsDashboard: React.FC = () => {
                   <span>20%</span>
                 </div>
               </div>
-              
+
               {/* Submit Button */}
               <button
                 type="submit"
@@ -630,7 +630,7 @@ const TradingOperationsDashboard: React.FC = () => {
               >
                 {isSubmitting ? 'Executing...' : 'Execute Trade'}
               </button>
-              
+
               {!tradingEnabled && (
                 <div className="mt-2 text-center text-sm text-red-600">
                   Trading is currently disabled. Enable trading to execute trades.
@@ -640,39 +640,39 @@ const TradingOperationsDashboard: React.FC = () => {
           </div>
         </div>
       )}
-      
+
       {/* System Settings Section */}
       {systemSettings && (
         <div className="mt-6 bg-white rounded-lg shadow p-4">
           <h2 className="text-xl font-semibold mb-4">System Settings</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-500">Max Open Trades</div>
               <div className="text-xl font-medium">{systemSettings.maxOpenTrades}</div>
             </div>
-            
+
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-500">Max Risk Per Trade</div>
               <div className="text-xl font-medium">{formatCurrency(systemSettings.maxRiskPerTrade)}</div>
             </div>
-            
+
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-500">Default Strategy</div>
               <div className="text-xl font-medium">{systemSettings.defaultStrategy}</div>
             </div>
-            
+
             <div className="p-3 bg-gray-50 rounded-lg md:col-span-2">
               <div className="text-sm text-gray-500">Auto Risk Management</div>
               <div className="text-xl font-medium">
                 {systemSettings.autoRiskManagement ? 'Enabled' : 'Disabled'}
               </div>
             </div>
-            
+
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-500">Allowed Pairs</div>
               <div className="text-sm font-medium mt-1">
-                {systemSettings.allowedPairs.length > 5 
+                {systemSettings.allowedPairs.length > 5
                   ? `${systemSettings.allowedPairs.slice(0, 5).join(', ')} +${systemSettings.allowedPairs.length - 5} more`
                   : systemSettings.allowedPairs.join(', ')}
               </div>

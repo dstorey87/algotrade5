@@ -315,4 +315,3 @@ f* = p - (1 - p) / b
 
 - This README.md is the master reference
 - All architectural, strategic, and implementation details are managed here
-

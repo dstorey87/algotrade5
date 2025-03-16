@@ -29,14 +29,14 @@ export class ErrorBoundary extends Component<Props, State> {
       error,
       errorInfo
     })
-    
+
     // Log error to error tracking system
     console.error('Error:', error)
     console.error('Error Info:', errorInfo)
   }
 
   private handleRetry = () => {
-    this.setState({ 
+    this.setState({
       hasError: false,
       error: null,
       errorInfo: null

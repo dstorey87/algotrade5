@@ -35,27 +35,27 @@ export const freqtradeService = {
   // System status
   getStatus: () => freqtradeApi.get('/status'),
   getVersion: () => freqtradeApi.get('/version'),
-  
+
   // Trading data
   getBalance: () => freqtradeApi.get('/balance'),
   getTrades: (limit?: number) => freqtradeApi.get('/trades', { params: { limit } }),
   getDailyStats: () => freqtradeApi.get('/daily'),
   getPerformance: () => freqtradeApi.get('/performance'),
-  
+
   // Strategy management
   getStrategyList: () => freqtradeApi.get('/strategies'),
   getCurrentStrategy: () => freqtradeApi.get('/strategy'),
   updateStrategy: (params: any) => freqtradeApi.post('/strategy', params),
-  
+
   // Trading controls
   startTrading: () => freqtradeApi.post('/start'),
   stopTrading: () => freqtradeApi.post('/stop'),
   emergencyStop: () => freqtradeApi.post('/stopbuy'),
-  
+
   // Trade actions
   forceBuy: (payload: any) => freqtradeApi.post('/forcebuy', payload),
   forceSell: (payload: any) => freqtradeApi.post('/forcesell', payload),
-  
+
   // System management
   reloadConfig: () => freqtradeApi.post('/reload_config'),
   getLogs: () => freqtradeApi.get('/logs')
@@ -72,17 +72,17 @@ export const systemService = {
 export const healthService = {
   // System health
   getHealthStatus: () => algoTradeApi.get('/api/v1/health/status'),
-  getComponentHealth: (componentType?: string) => 
+  getComponentHealth: (componentType?: string) =>
     algoTradeApi.get('/api/v1/health/components', { params: { component_type: componentType } }),
   runDiagnostics: () => algoTradeApi.get('/api/v1/health/diagnostics'),
-  
+
   // Resource monitoring
   getResourceUtilization: () => algoTradeApi.get('/api/v1/health/resources'),
   getGpuStatus: () => algoTradeApi.get('/api/v1/health/gpu'),
   getDatabaseHealth: () => algoTradeApi.get('/api/v1/health/database'),
-  
+
   // Component-specific checks
-  checkComponentHealth: (componentId: string) => 
+  checkComponentHealth: (componentId: string) =>
     algoTradeApi.post(`/api/v1/health/check/${componentId}`)
 };
 
@@ -93,11 +93,11 @@ export const mlService = {
   getModelStatus: (modelId: string) => algoTradeApi.get(`/api/v1/ml/models/${modelId}/status`),
   loadModel: (modelId: string) => algoTradeApi.post(`/api/v1/ml/models/${modelId}/load`),
   unloadModel: (modelId: string) => algoTradeApi.post(`/api/v1/ml/models/${modelId}/unload`),
-  
+
   // Predictions
-  runPrediction: (modelId: string, data: any) => 
+  runPrediction: (modelId: string, data: any) =>
     algoTradeApi.post(`/api/v1/ml/models/${modelId}/predict`, data),
-  
+
   // Performance metrics
   getPerformanceMetrics: () => algoTradeApi.get('/api/v1/ml/performance')
 };
@@ -106,20 +106,20 @@ export const mlService = {
 export const aiService = {
   // LLM operations
   getAvailableLlmModels: () => algoTradeApi.get('/api/v1/ai/llm/models'),
-  generateLlmResponse: (modelId: string, prompt: any) => 
+  generateLlmResponse: (modelId: string, prompt: any) =>
     algoTradeApi.post('/api/v1/ai/llm/generate', { model_id: modelId, ...prompt }),
-  
+
   // Quantum operations
   getQuantumStatus: () => algoTradeApi.get('/api/v1/ai/quantum/status'),
-  executeQuantumCircuit: (circuitData: any) => 
+  executeQuantumCircuit: (circuitData: any) =>
     algoTradeApi.post('/api/v1/ai/quantum/execute', circuitData),
-  getQuantumJobStatus: (taskId: string) => 
+  getQuantumJobStatus: (taskId: string) =>
     algoTradeApi.get(`/api/v1/ai/quantum/jobs/${taskId}`),
-  
+
   // Strategy analysis
-  analyzeStrategy: (strategyId: string, timeframe: string = '1d', pair: string = 'BTC/USDT') => 
-    algoTradeApi.get('/api/v1/ai/strategies/analyze', { 
-      params: { strategy_id: strategyId, timeframe, pair } 
+  analyzeStrategy: (strategyId: string, timeframe: string = '1d', pair: string = 'BTC/USDT') =>
+    algoTradeApi.get('/api/v1/ai/strategies/analyze', {
+      params: { strategy_id: strategyId, timeframe, pair }
     })
 };
 
@@ -127,31 +127,31 @@ export const aiService = {
 export const tradingService = {
   // Trading status
   getTradingStatus: () => algoTradeApi.get('/api/v1/trading/status'),
-  
+
   // Trading controls
-  startTrading: (strategyId?: string) => 
+  startTrading: (strategyId?: string) =>
     algoTradeApi.post('/api/v1/trading/start', { strategy_id: strategyId }),
-  stopTrading: (emergency: boolean = false) => 
+  stopTrading: (emergency: boolean = false) =>
     algoTradeApi.post('/api/v1/trading/stop', { emergency }),
-  
+
   // Strategy management
   getAvailableStrategies: () => algoTradeApi.get('/api/v1/trading/strategies'),
-  getStrategyDetails: (strategyId: string) => 
+  getStrategyDetails: (strategyId: string) =>
     algoTradeApi.get(`/api/v1/trading/strategies/${strategyId}`),
-  activateStrategy: (strategyId: string) => 
+  activateStrategy: (strategyId: string) =>
     algoTradeApi.post(`/api/v1/trading/strategies/${strategyId}/activate`),
-  
+
   // Performance metrics
-  getTradingPerformance: (timeframe: string = '1d') => 
+  getTradingPerformance: (timeframe: string = '1d') =>
     algoTradeApi.get('/api/v1/trading/performance', { params: { timeframe } }),
-  
+
   // Risk management
   getRiskMetrics: () => algoTradeApi.get('/api/v1/trading/risk'),
-  updateRiskParameters: (parameters: any) => 
+  updateRiskParameters: (parameters: any) =>
     algoTradeApi.post('/api/v1/trading/risk/update', parameters),
-  
+
   // Manual trading
-  executeManualTrade: (tradeData: any) => 
+  executeManualTrade: (tradeData: any) =>
     algoTradeApi.post('/api/v1/trading/execute_trade', tradeData)
 };
 

@@ -8,18 +8,18 @@ function Test-MDFileContent {
         [string]$FilePath,
         [string[]]$RequiredSections
     )
-    
+
     $content = Get-Content $FilePath -Raw
     $missingCount = 0
     $missingSections = @()
-    
+
     foreach ($section in $RequiredSections) {
         if ($content -notmatch $section) {
             $missingCount++
             $missingSections += $section
         }
     }
-    
+
     return @{
         IsValid = $missingCount -eq 0
         MissingSections = $missingSections
@@ -30,12 +30,12 @@ function Test-FileInteractions {
     param (
         [string]$FilePath
     )
-    
+
     $content = Get-Content $FilePath -Raw
     $hasInteractions = $content -match "## Interactions"
     $hasMissingIntegrations = $content -match "## Missing Integrations"
     $hasRedundantCode = $content -match "## Redundant Code"
-    
+
     return @{
         IsValid = $hasInteractions -and $hasMissingIntegrations -and $hasRedundantCode
         MissingDocs = @(
@@ -72,7 +72,7 @@ $errors = @()
 # Check each changed file
 foreach ($file in $changedFiles) {
     $ext = [System.IO.Path]::GetExtension($file)
-    
+
     # Python file changes must be documented
     if ($ext -eq ".py") {
         $docUpdated = $false
@@ -82,11 +82,11 @@ foreach ($file in $changedFiles) {
                 break
             }
         }
-        
+
         if (-not $docUpdated) {
             $errors += "Python file '$file' was modified but no documentation files were updated"
         }
-        
+
         # Check ARCHITECTURE_ANALYSIS.md for interaction documentation
         $archResult = Test-FileInteractions "ARCHITECTURE_ANALYSIS.md"
         if (-not $archResult.IsValid) {

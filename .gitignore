@@ -89,7 +89,7 @@ aimodels/**/*
 # Custom backups and temp files
 *_backup/
 *.tmp
-docker/programdata/dependency_cache/
+docker/programdata/
 
 # Next.js build output
 .next/

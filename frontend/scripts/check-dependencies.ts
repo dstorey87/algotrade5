@@ -61,14 +61,14 @@ function checkPackageJson(): PackageJson {
 
 function validateDependencies(): void {
   console.log('🔍 Checking dependencies...');
-  
+
   const packageJson = checkPackageJson();
-  const allDeps = { 
-    ...(packageJson.dependencies || {}), 
-    ...(packageJson.devDependencies || {}) 
+  const allDeps = {
+    ...(packageJson.dependencies || {}),
+    ...(packageJson.devDependencies || {})
   };
   const missingDeps: string[] = [];
-  
+
   Object.values(DEPENDENCIES).forEach((group: Dependency[]) => {
     group.forEach(({ name, version, required }: Dependency) => {
       if (!allDeps[name]) {
@@ -82,7 +82,7 @@ function validateDependencies(): void {
   if (missingDeps.length > 0) {
     console.error('❌ Missing required dependencies:', missingDeps.join(', '));
     console.log('📦 Installing missing dependencies...');
-    
+
     try {
       execSync(`npm install ${missingDeps.join(' ')}`, { stdio: 'inherit' });
       console.log('✅ Successfully installed missing dependencies');

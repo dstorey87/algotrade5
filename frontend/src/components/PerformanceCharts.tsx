@@ -41,12 +41,12 @@ export default function PerformanceCharts() {
   // Calculate strategy performance
   const strategyPerformance = trades.reduce<Record<string, StrategyStats>>((acc, trade) => {
     if (!acc[trade.strategy]) {
-      acc[trade.strategy] = { 
+      acc[trade.strategy] = {
         name: trade.strategy,
         trades: 0,
         profit: 0,
         winRate: 0,
-        wins: 0 
+        wins: 0
       }
     }
     acc[trade.strategy].trades++
@@ -92,7 +92,7 @@ export default function PerformanceCharts() {
             index="name"
             categories={["profit", "winRate"]}
             colors={["emerald", "blue"]}
-            valueFormatter={(number: number) => 
+            valueFormatter={(number: number) =>
               number >= 1 ? `£${number.toFixed(2)}` : `${number.toFixed(1)}%`
             }
           />

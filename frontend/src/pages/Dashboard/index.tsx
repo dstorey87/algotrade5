@@ -19,15 +19,15 @@ import TradeLog from '../../components/TradeLog';
 // Metric card component for displaying individual metrics
 const MetricCard = ({ title, value, icon, change, color }: { title: string, value: string, icon: React.ReactNode, change?: string, color?: string }) => {
   const theme = useTheme();
-  
+
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Box sx={{ 
-            p: 1, 
-            borderRadius: 1, 
-            mr: 2, 
+          <Box sx={{
+            p: 1,
+            borderRadius: 1,
+            mr: 2,
             bgcolor: color || theme.palette.primary.main,
             display: 'flex',
             alignItems: 'center',
@@ -41,8 +41,8 @@ const MetricCard = ({ title, value, icon, change, color }: { title: string, valu
           {value}
         </Typography>
         {change && (
-          <Box sx={{ 
-            display: 'flex', 
+          <Box sx={{
+            display: 'flex',
             alignItems: 'center',
             color: change.startsWith('+') ? 'success.main' : 'error.main'
           }}>

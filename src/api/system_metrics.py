@@ -1,15 +1,18 @@
-from fastapi import APIRouter, HTTPException
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
+
+from fastapi import APIRouter, HTTPException
+
+from src.core.risk_manager import RiskManager
 from src.core.system_health_checker import SystemHealthChecker
 from src.monitoring.system_monitor import SystemMonitor
-from src.core.risk_manager import RiskManager
 
 router = APIRouter(prefix="/api/v1/system")
 
 system_monitor = SystemMonitor()
 health_checker = SystemHealthChecker()
 risk_manager = RiskManager()
+
 
 @router.get("/metrics")
 async def get_system_metrics() -> Dict[str, Any]:
@@ -19,7 +22,7 @@ async def get_system_metrics() -> Dict[str, Any]:
         system_health = health_checker.get_system_metrics()
         performance = system_monitor.check_system_metrics()
         risk_metrics = risk_manager.get_risk_metrics()
-        
+
         return {
             "timestamp": datetime.now().isoformat(),
             "system_status": {
@@ -38,17 +41,18 @@ async def get_system_metrics() -> Dict[str, Any]:
                 "win_rate": performance["win_rate"],
                 "drawdown": performance["current_drawdown"],
                 "trading_enabled": performance["trading_enabled"],
-                "quantum_validated": performance["quantum_validated"]
+                "quantum_validated": performance["quantum_validated"],
             },
             "health": {
                 "database": performance["db_status"],
                 "api_connected": True,  # TODO: Implement check
                 "models_loaded": True,  # TODO: Implement check
-                "quantum_ready": performance["quantum_validated"]
-            }
+                "quantum_ready": performance["quantum_validated"],
+            },
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/logs")
 async def get_system_logs():
@@ -59,7 +63,7 @@ async def get_system_logs():
                 {
                     "timestamp": "2024-03-12T10:00:00Z",
                     "level": "INFO",
-                    "message": "System startup complete"
+                    "message": "System startup complete",
                 },
                 # TODO: Implement actual log retrieval from database
             ]

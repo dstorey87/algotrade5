@@ -56,7 +56,7 @@ function Find-Python {
 function Install-FreqTrade {
     try {
         Write-Host "Installing FreqTrade from source..."
-        
+
         # Check if freqtrade directory exists
         if (-not (Test-Path "freqtrade")) {
             Write-Host "Cloning FreqTrade repository..."
@@ -65,15 +65,15 @@ function Install-FreqTrade {
                 throw "Failed to clone FreqTrade repository"
             }
         }
-        
+
         Push-Location freqtrade
-        
+
         # Ensure FreqTrade directory is clean
         Write-Host "Updating FreqTrade source..."
         git reset --hard
         git clean -fdx
         git pull
-        
+
         # Install in development mode using Poetry's venv Python
         Write-Host "Installing FreqTrade in development mode..."
         $pythonPath = poetry env info --path
@@ -86,11 +86,11 @@ function Install-FreqTrade {
         } else {
             throw "Poetry environment not found"
         }
-        
+
         Pop-Location
         Write-Host "[OK] FreqTrade installed successfully"
         return $true
-        
+
     } catch {
         Write-Error "Failed to install FreqTrade: $_"
         if ($PSItem.ScriptStackTrace) {
@@ -116,7 +116,7 @@ function Install-Poetry {
 
             # Set Python path for Poetry installer
             $env:POETRY_PYTHON = $pythonPath
-            
+
             # Install Poetry using the specific Python
             Write-Host "Installing Poetry using Python at: $pythonPath"
             (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | & $pythonPath -
@@ -128,7 +128,7 @@ function Install-Poetry {
             $poetryPath = "$env:APPDATA\Python\Scripts"
             $env:Path += ";$poetryPath"
             [Environment]::SetEnvironmentVariable("Path", $env:Path, "User")
-            
+
             # Verify installation
             $poetry = Get-Command "poetry" -ErrorAction Stop
             Write-Host "[OK] Poetry installed successfully"

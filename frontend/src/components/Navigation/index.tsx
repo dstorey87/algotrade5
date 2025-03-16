@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  ChartBarIcon, 
-  CubeIcon, 
+import {
+  ChartBarIcon,
+  CubeIcon,
   BeakerIcon,
-  ClockIcon, 
+  ClockIcon,
   CogIcon,
   ChevronLeftIcon,
   ChevronRightIcon,

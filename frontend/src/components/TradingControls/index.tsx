@@ -15,10 +15,10 @@ const StatusChip = styled(Chip)(({ theme }) => ({
 
 const TradingControls = () => {
   const dispatch = useDispatch()
-  const { 
-    balance, 
-    totalProfit, 
-    winRate, 
+  const {
+    balance,
+    totalProfit,
+    winRate,
     activeTrades,
     tradingEnabled,
     systemStatus
@@ -58,41 +58,41 @@ const TradingControls = () => {
         <Item>
           <Typography variant="h6" gutterBottom>System Status</Typography>
           <Box sx={{ mb: 2 }}>
-            <StatusChip 
+            <StatusChip
               label={`FreqTrade: ${systemStatus?.freqtrade ? 'Online' : 'Offline'}`}
               color={systemStatus?.freqtrade ? 'success' : 'error'}
               variant="outlined"
             />
-            <StatusChip 
+            <StatusChip
               label={`Database: ${systemStatus?.database ? 'Connected' : 'Disconnected'}`}
               color={systemStatus?.database ? 'success' : 'error'}
               variant="outlined"
             />
-            <StatusChip 
+            <StatusChip
               label={`Models: ${systemStatus?.models ? 'Loaded' : 'Not Loaded'}`}
               color={systemStatus?.models ? 'success' : 'error'}
               variant="outlined"
             />
-            <StatusChip 
+            <StatusChip
               label={`Quantum: ${systemStatus?.quantum ? 'Ready' : 'Not Ready'}`}
               color={systemStatus?.quantum ? 'success' : 'error'}
               variant="outlined"
             />
           </Box>
-          
+
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button 
-              variant="contained" 
-              color="success" 
+            <Button
+              variant="contained"
+              color="success"
               onClick={handleStartTrading}
               disabled={tradingEnabled}
               fullWidth
             >
               Start Trading
             </Button>
-            <Button 
-              variant="contained" 
-              color="error" 
+            <Button
+              variant="contained"
+              color="error"
               onClick={handleStopTrading}
               disabled={!tradingEnabled}
               fullWidth

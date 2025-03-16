@@ -59,7 +59,7 @@ const TradeLog = () => {
       <Typography variant="h6" gutterBottom>
         Trade Log
       </Typography>
-      
+
       <TableContainer>
         <Table sx={{ minWidth: 650 }} size="small">
           <TableHead>
@@ -87,9 +87,9 @@ const TradeLog = () => {
                   </TableCell>
                   <TableCell>{trade.pair}</TableCell>
                   <TableCell>
-                    <Chip 
-                      label={trade.type} 
-                      color={trade.type === 'buy' ? 'success' : 'error'} 
+                    <Chip
+                      label={trade.type}
+                      color={trade.type === 'buy' ? 'success' : 'error'}
                       size="small"
                     />
                   </TableCell>
@@ -98,9 +98,9 @@ const TradeLog = () => {
                     {trade.exitPrice ? `£${trade.exitPrice.toFixed(2)}` : '-'}
                   </TableCell>
                   <TableCell align="right">{trade.amount}</TableCell>
-                  <TableCell 
+                  <TableCell
                     align="right"
-                    sx={{ 
+                    sx={{
                       color: trade.profit >= 0 ? 'success.main' : 'error.main',
                       fontWeight: 'bold'
                     }}
@@ -167,7 +167,7 @@ const TradeLog = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"

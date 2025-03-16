@@ -40,7 +40,7 @@ interface PerformanceMetrics {
   }>
 }
 
-const valueFormatter = (number: number) => 
+const valueFormatter = (number: number) =>
   `£${Intl.NumberFormat('en-GB').format(number).toString()}`
 
 export default function PerformancePage() {

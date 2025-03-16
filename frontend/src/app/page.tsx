@@ -66,7 +66,7 @@ export default function Dashboard() {
         fetch('/api/v1/system/status'),
         fetch('/api/v1/performance')
       ])
-      
+
       if (!statusRes.ok || !metricsRes.ok) {
         throw new Error('Failed to fetch data')
       }
@@ -234,8 +234,8 @@ export default function Dashboard() {
                       {trade.profit > 0 ? '+' : ''}£{trade.profit.toFixed(2)}
                     </Text>
                     <Text>
-                      {formatDistance(new Date(trade.timestamp), new Date(), { 
-                        addSuffix: true 
+                      {formatDistance(new Date(trade.timestamp), new Date(), {
+                        addSuffix: true
                       })}
                     </Text>
                   </div>

@@ -23,7 +23,7 @@ const Metric = ({ label, value, tooltip }: { label: string; value: string | numb
 )
 
 const StrategyStats = () => {
-  const { 
+  const {
     activeStrategy,
     drawdown,
     confidence,
@@ -40,14 +40,14 @@ const StrategyStats = () => {
         Strategy Stats
       </Typography>
 
-      <Metric 
-        label="Active Strategy" 
-        value={activeStrategy || 'None'} 
+      <Metric
+        label="Active Strategy"
+        value={activeStrategy || 'None'}
         tooltip="Currently active trading strategy"
       />
 
-      <Metric 
-        label="Drawdown" 
+      <Metric
+        label="Drawdown"
         value={`${(drawdown * 100).toFixed(2)}%`}
         tooltip="Maximum drawdown from peak"
       />
@@ -56,8 +56,8 @@ const StrategyStats = () => {
         <Typography variant="body2" color="text.secondary" gutterBottom>
           AI Confidence
         </Typography>
-        <LinearProgress 
-          variant="determinate" 
+        <LinearProgress
+          variant="determinate"
           value={confidence * 100}
           color={confidence > 0.85 ? "success" : confidence > 0.7 ? "warning" : "error"}
           sx={{ height: 8, borderRadius: 2 }}
@@ -67,26 +67,26 @@ const StrategyStats = () => {
         </Typography>
       </Box>
 
-      <Metric 
-        label="Pattern Validation" 
+      <Metric
+        label="Pattern Validation"
         value={patternValidation ? 'Valid' : 'Invalid'}
         tooltip="Current pattern validation status"
       />
 
-      <Metric 
-        label="Quantum Validation" 
+      <Metric
+        label="Quantum Validation"
         value={quantumValidation ? 'Confirmed' : 'Pending'}
         tooltip="Quantum circuit validation status"
       />
 
-      <Metric 
-        label="Trades Today" 
+      <Metric
+        label="Trades Today"
         value={tradesToday}
         tooltip="Number of trades executed today"
       />
 
-      <Metric 
-        label="Win Streak" 
+      <Metric
+        label="Win Streak"
         value={winStreak}
         tooltip="Current consecutive winning trades"
       />
@@ -95,8 +95,8 @@ const StrategyStats = () => {
         <Typography variant="body2" color="text.secondary" gutterBottom>
           Model Performance
         </Typography>
-        <LinearProgress 
-          variant="determinate" 
+        <LinearProgress
+          variant="determinate"
           value={modelPerformance * 100}
           color={modelPerformance > 0.85 ? "success" : modelPerformance > 0.7 ? "warning" : "error"}
           sx={{ height: 8, borderRadius: 2 }}

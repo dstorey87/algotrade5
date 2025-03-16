@@ -69,34 +69,34 @@ const PerformanceMetricsDashboard: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState({ message: '', isError: false });
   const [timePeriod, setTimePeriod] = useState<'day' | 'week' | 'month' | 'all'>('week');
-  
+
   // Load initial data
   useEffect(() => {
     fetchPerformanceData();
   }, [timePeriod]);
-  
+
   // Fetch all performance data
   const fetchPerformanceData = async () => {
     try {
       setIsLoading(true);
       setFeedback({ message: 'Loading performance data...', isError: false });
-      
+
       // Fetch overall metrics
       const metricsResponse = await tradingService.getPerformanceMetrics(timePeriod);
       setMetrics(metricsResponse.data.metrics || null);
-      
+
       // Fetch pair-specific performance
       const pairResponse = await tradingService.getPairPerformance(timePeriod);
       setPairPerformance(pairResponse.data.pairs || []);
-      
+
       // Fetch timeframe-specific performance
       const timeframeResponse = await tradingService.getTimeframePerformance(timePeriod);
       setTimeframePerformance(timeframeResponse.data.timeframes || []);
-      
+
       // Fetch profit history for chart
       const historyResponse = await tradingService.getProfitHistory(timePeriod);
       setProfitHistory(historyResponse.data.history || []);
-      
+
       setFeedback({ message: '', isError: false });
     } catch (error) {
       console.error('Error fetching performance data:', error);
@@ -108,16 +108,16 @@ const PerformanceMetricsDashboard: React.FC = () => {
       setIsLoading(false);
     }
   };
-  
+
   // Analyze performance with AI
   const analyzePerformance = async () => {
     try {
       setIsAnalyzing(true);
       setFeedback({ message: 'Analyzing performance data...', isError: false });
-      
+
       const response = await aiService.analyzePerformance(timePeriod);
       setAiInsights(response.data.insights || null);
-      
+
       setFeedback({ message: 'Analysis complete', isError: false });
     } catch (error) {
       console.error('Error analyzing performance:', error);
@@ -129,24 +129,24 @@ const PerformanceMetricsDashboard: React.FC = () => {
       setIsAnalyzing(false);
     }
   };
-  
+
   // Handle time period change
   const handlePeriodChange = (period: 'day' | 'week' | 'month' | 'all') => {
     setTimePeriod(period);
   };
-  
+
   // Format profit/loss for display with color
   const formatProfit = (profit: number, includeSign = true) => {
-    const formattedValue = includeSign 
+    const formattedValue = includeSign
       ? (profit >= 0 ? `+${profit.toFixed(2)}%` : `${profit.toFixed(2)}%`)
       : `${Math.abs(profit).toFixed(2)}%`;
-      
+
     return {
       value: formattedValue,
       color: profit > 0 ? 'text-green-600' : profit < 0 ? 'text-red-600' : 'text-gray-600'
     };
   };
-  
+
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -161,15 +161,15 @@ const PerformanceMetricsDashboard: React.FC = () => {
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Performance Metrics</h1>
-        
+
         <div className="flex items-center space-x-4">
           {/* Time Period Selector */}
           <div className="flex bg-white rounded-lg shadow">
             <button
               onClick={() => handlePeriodChange('day')}
               className={`px-4 py-2 text-sm ${
-                timePeriod === 'day' 
-                  ? 'bg-blue-600 text-white font-medium rounded-l-lg' 
+                timePeriod === 'day'
+                  ? 'bg-blue-600 text-white font-medium rounded-l-lg'
                   : 'text-gray-600 hover:bg-gray-100 rounded-l-lg'
               }`}
             >
@@ -178,8 +178,8 @@ const PerformanceMetricsDashboard: React.FC = () => {
             <button
               onClick={() => handlePeriodChange('week')}
               className={`px-4 py-2 text-sm ${
-                timePeriod === 'week' 
-                  ? 'bg-blue-600 text-white font-medium' 
+                timePeriod === 'week'
+                  ? 'bg-blue-600 text-white font-medium'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -188,8 +188,8 @@ const PerformanceMetricsDashboard: React.FC = () => {
             <button
               onClick={() => handlePeriodChange('month')}
               className={`px-4 py-2 text-sm ${
-                timePeriod === 'month' 
-                  ? 'bg-blue-600 text-white font-medium' 
+                timePeriod === 'month'
+                  ? 'bg-blue-600 text-white font-medium'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -198,22 +198,22 @@ const PerformanceMetricsDashboard: React.FC = () => {
             <button
               onClick={() => handlePeriodChange('all')}
               className={`px-4 py-2 text-sm ${
-                timePeriod === 'all' 
-                  ? 'bg-blue-600 text-white font-medium rounded-r-lg' 
+                timePeriod === 'all'
+                  ? 'bg-blue-600 text-white font-medium rounded-r-lg'
                   : 'text-gray-600 hover:bg-gray-100 rounded-r-lg'
               }`}
             >
               All Time
             </button>
           </div>
-          
+
           <button
             onClick={fetchPerformanceData}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Refresh
           </button>
-          
+
           <button
             onClick={analyzePerformance}
             disabled={isAnalyzing || isLoading || !metrics}
@@ -227,14 +227,14 @@ const PerformanceMetricsDashboard: React.FC = () => {
           </button>
         </div>
       </div>
-      
+
       {/* Feedback message */}
       {feedback.message && (
         <div className={`mb-4 p-3 rounded ${feedback.isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
           {feedback.message}
         </div>
       )}
-      
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
@@ -252,7 +252,7 @@ const PerformanceMetricsDashboard: React.FC = () => {
                 {metrics.profitable_trades} / {metrics.total_trades} trades
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-4">
               <div className="text-sm text-gray-500">Profit Factor</div>
               <div className="text-2xl font-bold text-blue-600">
@@ -262,7 +262,7 @@ const PerformanceMetricsDashboard: React.FC = () => {
                 Gains / Losses ratio
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-4">
               <div className="text-sm text-gray-500">Total Profit</div>
               <div className={`text-2xl font-bold ${metrics.total_profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -272,7 +272,7 @@ const PerformanceMetricsDashboard: React.FC = () => {
                 {formatProfit(metrics.avg_profit_per_trade * 100).value} per trade
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-4">
               <div className="text-sm text-gray-500">Max Drawdown</div>
               <div className="text-2xl font-bold text-red-600">
@@ -283,7 +283,7 @@ const PerformanceMetricsDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Profit Chart (this would be a real chart in a complete implementation) */}
           <div className="bg-white rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-4">Profit History</h2>
@@ -292,11 +292,11 @@ const PerformanceMetricsDashboard: React.FC = () => {
               <p>Profit chart would be displayed here using profitHistory data</p>
             </div>
           </div>
-          
+
           {/* Trading Pairs Performance */}
           <div className="bg-white rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-4">Trading Pairs Performance</h2>
-            
+
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -313,7 +313,7 @@ const PerformanceMetricsDashboard: React.FC = () => {
                   {pairPerformance.map((pair) => {
                     const profitFormatted = formatProfit(pair.profit);
                     const avgProfitFormatted = formatProfit(pair.avg_profit);
-                    
+
                     return (
                       <tr key={pair.pair}>
                         <td className="px-4 py-2 whitespace-nowrap font-medium">{pair.pair}</td>
@@ -335,11 +335,11 @@ const PerformanceMetricsDashboard: React.FC = () => {
               </table>
             </div>
           </div>
-          
+
           {/* Timeframe Performance */}
           <div className="bg-white rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-4">Timeframe Performance</h2>
-            
+
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -354,7 +354,7 @@ const PerformanceMetricsDashboard: React.FC = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {timeframePerformance.map((tf) => {
                     const profitFormatted = formatProfit(tf.profit);
-                    
+
                     return (
                       <tr key={tf.timeframe}>
                         <td className="px-4 py-2 whitespace-nowrap font-medium">{tf.timeframe}</td>
@@ -373,12 +373,12 @@ const PerformanceMetricsDashboard: React.FC = () => {
               </table>
             </div>
           </div>
-          
+
           {/* Best and Worst Trades */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-lg shadow p-4">
               <h2 className="text-lg font-semibold mb-4 text-green-700">Best Trade</h2>
-              
+
               {metrics.best_trade && (
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -402,10 +402,10 @@ const PerformanceMetricsDashboard: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-4">
               <h2 className="text-lg font-semibold mb-4 text-red-700">Worst Trade</h2>
-              
+
               {metrics.worst_trade && (
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -430,16 +430,16 @@ const PerformanceMetricsDashboard: React.FC = () => {
               )}
             </div>
           </div>
-          
+
           {/* AI Insights */}
           {aiInsights && (
             <div className="bg-indigo-50 border border-indigo-200 rounded-lg shadow p-4">
               <h2 className="text-lg font-semibold mb-4 text-indigo-800">AI Performance Analysis</h2>
-              
+
               <div className="mb-4">
                 <p className="text-indigo-700">{aiInsights.summary}</p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <h3 className="font-medium text-indigo-800 mb-2">Key Metrics</h3>
@@ -449,7 +449,7 @@ const PerformanceMetricsDashboard: React.FC = () => {
                     ))}
                   </ul>
                 </div>
-                
+
                 <div>
                   <h3 className="font-medium text-green-800 mb-2">Profitable Patterns</h3>
                   <ul className="list-disc pl-5 space-y-1">
@@ -458,7 +458,7 @@ const PerformanceMetricsDashboard: React.FC = () => {
                     ))}
                   </ul>
                 </div>
-                
+
                 <div>
                   <h3 className="font-medium text-red-800 mb-2">Risk Factors</h3>
                   <ul className="list-disc pl-5 space-y-1">
@@ -468,7 +468,7 @@ const PerformanceMetricsDashboard: React.FC = () => {
                   </ul>
                 </div>
               </div>
-              
+
               <div className="mt-4">
                 <h3 className="font-medium text-indigo-800 mb-2">Improvement Suggestions</h3>
                 <ul className="list-disc pl-5 space-y-1">

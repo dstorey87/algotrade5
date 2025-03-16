@@ -218,18 +218,18 @@ const Strategies = () => {
           {strategies.map((strategy) => (
             <Grid item xs={12} md={6} lg={4} key={strategy.name}>
               <StyledCard>
-                <CardHeader 
-                  title={strategy.name} 
+                <CardHeader
+                  title={strategy.name}
                   subheader={
                     <Box sx={{ mt: 1 }}>
                       {strategy.tags.map(tag => (
-                        <Chip 
-                          key={tag} 
-                          label={tag} 
-                          size="small" 
-                          sx={{ mr: 0.5, mb: 0.5 }} 
-                          color="primary" 
-                          variant="outlined" 
+                        <Chip
+                          key={tag}
+                          label={tag}
+                          size="small"
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                          color="primary"
+                          variant="outlined"
                         />
                       ))}
                     </Box>
@@ -239,9 +239,9 @@ const Strategies = () => {
                   <Typography variant="body2" color="text.secondary" paragraph>
                     {strategy.description}
                   </Typography>
-                  
+
                   <Divider sx={{ my: 2 }} />
-                  
+
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
                       <Typography variant="subtitle2">Win Rate</Typography>
@@ -268,7 +268,7 @@ const Strategies = () => {
                       </Typography>
                     </Grid>
                   </Grid>
-                  
+
                   <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-around' }}>
                     <Button variant="outlined" size="small">
                       Details
@@ -327,30 +327,30 @@ const Strategies = () => {
                   <Box key={pair.pair} sx={{ mb: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2">{pair.pair}</Typography>
-                      <Typography 
-                        variant="body2" 
+                      <Typography
+                        variant="body2"
                         sx={{ color: pair.profit >= 0 ? 'success.main' : 'error.main' }}
                       >
                         {pair.profit > 0 ? '+' : ''}{pair.profit.toFixed(2)}%
                       </Typography>
                     </Box>
-                    <Box 
-                      sx={{ 
-                        width: '100%', 
-                        height: 8, 
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: 8,
                         bgcolor: 'background.paper',
                         mt: 0.5,
                         borderRadius: 1,
                         overflow: 'hidden'
                       }}
                     >
-                      <Box 
-                        sx={{ 
-                          width: `${Math.min(100, pair.profit * 10)}%`, 
-                          height: '100%', 
+                      <Box
+                        sx={{
+                          width: `${Math.min(100, pair.profit * 10)}%`,
+                          height: '100%',
                           bgcolor: pair.profit >= 0 ? 'success.main' : 'error.main',
                           borderRadius: 1
-                        }} 
+                        }}
                       />
                     </Box>
                   </Box>
@@ -372,7 +372,7 @@ const Strategies = () => {
               <Typography variant="body2" color="text.secondary" paragraph>
                 Optimize strategy parameters to improve performance. Quantum-enhanced parameter optimization can explore multiple combinations simultaneously.
               </Typography>
-              
+
               {strategies.length > 0 && strategies[0].parameterRanges.map((param) => (
                 <Box key={param.parameter} sx={{ mb: 3 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -411,7 +411,7 @@ const Strategies = () => {
                   </Box>
                 </Box>
               ))}
-              
+
               <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
                 <Button variant="contained">
                   Start Optimization

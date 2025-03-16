@@ -7,8 +7,8 @@ export async function POST() {
     //   method: 'POST'
     // })
     // const data = await response.json()
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       status: 'success',
       message: 'Trading stopped successfully',
       tradingEnabled: false

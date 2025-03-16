@@ -24,13 +24,13 @@ export default function TradeHistory() {
   const [selectedStrategy, setSelectedStrategy] = useState<string>("all")
 
   const strategies = Array.from(new Set(trades.map(trade => trade.strategy)))
-  
+
   const filteredTrades = trades.filter(trade => {
     // Strategy filter
     if (selectedStrategy !== "all" && trade.strategy !== selectedStrategy) {
       return false
     }
-    
+
     // Date range filter
     const tradeDate = new Date(trade.timestamp)
     if (dateRange.from && tradeDate < dateRange.from) {
@@ -39,7 +39,7 @@ export default function TradeHistory() {
     if (dateRange.to && tradeDate > dateRange.to) {
       return false
     }
-    
+
     return true
   })
 
@@ -109,7 +109,7 @@ export default function TradeHistory() {
                 <TableCell>{trade.amount}</TableCell>
                 <TableCell>
                   <Text color={trade.profit !== undefined && trade.profit >= 0 ? "green" : "red"}>
-                    £{trade.profit?.toFixed(2) || '-'} 
+                    £{trade.profit?.toFixed(2) || '-'}
                     ({trade.profitPercentage?.toFixed(2) || '-'}%)
                   </Text>
                 </TableCell>
@@ -117,7 +117,7 @@ export default function TradeHistory() {
                 <TableCell>
                   <Badge
                     color={
-                      trade.confidence > 0.85 ? "green" : 
+                      trade.confidence > 0.85 ? "green" :
                       trade.confidence > 0.7 ? "yellow" : "red"
                     }
                   >

@@ -36,7 +36,7 @@ describe('Dashboard', () => {
         <Dashboard />
       </Provider>
     )
-    
+
     expect(screen.getByText('System Overview')).toBeInTheDocument()
   })
 
@@ -46,7 +46,7 @@ describe('Dashboard', () => {
         <Dashboard />
       </Provider>
     )
-    
+
     expect(screen.getByText(/GPU: 45.50%/)).toBeInTheDocument()
     expect(screen.getByText(/Memory: 60.20%/)).toBeInTheDocument()
   })
@@ -57,7 +57,7 @@ describe('Dashboard', () => {
         <Dashboard />
       </Provider>
     )
-    
+
     expect(screen.getByText(/Accuracy: 87.00%/)).toBeInTheDocument()
     expect(screen.getByText(/Confidence: 92.00%/)).toBeInTheDocument()
   })
@@ -68,7 +68,7 @@ describe('Dashboard', () => {
         <Dashboard />
       </Provider>
     )
-    
+
     expect(screen.getByText('Quantum Circuit')).toBeInTheDocument()
     expect(screen.getByText(/Status: Ready/)).toBeInTheDocument()
   })
@@ -79,7 +79,7 @@ describe('Dashboard', () => {
         <Dashboard />
       </Provider>
     )
-    
+
     expect(screen.getByText('FreqTrade: Online')).toBeInTheDocument()
     expect(screen.getByText('Database: Connected')).toBeInTheDocument()
     expect(screen.getByText('Models: Loaded')).toBeInTheDocument()
@@ -99,7 +99,7 @@ describe('Dashboard', () => {
         <Dashboard />
       </Provider>
     )
-    
+
     expect(screen.getByText('FreqTrade: Offline')).toBeInTheDocument()
     expect(screen.getByText('Database: Disconnected')).toBeInTheDocument()
     expect(screen.getByText('Models: Not Loaded')).toBeInTheDocument()

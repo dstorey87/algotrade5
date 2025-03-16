@@ -54,27 +54,27 @@ const SystemHealthDashboard: React.FC = () => {
   const [isDiagnosing, setIsDiagnosing] = useState(false);
   const [feedback, setFeedback] = useState({ message: '', isError: false });
   const [autoRefresh, setAutoRefresh] = useState(false);
-  
+
   // Load initial data
   useEffect(() => {
     fetchSystemStatus();
   }, []);
-  
+
   // Set up auto-refresh
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
-    
+
     if (autoRefresh) {
       intervalId = setInterval(() => {
         fetchSystemStatus(false);
       }, 10000); // Refresh every 10 seconds
     }
-    
+
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [autoRefresh]);
-  
+
   // Fetch component details when selection changes
   useEffect(() => {
     if (selectedComponent && systemStatus) {
@@ -88,22 +88,22 @@ const SystemHealthDashboard: React.FC = () => {
       setComponentDetails(null);
     }
   }, [selectedComponent, systemStatus]);
-  
+
   // Fetch system status
   const fetchSystemStatus = async (showLoading = true) => {
     try {
       if (showLoading) {
         setIsLoading(true);
       }
-      
+
       // Fetch overall system status
       const statusResponse = await healthService.getSystemStatus();
       setSystemStatus(statusResponse.data);
-      
+
       // Fetch resource usage
       const resourceResponse = await healthService.getResourceUsage();
       setResourceUsage(resourceResponse.data);
-      
+
       setFeedback({ message: '', isError: false });
     } catch (error) {
       console.error('Error fetching system status:', error);
@@ -117,18 +117,18 @@ const SystemHealthDashboard: React.FC = () => {
       }
     }
   };
-  
+
   // Get AI diagnosis for a component
   const diagnoseProblem = async () => {
     if (!selectedComponent) return;
-    
+
     try {
       setIsDiagnosing(true);
       setFeedback({ message: 'Diagnosing component issues...', isError: false });
-      
+
       const response = await healthService.getDiagnosis(selectedComponent);
       setAiDiagnosis(response.data.diagnosis || null);
-      
+
       setFeedback({ message: 'Diagnosis complete', isError: false });
     } catch (error) {
       console.error(`Error diagnosing component ${selectedComponent}:`, error);
@@ -140,17 +140,17 @@ const SystemHealthDashboard: React.FC = () => {
       setIsDiagnosing(false);
     }
   };
-  
+
   // Toggle auto-refresh
   const toggleAutoRefresh = () => {
     setAutoRefresh(prevState => !prevState);
   };
-  
+
   // Format timestamp
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
   };
-  
+
   // Get status color class
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -164,7 +164,7 @@ const SystemHealthDashboard: React.FC = () => {
         return 'bg-gray-500';
     }
   };
-  
+
   // Get status text color class
   const getStatusTextColor = (status: string) => {
     switch (status) {
@@ -178,23 +178,23 @@ const SystemHealthDashboard: React.FC = () => {
         return 'text-gray-700';
     }
   };
-  
+
   // Get status text
   const getStatusText = (status: string) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
-  
+
   // Format bytes to readable format
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
-    
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-  
+
   // Format percentage
   const formatPercentage = (value: number) => {
     return `${value.toFixed(1)}%`;
@@ -204,7 +204,7 @@ const SystemHealthDashboard: React.FC = () => {
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">System Health Monitor</h1>
-        
+
         <div className="flex items-center space-x-4">
           <div className="flex items-center">
             <label htmlFor="auto-refresh" className="mr-2 text-sm text-gray-700">Auto-refresh</label>
@@ -220,7 +220,7 @@ const SystemHealthDashboard: React.FC = () => {
               <div className={`absolute left-1 top-1 bg-white rounded-full h-4 w-4 transition-transform ${autoRefresh ? 'transform translate-x-4' : ''}`}></div>
             </div>
           </div>
-          
+
           <button
             onClick={() => fetchSystemStatus(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -229,14 +229,14 @@ const SystemHealthDashboard: React.FC = () => {
           </button>
         </div>
       </div>
-      
+
       {/* Feedback message */}
       {feedback.message && (
         <div className={`mb-4 p-3 rounded ${feedback.isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
           {feedback.message}
         </div>
       )}
-      
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
@@ -257,7 +257,7 @@ const SystemHealthDashboard: React.FC = () => {
                 </span>
               </div>
             </div>
-            
+
             {/* Resource Usage */}
             {resourceUsage && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -277,7 +277,7 @@ const SystemHealthDashboard: React.FC = () => {
                   </div>
                   <div className="text-lg font-semibold mt-1">{formatPercentage(resourceUsage.cpu)}</div>
                 </div>
-                
+
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="text-sm text-gray-500">Memory Usage</div>
                   <div className="mt-1 relative pt-1">
@@ -294,7 +294,7 @@ const SystemHealthDashboard: React.FC = () => {
                   </div>
                   <div className="text-lg font-semibold mt-1">{formatPercentage(resourceUsage.memory)}</div>
                 </div>
-                
+
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="text-sm text-gray-500">Disk Usage</div>
                   <div className="mt-1 relative pt-1">
@@ -311,7 +311,7 @@ const SystemHealthDashboard: React.FC = () => {
                   </div>
                   <div className="text-lg font-semibold mt-1">{formatPercentage(resourceUsage.disk)}</div>
                 </div>
-                
+
                 {resourceUsage.gpu !== undefined ? (
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <div className="text-sm text-gray-500">GPU Usage</div>
@@ -347,12 +347,12 @@ const SystemHealthDashboard: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Component List */}
             <div className="md:col-span-1 bg-white rounded-lg shadow p-4">
               <h2 className="text-lg font-semibold mb-4">System Components</h2>
-              
+
               <div className="space-y-2 max-h-[500px] overflow-y-auto">
                 {systemStatus.components.map(component => (
                   <div
@@ -378,7 +378,7 @@ const SystemHealthDashboard: React.FC = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* Component Details */}
             <div className="md:col-span-2">
               {componentDetails ? (
@@ -392,9 +392,9 @@ const SystemHealthDashboard: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   <p className="text-gray-700 mb-4">{componentDetails.details}</p>
-                  
+
                   {/* Component Metrics */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                     {Object.entries(componentDetails.metrics).map(([key, value]) => (
@@ -411,7 +411,7 @@ const SystemHealthDashboard: React.FC = () => {
                       )
                     ))}
                   </div>
-                  
+
                   {/* AI Diagnosis */}
                   {componentDetails.status !== 'healthy' && (
                     <div className="mt-4">
@@ -428,22 +428,22 @@ const SystemHealthDashboard: React.FC = () => {
                               {aiDiagnosis.severity.charAt(0).toUpperCase() + aiDiagnosis.severity.slice(1)} Severity
                             </span>
                           </div>
-                          
+
                           <div className="mb-3">
                             <div className="font-medium text-gray-700">Issue Detected:</div>
                             <p className="text-gray-800">{aiDiagnosis.issue}</p>
                           </div>
-                          
+
                           <div className="mb-3">
                             <div className="font-medium text-gray-700">Analysis:</div>
                             <p className="text-gray-800">{aiDiagnosis.analysis}</p>
                           </div>
-                          
+
                           <div className="mb-3">
                             <div className="font-medium text-gray-700">Potential Impact:</div>
                             <p className="text-gray-800">{aiDiagnosis.potentialImpact}</p>
                           </div>
-                          
+
                           <div>
                             <div className="font-medium text-green-700">Recommendation:</div>
                             <p className="text-gray-800">{aiDiagnosis.recommendation}</p>

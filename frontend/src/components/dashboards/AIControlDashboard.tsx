@@ -33,70 +33,70 @@ const AIControlDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [feedback, setFeedback] = useState({ message: '', isError: false });
-  
+
   // Load initial data
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         setIsLoading(true);
-        
+
         // Load available ML models
         const mlResponse = await mlService.getAvailableModels();
         setMlModels(mlResponse.data.models || []);
-        
+
         // Load available LLM models
         const llmResponse = await aiService.getAvailableLlmModels();
         setLlmModels(llmResponse.data.models || []);
-        
+
         // Check quantum system status
         const quantumResponse = await aiService.getQuantumStatus();
         setQuantumStatus(quantumResponse.data.quantum_system || { available: false });
-        
+
         // Get GPU status
         const gpuResponse = await healthService.getGpuStatus();
         setGpuStatus(gpuResponse.data.gpu || { available: false });
-        
+
         setFeedback({ message: 'Systems loaded successfully', isError: false });
       } catch (error) {
         console.error('Error loading AI dashboard data:', error);
-        setFeedback({ 
-          message: 'Failed to load AI systems. Check server connection.', 
-          isError: true 
+        setFeedback({
+          message: 'Failed to load AI systems. Check server connection.',
+          isError: true
         });
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchInitialData();
-    
+
     // Set up polling for real-time updates
     const intervalId = setInterval(() => {
       updateRealTimeData();
     }, 5000); // Update every 5 seconds
-    
+
     return () => clearInterval(intervalId);
   }, []);
-  
+
   // Function to update real-time data
   const updateRealTimeData = async () => {
     try {
       // Update GPU status
       const gpuResponse = await healthService.getGpuStatus();
       setGpuStatus(gpuResponse.data.gpu || { available: false });
-      
+
       // Update quantum job status if there are active jobs
       if (quantumJobs.length > 0) {
         const updatedJobs = [...quantumJobs];
         let jobsChanged = false;
-        
+
         for (let i = 0; i < updatedJobs.length; i++) {
           if (updatedJobs[i].status !== 'completed' && updatedJobs[i].status !== 'failed') {
             try {
               const jobResponse = await aiService.getQuantumJobStatus(updatedJobs[i].task_id);
-              updatedJobs[i] = { 
-                ...updatedJobs[i], 
-                ...jobResponse.data.status 
+              updatedJobs[i] = {
+                ...updatedJobs[i],
+                ...jobResponse.data.status
               };
               jobsChanged = true;
             } catch (error) {
@@ -104,21 +104,21 @@ const AIControlDashboard: React.FC = () => {
             }
           }
         }
-        
+
         if (jobsChanged) {
           setQuantumJobs(updatedJobs);
         }
       }
-      
+
       // Check status of selected model if one is selected
       if (selectedModel) {
         try {
           const modelResponse = await mlService.getModelStatus(selectedModel);
-          
+
           // Update the model list with new status
-          setMlModels(prevModels => 
-            prevModels.map(model => 
-              model.id === selectedModel 
+          setMlModels(prevModels =>
+            prevModels.map(model =>
+              model.id === selectedModel
                 ? { ...model, ...modelResponse.data.status }
                 : model
             )
@@ -131,7 +131,7 @@ const AIControlDashboard: React.FC = () => {
       console.error('Error updating real-time data:', error);
     }
   };
-  
+
   // Handle model loading
   const handleLoadModel = async (modelId: string) => {
     try {
@@ -139,13 +139,13 @@ const AIControlDashboard: React.FC = () => {
       await mlService.loadModel(modelId);
       setSelectedModel(modelId);
       setFeedback({ message: `Model ${modelId} loading initiated`, isError: false });
-      
+
       // Update model list after a short delay to show loading status
       setTimeout(async () => {
         try {
           const modelResponse = await mlService.getModelStatus(modelId);
-          setMlModels(prevModels => 
-            prevModels.map(model => 
+          setMlModels(prevModels =>
+            prevModels.map(model =>
               model.id === modelId ? { ...model, ...modelResponse.data.status } : model
             )
           );
@@ -158,41 +158,41 @@ const AIControlDashboard: React.FC = () => {
       setFeedback({ message: `Failed to load model ${modelId}`, isError: true });
     }
   };
-  
+
   // Handle model unloading
   const handleUnloadModel = async (modelId: string) => {
     try {
       setFeedback({ message: `Unloading model ${modelId}...`, isError: false });
       await mlService.unloadModel(modelId);
-      
+
       // Update model list
-      setMlModels(prevModels => 
-        prevModels.map(model => 
+      setMlModels(prevModels =>
+        prevModels.map(model =>
           model.id === modelId ? { ...model, loaded: false } : model
         )
       );
-      
+
       if (selectedModel === modelId) {
         setSelectedModel(null);
       }
-      
+
       setFeedback({ message: `Model ${modelId} unloaded successfully`, isError: false });
     } catch (error) {
       console.error(`Error unloading model ${modelId}:`, error);
       setFeedback({ message: `Failed to unload model ${modelId}`, isError: true });
     }
   };
-  
+
   // Handle quantum job submission
   const handleSubmitQuantumJob = async () => {
     if (!quantumStatus.available) {
       setFeedback({ message: 'Quantum system is not available', isError: true });
       return;
     }
-    
+
     try {
       setFeedback({ message: 'Submitting quantum job...', isError: false });
-      
+
       // Example quantum circuit data - this would come from user input in a real app
       const circuitData = {
         circuit_type: 'grover',
@@ -202,16 +202,16 @@ const AIControlDashboard: React.FC = () => {
           target_state: '1011'
         }
       };
-      
+
       const response = await aiService.executeQuantumCircuit(circuitData);
-      
+
       // Add new job to the list
       const newJob: QuantumJob = {
         task_id: response.data.task_id,
         status: 'submitted',
         submitted_at: new Date().toISOString()
       };
-      
+
       setQuantumJobs(prevJobs => [newJob, ...prevJobs]);
       setFeedback({ message: 'Quantum job submitted successfully', isError: false });
     } catch (error) {
@@ -223,19 +223,19 @@ const AIControlDashboard: React.FC = () => {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-6">AI Control Dashboard</h1>
-      
+
       {/* Feedback message */}
       {feedback.message && (
         <div className={`mb-4 p-3 rounded ${feedback.isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
           {feedback.message}
         </div>
       )}
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* System Status Panel */}
         <div className="bg-white rounded-lg shadow p-4">
           <h2 className="text-xl font-semibold mb-4">System Status</h2>
-          
+
           <div className="mb-4">
             <div className="flex justify-between mb-2">
               <span>GPU Status:</span>
@@ -243,11 +243,11 @@ const AIControlDashboard: React.FC = () => {
                 {gpuStatus.available ? 'Available' : 'Unavailable'}
               </span>
             </div>
-            
+
             {gpuStatus.available && (
               <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="bg-blue-600 h-2.5 rounded-full" 
+                <div
+                  className="bg-blue-600 h-2.5 rounded-full"
                   style={{ width: `${gpuStatus.utilization}%` }}
                 ></div>
                 <div className="text-right text-xs mt-1">
@@ -256,7 +256,7 @@ const AIControlDashboard: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           <div className="mb-4">
             <div className="flex justify-between">
               <span>Quantum System:</span>
@@ -276,7 +276,7 @@ const AIControlDashboard: React.FC = () => {
         {/* ML Models Panel */}
         <div className="bg-white rounded-lg shadow p-4">
           <h2 className="text-xl font-semibold mb-4">Machine Learning Models</h2>
-          
+
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
@@ -324,11 +324,11 @@ const AIControlDashboard: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         {/* LLM Models Panel */}
         <div className="bg-white rounded-lg shadow p-4">
           <h2 className="text-xl font-semibold mb-4">Language Models</h2>
-          
+
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
@@ -360,11 +360,11 @@ const AIControlDashboard: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         {/* Quantum Jobs Panel */}
         <div className="bg-white rounded-lg shadow p-4">
           <h2 className="text-xl font-semibold mb-4">Quantum Jobs</h2>
-          
+
           <button
             onClick={handleSubmitQuantumJob}
             disabled={!quantumStatus.available}
@@ -374,7 +374,7 @@ const AIControlDashboard: React.FC = () => {
           >
             Submit New Quantum Job
           </button>
-          
+
           <div className="max-h-60 overflow-y-auto">
             {quantumJobs.length === 0 ? (
               <div className="text-center text-gray-500 py-4">
@@ -397,8 +397,8 @@ const AIControlDashboard: React.FC = () => {
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          job.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                          job.status === 'failed' ? 'bg-red-100 text-red-800' : 
+                          job.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          job.status === 'failed' ? 'bg-red-100 text-red-800' :
                           'bg-yellow-100 text-yellow-800'
                         }`}>
                           {job.status}

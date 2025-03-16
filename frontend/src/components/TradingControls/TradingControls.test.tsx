@@ -29,7 +29,7 @@ describe('TradingControls', () => {
         <TradingControls />
       </Provider>
     )
-    
+
     expect(screen.getByText('Trading Controls')).toBeInTheDocument()
     expect(screen.getByText('Balance: £100.50')).toBeInTheDocument()
     expect(screen.getByText('Total Profit: £25.75')).toBeInTheDocument()
@@ -43,23 +43,23 @@ describe('TradingControls', () => {
         <TradingControls />
       </Provider>
     )
-    
+
     expect(screen.getByText('Start Trading')).toBeInTheDocument()
     expect(screen.getByText('Stop Trading')).toBeInTheDocument()
   })
 
   it('handles button clicks', () => {
     const consoleSpy = vitest.spyOn(console, 'log')
-    
+
     render(
       <Provider store={createTestStore()}>
         <TradingControls />
       </Provider>
     )
-    
+
     fireEvent.click(screen.getByText('Start Trading'))
     expect(consoleSpy).toHaveBeenCalledWith('Starting trading...')
-    
+
     fireEvent.click(screen.getByText('Stop Trading'))
     expect(consoleSpy).toHaveBeenCalledWith('Stopping trading...')
   })

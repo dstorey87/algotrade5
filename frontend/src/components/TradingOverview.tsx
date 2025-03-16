@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from "@/lib/store"
 
 export default function TradingOverview() {
-  const { 
+  const {
     activeStrategy,
     drawdown,
     confidence,
@@ -13,19 +13,19 @@ export default function TradingOverview() {
     quantumValidation,
     tradesToday,
     winStreak,
-    modelPerformance 
+    modelPerformance
   } = useSelector((state: RootState) => state.trading)
 
   return (
     <div className="space-y-4">
       <Title>Trading Overview</Title>
-      
+
       <Grid numItems={2} className="gap-4">
         <Card>
           <Text>Active Strategy</Text>
           <Metric>{activeStrategy || 'None'}</Metric>
         </Card>
-        
+
         <Card>
           <Text>Trades Today</Text>
           <Metric>{tradesToday}</Metric>
@@ -35,8 +35,8 @@ export default function TradingOverview() {
       <Card>
         <Text>AI Confidence</Text>
         <Metric>{(confidence * 100).toFixed(1)}%</Metric>
-        <ProgressBar 
-          value={confidence * 100} 
+        <ProgressBar
+          value={confidence * 100}
           color={confidence > 0.85 ? "green" : confidence > 0.7 ? "yellow" : "red"}
           className="mt-2"
         />
@@ -75,8 +75,8 @@ export default function TradingOverview() {
       <Card>
         <Text>Model Performance</Text>
         <Metric>{(modelPerformance * 100).toFixed(1)}%</Metric>
-        <ProgressBar 
-          value={modelPerformance * 100} 
+        <ProgressBar
+          value={modelPerformance * 100}
           color={modelPerformance > 0.85 ? "green" : modelPerformance > 0.7 ? "yellow" : "red"}
           className="mt-2"
         />

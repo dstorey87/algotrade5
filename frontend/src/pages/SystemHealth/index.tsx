@@ -15,9 +15,9 @@ const StatusIndicator = styled('span')(({ theme, status }: { theme: any, status:
   height: 10,
   borderRadius: '50%',
   marginRight: theme.spacing(1),
-  backgroundColor: 
-    status === 'online' 
-      ? theme.palette.success.main 
+  backgroundColor:
+    status === 'online'
+      ? theme.palette.success.main
       : status === 'warning'
         ? theme.palette.warning.main
         : theme.palette.error.main,
@@ -28,20 +28,20 @@ const SystemHealth = () => {
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<any>(null);
   const [logs, setLogs] = useState<any[]>([]);
-  
+
   // Resource usage history
   const [resourceHistory, setResourceHistory] = useState<any[]>([]);
-  
+
   useEffect(() => {
     fetchMetrics();
     fetchLogs();
-    
+
     // Set up periodic refresh
     const interval = setInterval(() => {
       fetchMetrics();
       fetchLogs();
     }, 30000); // Refresh every 30 seconds
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -49,19 +49,19 @@ const SystemHealth = () => {
     try {
       const response = await tradingApi.getSystemMetrics();
       setMetrics(response.data);
-      
+
       // Update resource history
       setResourceHistory(prev => {
         const now = new Date();
         const time = `${now.getHours()}:${now.getMinutes()}`;
-        
+
         const newPoint = {
           time,
           cpu: response.data.resources.cpu_usage,
           memory: response.data.resources.memory_usage,
           gpu: response.data.resources.gpu_utilization
         };
-        
+
         // Keep last 24 points (8 hours with 20min intervals)
         const updated = [...prev, newPoint].slice(-24);
         return updated;
@@ -173,7 +173,7 @@ const SystemHealth = () => {
             </Box>
           </Item>
         </Grid>
-        
+
         {/* Resource Usage */}
         <Grid item xs={12} md={6}>
           <Item>
@@ -186,9 +186,9 @@ const SystemHealth = () => {
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Box sx={{ flexGrow: 1, mr: 1 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={metrics.resources.cpu_usage} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={metrics.resources.cpu_usage}
                     color={metrics.resources.cpu_usage > 80 ? 'error' : 'success'}
                     sx={{ height: 8, borderRadius: 4 }}
                   />
@@ -197,15 +197,15 @@ const SystemHealth = () => {
                   {metrics.resources.cpu_usage}%
                 </Typography>
               </Box>
-              
+
               <Typography variant="body2" gutterBottom sx={{ mt: 2 }}>
                 Memory Usage
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Box sx={{ flexGrow: 1, mr: 1 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={metrics.resources.memory_usage} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={metrics.resources.memory_usage}
                     color={metrics.resources.memory_usage > 80 ? 'error' : 'success'}
                     sx={{ height: 8, borderRadius: 4 }}
                   />
@@ -214,15 +214,15 @@ const SystemHealth = () => {
                   {metrics.resources.memory_usage}%
                 </Typography>
               </Box>
-              
+
               <Typography variant="body2" gutterBottom sx={{ mt: 2 }}>
                 GPU Usage
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Box sx={{ flexGrow: 1, mr: 1 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={metrics.resources.gpu_utilization} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={metrics.resources.gpu_utilization}
                     color={metrics.resources.gpu_utilization > 80 ? 'error' : 'success'}
                     sx={{ height: 8, borderRadius: 4 }}
                   />
@@ -231,7 +231,7 @@ const SystemHealth = () => {
                   {metrics.resources.gpu_utilization}%
                 </Typography>
               </Box>
-              
+
               <Typography variant="subtitle2" sx={{ mt: 3 }}>
                 Storage Summary:
               </Typography>
@@ -259,31 +259,31 @@ const SystemHealth = () => {
                   <YAxis domain={[0, 100]} />
                   <Tooltip />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="cpu" 
-                    name="CPU Usage (%)" 
-                    stroke="#8884d8" 
-                    activeDot={{ r: 8 }} 
+                  <Line
+                    type="monotone"
+                    dataKey="cpu"
+                    name="CPU Usage (%)"
+                    stroke="#8884d8"
+                    activeDot={{ r: 8 }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="memory" 
-                    name="Memory Usage (%)" 
-                    stroke="#82ca9d" 
+                  <Line
+                    type="monotone"
+                    dataKey="memory"
+                    name="Memory Usage (%)"
+                    stroke="#82ca9d"
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="gpu" 
-                    name="GPU Usage (%)" 
-                    stroke="#ffc658" 
+                  <Line
+                    type="monotone"
+                    dataKey="gpu"
+                    name="GPU Usage (%)"
+                    stroke="#ffc658"
                   />
                 </LineChart>
               </ResponsiveContainer>
             </Box>
           </Item>
         </Grid>
-        
+
         {/* System Logs */}
         <Grid item xs={12}>
           <Item>
@@ -305,8 +305,8 @@ const SystemHealth = () => {
                             <Typography
                               variant="body2"
                               color={
-                                log.level === 'ERROR' 
-                                  ? 'error' 
+                                log.level === 'ERROR'
+                                  ? 'error'
                                   : log.level === 'WARNING'
                                     ? 'warning.main'
                                     : 'text.primary'

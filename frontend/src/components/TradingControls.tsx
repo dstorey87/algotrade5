@@ -19,7 +19,7 @@ export default function TradingControls() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Button 
+        <Button
           size="lg"
           color="green"
           onClick={() => dispatch(startTrading())}
@@ -27,7 +27,7 @@ export default function TradingControls() {
         >
           Start Trading
         </Button>
-        <Button 
+        <Button
           size="lg"
           color="red"
           onClick={() => dispatch(stopTrading())}
@@ -37,8 +37,8 @@ export default function TradingControls() {
         </Button>
       </div>
 
-      <Button 
-        size="lg" 
+      <Button
+        size="lg"
         color="amber"
         className="w-full"
         onClick={() => dispatch(stopTrading())}

@@ -35,12 +35,12 @@ interface ModelSettings {
 
 const ModelConfig = () => {
   const theme = useTheme();
-  
+
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [temperature, setTemperature] = useState<number>(0.7);
   const [maxTokens, setMaxTokens] = useState<number>(512);
   const [autoTune, setAutoTune] = useState<boolean>(true);
-  
+
   const models: ModelSettings[] = [
     {
       name: 'deepseek',
@@ -92,7 +92,7 @@ const ModelConfig = () => {
   };
 
   return (
-    <Card sx={{ 
+    <Card sx={{
       height: '100%',
       background: `linear-gradient(45deg, ${theme.palette.background.paper} 30%, ${theme.palette.background.default} 90%)`,
       boxShadow: theme.shadows[10]
@@ -116,8 +116,8 @@ const ModelConfig = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {model.type === 'llm' ? <PsychologyIcon /> : <MemoryIcon />}
                       {model.name}
-                      <Chip 
-                        size="small" 
+                      <Chip
+                        size="small"
                         label={model.status}
                         color={model.status === 'active' ? 'success' : 'error'}
                         sx={{ ml: 1 }}

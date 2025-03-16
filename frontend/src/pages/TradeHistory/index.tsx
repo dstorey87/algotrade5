@@ -210,7 +210,7 @@ const TradeHistory = () => {
     dateFrom: '',
     dateTo: ''
   })
-  
+
   const { isLoading: storeLoading } = useSelector((state: RootState) => state.trading)
 
   useEffect(() => {
@@ -220,7 +220,7 @@ const TradeHistory = () => {
         // Try to fetch from real API
         // const response = await tradingApi.getTrades(100);
         // setTrades(response.data);
-        
+
         // Using mock data for now
         setTrades(mockTradeHistory)
         setStats(tradeStats)
@@ -240,11 +240,11 @@ const TradeHistory = () => {
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue)
   }
-  
+
   const handleFilterChange = (field: string, value: string) => {
     setFilter({ ...filter, [field]: value })
   }
-  
+
   const handleRefresh = () => {
     // In a real app, this would fetch fresh data
     setLoading(true)
@@ -252,24 +252,24 @@ const TradeHistory = () => {
       setLoading(false)
     }, 1000)
   }
-  
+
   // Apply filters to trade data
   const filteredTrades = trades.filter(trade => {
     // Search filter
     if (filter.search && !trade.pair.toLowerCase().includes(filter.search.toLowerCase())) {
       return false
     }
-    
+
     // Pair filter
     if (filter.pair !== 'all' && trade.pair !== filter.pair) {
       return false
     }
-    
+
     // Strategy filter
     if (filter.strategy !== 'all' && trade.strategy !== filter.strategy) {
       return false
     }
-    
+
     // Result filter
     if (filter.result === 'profit' && trade.profit <= 0) {
       return false
@@ -277,7 +277,7 @@ const TradeHistory = () => {
     if (filter.result === 'loss' && trade.profit >= 0) {
       return false
     }
-    
+
     // Date filters
     if (filter.dateFrom) {
       const fromDate = new Date(filter.dateFrom)
@@ -286,7 +286,7 @@ const TradeHistory = () => {
         return false
       }
     }
-    
+
     if (filter.dateTo) {
       const toDate = new Date(filter.dateTo)
       const tradeDate = new Date(trade.openDate)
@@ -294,10 +294,10 @@ const TradeHistory = () => {
         return false
       }
     }
-    
+
     return true
   })
-  
+
   // Extract unique pairs and strategies for filters
   const uniquePairs = [...new Set(trades.map(trade => trade.pair))]
   const uniqueStrategies = [...new Set(trades.map(trade => trade.strategy))]
@@ -319,14 +319,14 @@ const TradeHistory = () => {
       <Typography variant="h4" gutterBottom sx={{ color: 'primary.main' }}>
         Trade History
       </Typography>
-      
+
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="trade history tabs">
           <Tab label="Trade List" {...a11yProps(0)} />
           <Tab label="Statistics" {...a11yProps(1)} />
         </Tabs>
       </Box>
-      
+
       <TabPanel value={tabValue} index={0}>
         <Box sx={{ mb: 3 }}>
           <Grid container spacing={2} alignItems="center">
@@ -345,7 +345,7 @@ const TradeHistory = () => {
                 }}
               />
             </Grid>
-            
+
             <Grid item xs={6} md={2}>
               <FormControl fullWidth size="small">
                 <InputLabel id="pair-filter-label">Pair</InputLabel>
@@ -362,7 +362,7 @@ const TradeHistory = () => {
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={6} md={2}>
               <FormControl fullWidth size="small">
                 <InputLabel id="strategy-filter-label">Strategy</InputLabel>
@@ -379,7 +379,7 @@ const TradeHistory = () => {
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={6} md={2}>
               <FormControl fullWidth size="small">
                 <InputLabel id="result-filter-label">Result</InputLabel>
@@ -395,10 +395,10 @@ const TradeHistory = () => {
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={6} md={2}>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 fullWidth
                 onClick={handleRefresh}
               >
@@ -406,7 +406,7 @@ const TradeHistory = () => {
               </Button>
             </Grid>
           </Grid>
-          
+
           <Grid container spacing={2} alignItems="center" sx={{ mt: 1 }}>
             <Grid item xs={6} md={3}>
               <TextField
@@ -421,7 +421,7 @@ const TradeHistory = () => {
                 }}
               />
             </Grid>
-            
+
             <Grid item xs={6} md={3}>
               <TextField
                 fullWidth
@@ -435,7 +435,7 @@ const TradeHistory = () => {
                 }}
               />
             </Grid>
-            
+
             <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                 <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
@@ -445,7 +445,7 @@ const TradeHistory = () => {
             </Grid>
           </Grid>
         </Box>
-        
+
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="trade history table">
             <TableHead>
@@ -477,9 +477,9 @@ const TradeHistory = () => {
                   <TableCell align="right">{trade.amount}</TableCell>
                   <TableCell align="right">£{trade.openRate.toFixed(2)}</TableCell>
                   <TableCell align="right">£{trade.closeRate.toFixed(2)}</TableCell>
-                  <TableCell 
+                  <TableCell
                     align="right"
-                    sx={{ 
+                    sx={{
                       color: trade.profit >= 0 ? 'success.main' : 'error.main',
                       fontWeight: 'bold'
                     }}
@@ -489,13 +489,13 @@ const TradeHistory = () => {
                   <TableCell>{trade.strategy}</TableCell>
                   <TableCell>
                     {trade.tags.map((tag: string) => (
-                      <Chip 
-                        key={tag} 
-                        label={tag} 
-                        size="small" 
-                        sx={{ mr: 0.5, mb: 0.5 }} 
-                        color="primary" 
-                        variant="outlined" 
+                      <Chip
+                        key={tag}
+                        label={tag}
+                        size="small"
+                        sx={{ mr: 0.5, mb: 0.5 }}
+                        color="primary"
+                        variant="outlined"
                       />
                     ))}
                   </TableCell>
@@ -512,7 +512,7 @@ const TradeHistory = () => {
           </Table>
         </TableContainer>
       </TabPanel>
-      
+
       <TabPanel value={tabValue} index={1}>
         {stats && (
           <Grid container spacing={3}>
@@ -600,7 +600,7 @@ const TradeHistory = () => {
                 </Box>
               </Item>
             </Grid>
-            
+
             {/* Profit Chart */}
             <Grid item xs={12} lg={8}>
               <Item>
@@ -618,11 +618,11 @@ const TradeHistory = () => {
                       <YAxis />
                       <RechartsTooltip formatter={(value) => `£${Number(value).toFixed(2)}`} />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="profit" 
-                        stroke="#8884d8" 
-                        activeDot={{ r: 8 }} 
+                      <Line
+                        type="monotone"
+                        dataKey="profit"
+                        stroke="#8884d8"
+                        activeDot={{ r: 8 }}
                         name="Daily Profit"
                       />
                     </LineChart>
@@ -630,7 +630,7 @@ const TradeHistory = () => {
                 </Box>
               </Item>
             </Grid>
-            
+
             {/* Pair Distribution */}
             <Grid item xs={12} md={6}>
               <Item>
@@ -661,7 +661,7 @@ const TradeHistory = () => {
                 </Box>
               </Item>
             </Grid>
-            
+
             {/* Strategy Distribution */}
             <Grid item xs={12} md={6}>
               <Item>

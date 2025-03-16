@@ -102,10 +102,10 @@ const quantumSlice = createSlice({
   }
 });
 
-export const { 
-  updateCircuitDepth, 
-  updateAutoOptimize, 
-  addTimeseriesDataPoint 
+export const {
+  updateCircuitDepth,
+  updateAutoOptimize,
+  addTimeseriesDataPoint
 } = quantumSlice.actions;
 
 export default quantumSlice.reducer;

@@ -139,8 +139,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Typography
             variant="h6"
             component="div"
-            sx={{ 
-              flexGrow: 1, 
+            sx={{
+              flexGrow: 1,
               display: drawerOpen ? 'block' : 'none',
               color: theme.palette.primary.main,
               fontWeight: 'bold'
@@ -174,12 +174,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 >
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText 
-                  primary={item.name} 
-                  sx={{ 
+                <ListItemText
+                  primary={item.name}
+                  sx={{
                     opacity: drawerOpen ? 1 : 0,
                     color: location.pathname === item.path ? theme.palette.primary.main : 'inherit'
-                  }} 
+                  }}
                 />
               </ListItemButton>
             </ListItem>

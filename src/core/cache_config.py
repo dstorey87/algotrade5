@@ -7,8 +7,11 @@ CACHE_LOCATIONS = {
     "pip": Path(os.getenv("PIP_CACHE_DIR", CENTRAL_CACHE_DIR / "pip_cache")),
     "models": Path(os.getenv("MODEL_CACHE_DIR", CENTRAL_CACHE_DIR / "model_cache")),
     "builds": Path(os.getenv("BUILD_CACHE_DIR", CENTRAL_CACHE_DIR / "build_cache")),
-    "deps": Path(os.getenv("DEPENDENCY_CACHE_DIR", CENTRAL_CACHE_DIR / "dependency_cache"))
+    "deps": Path(
+        os.getenv("DEPENDENCY_CACHE_DIR", CENTRAL_CACHE_DIR / "dependency_cache")
+    ),
 }
+
 
 def init_cache_dirs():
     for cache_dir in CACHE_LOCATIONS.values():

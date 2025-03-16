@@ -51,7 +51,7 @@ const QuantumControl = () => {
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <Card sx={{ 
+          <Card sx={{
             height: '100%',
             background: `linear-gradient(45deg, ${theme.palette.background.paper} 30%, ${theme.palette.background.default} 90%)`,
             boxShadow: theme.shadows[10]
@@ -60,7 +60,7 @@ const QuantumControl = () => {
               <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
                 Quantum Loop Control
               </Typography>
-              
+
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <Box sx={{ mb: 3 }}>
@@ -149,7 +149,7 @@ const QuantumControl = () => {
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <Card sx={{ 
+          <Card sx={{
             height: '100%',
             background: `linear-gradient(45deg, ${theme.palette.background.paper} 30%, ${theme.palette.background.default} 90%)`,
             boxShadow: theme.shadows[10]
@@ -158,12 +158,12 @@ const QuantumControl = () => {
               <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
                 Quantum Metrics
               </Typography>
-              
+
               <Grid container spacing={2}>
                 {metrics.map((metric) => (
                   <Grid item xs={12} key={metric.label}>
-                    <Box sx={{ 
-                      p: 2, 
+                    <Box sx={{
+                      p: 2,
                       borderRadius: 1,
                       bgcolor: 'rgba(0, 0, 0, 0.1)',
                       display: 'flex',
