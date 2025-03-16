@@ -27,12 +27,14 @@ import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import PsychologyIcon from '@mui/icons-material/Psychology';
+import ScienceIcon from '@mui/icons-material/Science';
 
 const drawerWidth = 240;
 
 const navItems = [
   { name: 'Dashboard', path: '/', icon: <DashboardIcon /> },
   { name: 'Trading Controls', path: '/trading', icon: <ShowChartIcon /> },
+  { name: 'Quantum Control', path: '/quantum', icon: <ScienceIcon /> },
   { name: 'Trade History', path: '/history', icon: <HistoryIcon /> },
   { name: 'Strategies', path: '/strategies', icon: <AutoGraphIcon /> },
   { name: 'System Health', path: '/system', icon: <MonitorHeartIcon /> },

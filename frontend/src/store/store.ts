@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
+import systemReducer from './slices/systemSlice'
 import tradingReducer from './slices/tradingSlice'
 
 export const store = configureStore({
   reducer: {
-    trading: tradingReducer,
+    system: systemReducer,
+    trading: tradingReducer
   },
 })
 
