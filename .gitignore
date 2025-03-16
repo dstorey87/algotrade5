@@ -90,3 +90,6 @@ aimodels/**/*
 *_backup/
 *.tmp
 docker/programdata/dependency_cache/
+
+# Next.js build output
+.next/

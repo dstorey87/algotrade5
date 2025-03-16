@@ -26,6 +26,9 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import sqlite3
+import psutil
+import GPUtil
+import time
 
 from system_health_checker import check_system_health
 from risk_manager import RiskManager
@@ -73,6 +76,8 @@ class SystemMonitor:
         self.system_status = "operational"
         
         logger.info("System Monitor initialized with strict thresholds")
+        self._start_time = time.time()
+        self._last_check = {}
         
     def check_system_metrics(self) -> Dict:
         """
@@ -88,12 +93,16 @@ class SystemMonitor:
             metrics = {
                 'timestamp': datetime.now().isoformat(),
                 'system_health': check_system_health(),
-                'win_rate': self.risk_manager.calculate_win_rate(),
-                'current_drawdown': self.risk_manager.current_drawdown,
-                'trading_enabled': self.risk_manager.trading_enabled,
-                'quantum_validated': self.risk_manager.quantum_validated,
-                'gpu_utilization': self.quantum_optimizer.get_gpu_metrics(),
-                'db_status': self._check_database_health()
+                'win_rate': self._calculate_win_rate(),
+                'current_drawdown': self._calculate_drawdown(),
+                'trading_enabled': self._check_trading_status(),
+                'quantum_validated': self._check_quantum_status(),
+                'gpu_utilization': self._get_gpu_usage(),
+                'db_status': self._check_database(),
+                "cpu_usage": psutil.cpu_percent(interval=1),
+                "memory_usage": psutil.virtual_memory().percent,
+                "disk_usage": psutil.disk_usage('/').percent,
+                "uptime": self._get_uptime()
             }
             
             # CRITICAL: Check win rate
@@ -109,6 +118,7 @@ class SystemMonitor:
                 self._trigger_alert("WARNING", f"Drawdown warning: {metrics['current_drawdown']:.2%}")
             
             self.performance_history.append(metrics)
+            self._last_check = metrics
             return metrics
             
         except Exception as e:
@@ -257,3 +267,121 @@ class SystemMonitor:
         }
         
         return pd.DataFrame(stats)
+    
+    def _get_gpu_usage(self) -> float:
+        """Get GPU utilization percentage"""
+        try:
+            gpus = GPUtil.getGPUs()
+            if gpus:
+                return gpus[0].load * 100
+            return 0
+        except:
+            return 0
+    
+    def _get_uptime(self) -> str:
+        """Get system uptime in human readable format"""
+        uptime = time.time() - self._start_time
+        return str(timedelta(seconds=int(uptime)))
+    
+    def _calculate_win_rate(self) -> float:
+        """Calculate win rate from recent trades"""
+        try:
+            conn = sqlite3.connect('data/trading.db')
+            cursor = conn.cursor()
+            
+            # Get trades from last 24 hours
+            cursor.execute("""
+                SELECT COUNT(*) as total,
+                       SUM(CASE WHEN profit > 0 THEN 1 ELSE 0 END) as wins
+                FROM trades 
+                WHERE close_time >= datetime('now', '-1 day')
+            """)
+            
+            result = cursor.fetchone()
+            if result and result[0] > 0:
+                return (result[1] / result[0]) * 100
+            return 0
+            
+        except Exception as e:
+            print(f"Error calculating win rate: {e}")
+            return 0
+        finally:
+            if 'conn' in locals():
+                conn.close()
+    
+    def _calculate_drawdown(self) -> float:
+        """Calculate current drawdown"""
+        try:
+            conn = sqlite3.connect('data/trading.db')
+            cursor = conn.cursor()
+            
+            # Get peak balance in last 24 hours
+            cursor.execute("SELECT MAX(balance) FROM account_value WHERE timestamp >= datetime('now', '-1 day')")
+            peak = cursor.fetchone()[0]
+            
+            # Get current balance
+            cursor.execute("SELECT balance FROM account_value ORDER BY timestamp DESC LIMIT 1")
+            current = cursor.fetchone()[0]
+            
+            if peak and current and peak > 0:
+                return ((peak - current) / peak) * 100
+            return 0
+            
+        except Exception as e:
+            print(f"Error calculating drawdown: {e}")
+            return 0
+        finally:
+            if 'conn' in locals():
+                conn.close()
+    
+    def _check_trading_status(self) -> bool:
+        """Check if trading is currently enabled"""
+        try:
+            conn = sqlite3.connect('data/trading.db')
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT value FROM system_status WHERE key = 'trading_enabled'")
+            result = cursor.fetchone()
+            return bool(result and result[0])
+            
+        except Exception as e:
+            print(f"Error checking trading status: {e}")
+            return False
+        finally:
+            if 'conn' in locals():
+                conn.close()
+    
+    def _check_quantum_status(self) -> bool:
+        """Check quantum circuit validation status"""
+        try:
+            conn = sqlite3.connect('data/trading.db')
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT COUNT(*) FROM quantum_validations 
+                WHERE timestamp >= datetime('now', '-1 hour')
+                AND status = 'valid'
+            """)
+            
+            result = cursor.fetchone()
+            return bool(result and result[0] > 0)
+            
+        except Exception as e:
+            print(f"Error checking quantum status: {e}")
+            return False
+        finally:
+            if 'conn' in locals():
+                conn.close()
+    
+    def _check_database(self) -> bool:
+        """Check database connectivity and health"""
+        try:
+            conn = sqlite3.connect('data/trading.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            return True
+        except:
+            return False
+        finally:
+            if 'conn' in locals():
+                conn.close()
