@@ -1,0 +1,317 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+from datetime import datetime
+import subprocess
+import re
+import json
+from typing import List, Dict, Any
+from pathlib import Path
+
+class PreCommitHook:
+    def __init__(self):
+        self.repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel']).decode('utf-8').strip()
+        self.changes = {
+            'frontend': [],
+            'architecture': [],
+            'journal': [],
+            'next_tasks': []
+        }
+        self.summary = []
+
+    def get_staged_files(self) -> List[str]:
+        """Get list of staged files"""
+        result = subprocess.run(['git', 'diff', '--cached', '--name-only'], 
+                              capture_output=True, text=True)
+        return [f for f in result.stdout.strip().split('\n') if f]
+
+    def run_code_checks(self, file_path: str) -> bool:
+        """Run code quality checks based on file type"""
+        print(f"\n=== Checking {file_path} ===")
+        
+        if file_path.endswith('.py'):
+            print("Running Python checks...")
+            try:
+                # Run pylint
+                pylint = subprocess.run(['pylint', file_path], capture_output=True, text=True)
+                if pylint.returncode != 0:
+                    print("Pylint issues found:")
+                    print(pylint.stdout)
+                    return False
+                
+                # Run mypy
+                mypy = subprocess.run(['mypy', file_path], capture_output=True, text=True)
+                if mypy.returncode != 0:
+                    print("Type checking issues found:")
+                    print(mypy.stdout)
+                    return False
+            except FileNotFoundError:
+                print("Python linting tools not found. Install with: pip install pylint mypy")
+                return True  # Continue if tools aren't installed
+
+        elif file_path.endswith(('.ts', '.tsx', '.js', '.jsx')):
+            print("Running TypeScript/JavaScript checks...")
+            try:
+                eslint = subprocess.run(['npx', 'eslint', '--fix', file_path], 
+                                    capture_output=True, text=True)
+                if eslint.returncode != 0:
+                    print("ESLint issues found:")
+                    print(eslint.stdout)
+                    return False
+            except FileNotFoundError:
+                print("ESLint not found. Install with: npm install eslint")
+                return True  # Continue if ESLint isn't installed
+
+        return True
+
+    def update_frontend_plan(self, files: List[str]) -> None:
+        """Update FRONTEND_DEV_PLAN.md with frontend changes"""
+        frontend_files = [f for f in files if f.startswith('frontend/')]
+        if not frontend_files:
+            return
+
+        plan_path = os.path.join(self.repo_root, 'frontend', 'FRONTEND_DEV_PLAN.md')
+        if os.path.exists(plan_path):
+            with open(plan_path, 'r+') as f:
+                content = f.read()
+                now = datetime.now().strftime('%Y-%m-%d %H:%M')
+                
+                # Create meaningful updates based on changed files
+                updates = []
+                for file in frontend_files:
+                    component = os.path.basename(file).replace('.tsx', '').replace('.ts', '')
+                    if 'test' in file.lower():
+                        updates.append(f"- Added tests for {component}")
+                    else:
+                        updates.append(f"- Updated {component} component")
+                
+                # Add updates section
+                new_section = f"\n## Recent Updates - {now}\n" + "\n".join(updates)
+                
+                if "## Recent Updates" in content:
+                    # Update existing section
+                    content = re.sub(r'## Recent Updates.*?\n##', 
+                                   f"{new_section}\n\n##", 
+                                   content, 
+                                   flags=re.DOTALL)
+                else:
+                    # Add new section after first heading
+                    content = re.sub(r'(# .*?\n)', f'\\1{new_section}\n', content, count=1)
+                
+                f.seek(0)
+                f.write(content)
+                f.truncate()
+                
+                self.changes['frontend'].extend(updates)
+                self.summary.append(f"Updated frontend development plan with {len(updates)} changes")
+
+    def update_architecture_doc(self, files: List[str]) -> None:
+        """Update ARCHITECTURE_ANALYSIS.md with architectural changes"""
+        arch_files = [f for f in files if any(x in f.lower() for x in 
+            ['api', 'database', 'model', 'system', 'integration', 'config'])]
+        
+        if not arch_files:
+            return
+            
+        arch_path = os.path.join(self.repo_root, 'src', 'docs', 'ARCHITECTURE_ANALYSIS.md')
+        if os.path.exists(arch_path):
+            with open(arch_path, 'r+') as f:
+                content = f.read()
+                now = datetime.now().strftime('%Y-%m-%d %H:%M')
+                
+                # Create meaningful architectural updates
+                updates = []
+                for file in arch_files:
+                    component = os.path.basename(file)
+                    if 'api' in file.lower():
+                        updates.append(f"- Updated API component: {component}")
+                    elif 'database' in file.lower():
+                        updates.append(f"- Modified database schema: {component}")
+                    else:
+                        updates.append(f"- Updated system component: {component}")
+                
+                new_section = f"\n## Architecture Updates - {now}\n" + "\n".join(updates)
+                
+                # Add updates to document
+                content += f"\n{new_section}"
+                
+                f.seek(0)
+                f.write(content)
+                f.truncate()
+                
+                self.changes['architecture'].extend(updates)
+                self.summary.append(f"Updated architecture documentation with {len(updates)} changes")
+
+    def update_journal(self, files: List[str]) -> None:
+        """Update journal.md with all changes"""
+        if not files:
+            return
+            
+        journal_path = os.path.join(self.repo_root, 'src', 'docs', 'journal.md')
+        if os.path.exists(journal_path):
+            with open(journal_path, 'r+') as f:
+                content = f.read()
+                now = datetime.now().strftime('%Y-%m-%d %H:%M')
+                
+                # Categorize changes
+                frontend_changes = [f for f in files if f.startswith('frontend/')]
+                backend_changes = [f for f in files if f.startswith('src/')]
+                test_changes = [f for f in files if 'test' in f.lower()]
+                
+                updates = []
+                if frontend_changes:
+                    updates.append("### Frontend Changes:")
+                    updates.extend([f"- {file}" for file in frontend_changes])
+                
+                if backend_changes:
+                    updates.append("\n### Backend Changes:")
+                    updates.extend([f"- {file}" for file in backend_changes])
+                
+                if test_changes:
+                    updates.append("\n### Test Updates:")
+                    updates.extend([f"- {file}" for file in test_changes])
+                
+                new_section = f"\n## System Updates - {now}\n\n" + "\n".join(updates)
+                
+                # Add updates to journal
+                content += new_section
+                
+                f.seek(0)
+                f.write(content)
+                f.truncate()
+                
+                self.changes['journal'].extend(updates)
+                self.summary.append("Updated development journal with latest changes")
+
+    def update_copilot_session(self, files: List[str]) -> None:
+        """Update copilot_session.md with progress and next tasks"""
+        session_path = os.path.join(self.repo_root, 'src', 'docs', 'copilot_session.md')
+        if os.path.exists(session_path):
+            now = datetime.now().strftime('%Y-%m-%d %H:%M')
+            
+            # Determine next tasks based on changes
+            next_tasks = []
+            if any(f.startswith('frontend/') for f in files):
+                next_tasks.extend([
+                    "Add tests for new components",
+                    "Update component documentation",
+                    "Integrate with backend API"
+                ])
+            
+            if any(f.startswith('src/') for f in files):
+                next_tasks.extend([
+                    "Add integration tests",
+                    "Update API documentation",
+                    "Verify frontend integration"
+                ])
+            
+            session_data = {
+                "last_update": now,
+                "current_context": {
+                    "active_components": [os.path.dirname(f) for f in files],
+                    "completed_tasks": [f"Updated {os.path.basename(f)}" for f in files],
+                    "pending_tasks": list(set(next_tasks))  # Remove duplicates
+                }
+            }
+            
+            with open(session_path, 'r+') as f:
+                content = f.read()
+                new_section = (f"\n## Session Update - {now}\n"
+                             f"```json\n{json.dumps(session_data, indent=2)}\n```\n")
+                
+                # Replace existing session or add new one
+                if "## Session Update" in content:
+                    content = re.sub(r'## Session Update.*?(?=##|\Z)', 
+                                   new_section, 
+                                   content, 
+                                   flags=re.DOTALL)
+                else:
+                    content += new_section
+                
+                f.seek(0)
+                f.write(content)
+                f.truncate()
+                
+                self.changes['next_tasks'] = next_tasks
+                self.summary.append("Updated Copilot session state")
+
+    def print_summary(self) -> None:
+        """Print detailed summary of all updates"""
+        print("\n=== Pre-commit Update Summary ===")
+        
+        if self.changes['frontend']:
+            print("\nFrontend Development Updates:")
+            for change in self.changes['frontend']:
+                print(f"  {change}")
+        
+        if self.changes['architecture']:
+            print("\nArchitecture Updates:")
+            for change in self.changes['architecture']:
+                print(f"  {change}")
+        
+        if self.changes['journal']:
+            print("\nJournal Updates:")
+            for change in self.changes['journal']:
+                print(f"  {change}")
+        
+        if self.changes['next_tasks']:
+            print("\nNext Tasks:")
+            for task in self.changes['next_tasks']:
+                print(f"  - [ ] {task}")
+
+        print("\nSummary of Actions:")
+        for action in self.summary:
+            print(f"✓ {action}")
+
+    def run(self) -> int:
+        """Execute the pre-commit hook"""
+        staged_files = self.get_staged_files()
+        if not staged_files:
+            print("No files staged for commit.")
+            return 0
+        
+        # Run code quality checks
+        all_passed = True
+        for file_path in staged_files:
+            try:
+                if not self.run_code_checks(file_path):
+                    all_passed = False
+            except Exception as e:
+                print(f"Error checking {file_path}: {str(e)}")
+                return 1
+        
+        if not all_passed:
+            print("\nCode quality checks failed. Please fix the issues and try again.")
+            return 1
+        
+        print("\nUpdating documentation...")
+        
+        try:
+            # Update documentation
+            self.update_frontend_plan(staged_files)
+            self.update_architecture_doc(staged_files)
+            self.update_journal(staged_files)
+            self.update_copilot_session(staged_files)
+            
+            # Print summary
+            self.print_summary()
+            
+            # Stage documentation updates
+            subprocess.run(['git', 'add', 
+                'frontend/FRONTEND_DEV_PLAN.md',
+                'src/docs/ARCHITECTURE_ANALYSIS.md',
+                'src/docs/journal.md',
+                'src/docs/copilot_session.md'
+            ])
+            
+        except Exception as e:
+            print(f"Error updating documentation: {str(e)}")
+            return 1
+        
+        print("\nPre-commit checks passed successfully!")
+        return 0
+
+if __name__ == '__main__':
+    hook = PreCommitHook()
+    sys.exit(hook.run())
