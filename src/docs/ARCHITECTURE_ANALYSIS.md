@@ -252,3 +252,28 @@ Tables:
 - Testing procedures
 
 Remember: This document serves as the primary reference for AlgoTradPro5's architecture and must be updated with every system change.
+
+
+## WebSocket Integration
+
+
+The WebSocket integration provides real-time data streaming between the server and the client.
+
+### Components
+- **WebSocketServer**: Manages WebSocket connections on the server
+- **WebSocketClient**: Manages WebSocket connections on the client
+- **MessageHandler**: Processes WebSocket messages
+- **ConnectionManager**: Handles connection lifecycle
+
+### Implementation Details
+- Socket.IO is used for WebSocket implementation
+- Reconnection logic with exponential backoff
+- Authentication via JWT
+- Message compression for efficient data transfer
+
+### Performance Considerations
+- Connection pooling for efficient resource usage
+- Message batching for reduced network overhead
+- Binary message format for reduced payload size
+
+

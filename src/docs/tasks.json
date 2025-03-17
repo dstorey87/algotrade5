@@ -1,0 +1,103 @@
+{
+  "last_update": "2025-03-17 11:34:37",
+  "categories": {
+    "frontend": {
+      "name": "Frontend Development",
+      "tasks": [
+        {
+          "id": "fe-001",
+          "name": "Implement WebSocket Client",
+          "description": "Create WebSocket client for real-time data",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": []
+        },
+        {
+          "id": "fe-002",
+          "name": "Create Real-time Dashboard",
+          "description": "Implement real-time trading dashboard",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": [
+            "fe-001"
+          ]
+        },
+        {
+          "id": "fr-003",
+          "name": "Implement WebSocket Client",
+          "description": "Create WebSocket client with reconnection logic",
+          "status": "in_progress",
+          "priority": "high",
+          "dependencies": []
+        },
+        {
+          "id": "fr-004",
+          "name": "Create Real-time Dashboard",
+          "description": "Implement real-time dashboard with data streaming",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": [
+            "fr-003"
+          ]
+        }
+      ]
+    },
+    "backend": {
+      "name": "Backend Development",
+      "tasks": [
+        {
+          "id": "be-001",
+          "name": "Implement WebSocket Server",
+          "description": "Create WebSocket server for real-time data",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": []
+        },
+        {
+          "id": "be-002",
+          "name": "Create Data Processing Pipeline",
+          "description": "Implement data processing pipeline",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": [
+            "be-001"
+          ]
+        },
+        {
+          "id": "ba-003",
+          "name": "Implement WebSocket Server",
+          "description": "Create WebSocket server with authentication",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": []
+        }
+      ]
+    },
+    "documentation": {
+      "name": "Documentation",
+      "tasks": [
+        {
+          "id": "doc-001",
+          "name": "Update Architecture Documentation",
+          "description": "Update architecture documentation with real-time components",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": []
+        },
+        {
+          "id": "doc-002",
+          "name": "Update Frontend Plan",
+          "description": "Update frontend development plan",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": []
+        }
+      ]
+    }
+  },
+  "current_focus": {
+    "category": "frontend",
+    "task_id": "fr-003"
+  },
+  "completed_tasks": []
+}

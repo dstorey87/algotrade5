@@ -86,3 +86,20 @@ repos:
           (?x)^(
                 .*\.md
             )$
+      - id: check-added-large-files
+      - id: check-yaml
+      - id: check-merge-conflict
+
+  - repo: local
+    hooks:
+      - id: update-documentation
+        name: Update Documentation
+        entry: python scripts/update_docs.py
+        language: python
+        files: ^(frontend/|src/|tests/)
+      - id: update-docs
+        name: Update Documentation
+        entry: python scripts/update_docs.py
+        language: system
+        pass_filenames: false
+        always_run: true
