@@ -5,14 +5,19 @@ services:
     image: freqtradeorg/freqtrade:stable
     restart: unless-stopped
     volumes:
-      - "./user_data:/freqtrade/user_data"
+      - "./:/freqtrade/user_data/"
       - "./config.json:/freqtrade/config.json"
       - "./freqai_config.json:/freqtrade/freqai_config.json"
-      - "./models:/freqtrade/models"
-      - "./data:/freqtrade/data"
+      - "./strategies:/freqtrade/user_data/strategies"
+      - "./models:/freqtrade/user_data/models"
+      - "./databases:/freqtrade/user_data/databases"
     ports:
-      - "127.0.0.1:8080:8080"
-    command: trade --config /freqtrade/config.json --strategy QuantumHybridStrategy
+      - "8080:8080"
+    command: >
+      trade
+      --strategy QuantumLoopStrategy
+      --db-url sqlite:///databases/tradesv3.sqlite
+      --logfile /freqtrade/user_data/logs/freqtrade.log
     environment:
       - FT_SERVER_PORT=8080
       - CUDA_VISIBLE_DEVICES=0  # For GPU support
@@ -44,30 +49,42 @@ services:
               count: 1
               capabilities: [gpu]
 
-  db:
-    image: postgres:14
-    container_name: algotradedb
+  postgres:
+    image: postgres:latest
+    container_name: algotradepro5-db
     environment:
-      - POSTGRES_USER=algotrader
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=algotradedb
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: algotradepro5-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@algotradepro5.com
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "5432:5432"
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: algotrade_frontend
+    container_name: algotradepro5-frontend
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
-    environment:
-      - NODE_ENV=production
-      - API_URL=http://freqtrade:8080
+    depends_on:
+      - freqtrade
+    restart: unless-stopped
 
 volumes:
   pgdata:

@@ -1,41 +1,22 @@
 @echo off
-:: AlgoTradePro5 pre-commit hook batch file
-:: This file handles running the Python pre-commit hook correctly on Windows
+SETLOCAL
 
-:: Get the directory where this batch file is located
-set SCRIPT_DIR=%~dp0
-set REPO_ROOT=%SCRIPT_DIR%\..\..
+REM Pre-commit hook batch file for AlgoTradePro5
+REM This file runs the Python pre-commit hook script
 
-:: Create logs directory if it doesn't exist
-if not exist "%REPO_ROOT%\logs" mkdir "%REPO_ROOT%\logs"
+ECHO Running AlgoTradePro5 pre-commit hook...
 
-:: Set Python path explicitly - use installed Python
-set PYTHON_EXE=python
+REM Get the directory of this batch file
+SET SCRIPT_DIR=%~dp0
 
-:: Set the full path to the pre-commit hook script
-set HOOK_SCRIPT=%REPO_ROOT%\src\hooks\run_pre_commit.py
+REM Run the Python pre-commit hook
+python "%SCRIPT_DIR%pre_commit_hook.py"
 
-:: Print debug information to a log file
-echo Running pre-commit hook from %SCRIPT_DIR% > "%REPO_ROOT%\logs\pre-commit-debug.log"
-echo Repository root: %REPO_ROOT% >> "%REPO_ROOT%\logs\pre-commit-debug.log"
-echo Python executable: %PYTHON_EXE% >> "%REPO_ROOT%\logs\pre-commit-debug.log"
-echo Hook script: %HOOK_SCRIPT% >> "%REPO_ROOT%\logs\pre-commit-debug.log"
-
-:: Echo the command we're about to run
-echo Running: %PYTHON_EXE% "%HOOK_SCRIPT%" >> "%REPO_ROOT%\logs\pre-commit-debug.log"
-
-:: Change to the repository root directory
-cd /d "%REPO_ROOT%"
-
-:: Run the pre-commit hook script
-%PYTHON_EXE% "%HOOK_SCRIPT%"
-
-:: Check the exit code
-if %ERRORLEVEL% neq 0 (
-    echo Pre-commit hook failed with exit code %ERRORLEVEL% >> "%REPO_ROOT%\logs\pre-commit-debug.log"
-    exit /b %ERRORLEVEL%
+REM Check if the pre-commit hook succeeded
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO Pre-commit hook failed. Please fix the issues before committing.
+    EXIT /B 1
 )
 
-:: Success
-echo Pre-commit hook completed successfully >> "%REPO_ROOT%\logs\pre-commit-debug.log"
-exit /b 0
+ECHO Pre-commit hook completed successfully.
+EXIT /B 0
