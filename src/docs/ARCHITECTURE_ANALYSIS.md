@@ -277,3 +277,31 @@ The WebSocket integration provides real-time data streaming between the server a
 - Binary message format for reduced payload size
 
 
+
+
+## Frontend Components
+
+
+Frontend architecture has been updated with new components or modifications to existing ones.
+
+### Updated Components
+- src/frontend/components/WebSocketProvider.jsx
+
+### Integration Impact
+These changes may affect system integration and should be tested thoroughly.
+
+
+
+
+## Backend Services
+
+
+Backend services have been modified or new ones have been added.
+
+### Updated Components
+- src/backend/websocket_server.py
+
+### Integration Impact
+These changes may affect system integration and should be tested thoroughly.
+
+

@@ -6,9 +6,8 @@
   "last_update": "2025-03-17",
   "current_context": {
     "active_components": [
-      "Pre-commit Hook",
-      "Documentation",
-      "Task Management"
+      "Backend",
+      "Tests"
     ],
     "pending_tasks": [
       "Install hook in Git repository",
@@ -29,7 +28,7 @@
     ],
     "context_preservation": {
       "current_phase": "Development Infrastructure",
-      "active_branch": "feature/websocket",
+      "active_branch": "feat/web-development",
       "last_component": "Pre-commit Hook System"
     }
   }
@@ -43,6 +42,6 @@
 4. Continue development from last_component
 
 ## Branch Management
-- Current: feature/websocket
+- Current: feat/web-development
 - Last Commit: Pre-commit Hook System
 - Next Priority: Install Pre-commit Hook
