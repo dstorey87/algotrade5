@@ -1,15 +1,19 @@
 """Unit tests for the pre-commit hook functionality."""
+import unittest
+from unittest.mock import patch, MagicMock
 import sys
 from pathlib import Path
 
 # Add hooks directory to path before imports
-hooks_path = str(Path(__file__).parent.parent.parent / '.git' / 'hooks')
-if hooks_path not in sys.path:
-    sys.path.insert(0, hooks_path)
-
-import unittest
-from unittest.mock import patch, MagicMock
-from pre_commit import PreCommitHook
+HOOKS_PATH = str(Path(__file__).parent.parent.parent / '.git' / 'hooks')
+if HOOKS_PATH not in sys.path:
+    sys.path.insert(0, HOOKS_PATH)
+    
+try:
+    from pre_commit import PreCommitHook
+except ImportError:
+    print("Warning: pre-commit hook not found in path")
+    PreCommitHook = None
 
 class TestPreCommitHook(unittest.TestCase):
     """Test suite for the PreCommitHook class."""
