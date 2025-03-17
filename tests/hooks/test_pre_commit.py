@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Add hooks directory to path before imports
 HOOKS_PATH = str(Path(__file__).parent.parent.parent / '.git' / 'hooks')
-if (HOOKS_PATH not in sys.path):
+if HOOKS_PATH not in sys.path:
     sys.path.insert(0, HOOKS_PATH)
 
 try:
