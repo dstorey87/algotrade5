@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Card,
   Table,
@@ -10,85 +10,161 @@ import {
   TableRow,
   TableCell,
   Badge,
-  Text
+  Text,
+  Flex,
+  Icon,
+  Button
 } from "@tremor/react"
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState, AppDispatch } from "@/lib/store"
-import { updateCurrentPrices } from "@/lib/slices/tradingSlice"
+import { useSelector } from 'react-redux'
+import { RootState } from "@/lib/store"
+import { formatDistanceToNow } from 'date-fns'
+import { ArrowPathIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline'
 
 export default function ActiveTrades() {
-  const dispatch = useDispatch<AppDispatch>()
-  const { trades } = useSelector((state: RootState) => state.trading)
-  const activeTrades = trades.filter(trade => !trade.exitPrice)
+  const { activeTradesList, realTimeEnabled, lastUpdated } = useSelector((state: RootState) => state.trading)
+  const [sortField, setSortField] = useState<string | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
-  useEffect(() => {
-    // Set up WebSocket connection for real-time price updates
-    const ws = new WebSocket('ws://localhost:8080/ws/prices')
-
-    ws.onmessage = (event) => {
-      const prices = JSON.parse(event.data)
-      dispatch(updateCurrentPrices(prices))
+  // Handle sorting
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('desc')
     }
+  }
 
-    return () => {
-      ws.close()
+  // Sort trades based on selected field and direction
+  const sortedTrades = [...activeTradesList].sort((a, b) => {
+    if (!sortField) return 0
+    
+    const aValue = a[sortField as keyof typeof a]
+    const bValue = b[sortField as keyof typeof b]
+    
+    if (aValue === undefined || bValue === undefined) return 0
+    
+    // Handle numeric values
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue
     }
-  }, [dispatch])
+    
+    // Handle string values
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return sortDirection === 'asc' 
+        ? aValue.localeCompare(bValue) 
+        : bValue.localeCompare(aValue)
+    }
+    
+    return 0
+  })
+
+  // Format time from timestamp
+  const formatTimeAgo = (timestamp: string) => {
+    if (!timestamp) return 'Unknown'
+    return formatDistanceToNow(new Date(timestamp), { addSuffix: true })
+  }
+
+  // Get appropriate color based on profit value
+  const getProfitColor = (value: number | undefined) => {
+    if (value === undefined) return 'gray'
+    if (value > 0) return 'emerald'
+    if (value < 0) return 'red'
+    return 'gray'
+  }
 
   return (
     <Card>
       <div className="flex justify-between items-center mb-4">
-        <Text>Active Trades ({activeTrades.length})</Text>
+        <Flex alignItems="center">
+          <Text>Active Trades ({activeTradesList.length})</Text>
+          {realTimeEnabled && (
+            <Badge color="emerald" size="xs" className="ml-2">
+              Live
+            </Badge>
+          )}
+        </Flex>
+        <Badge color="gray" size="xs">
+          {lastUpdated ? `Updated ${formatDistanceToNow(new Date(lastUpdated), { addSuffix: true })}` : 'Not updated'}
+        </Badge>
       </div>
 
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeaderCell>Pair</TableHeaderCell>
-            <TableHeaderCell>Entry Price</TableHeaderCell>
+            <TableHeaderCell 
+              className="cursor-pointer" 
+              onClick={() => handleSort('pair')}
+            >
+              Pair {sortField === 'pair' && (sortDirection === 'asc' ? '↑' : '↓')}
+            </TableHeaderCell>
+            <TableHeaderCell 
+              className="cursor-pointer" 
+              onClick={() => handleSort('entryPrice')}
+            >
+              Entry Price {sortField === 'entryPrice' && (sortDirection === 'asc' ? '↑' : '↓')}
+            </TableHeaderCell>
             <TableHeaderCell>Amount</TableHeaderCell>
             <TableHeaderCell>Current Price</TableHeaderCell>
-            <TableHeaderCell>Unrealized P/L</TableHeaderCell>
+            <TableHeaderCell 
+              className="cursor-pointer" 
+              onClick={() => handleSort('unrealizedProfit')}
+            >
+              Unrealized P/L {sortField === 'unrealizedProfit' && (sortDirection === 'asc' ? '↑' : '↓')}
+            </TableHeaderCell>
             <TableHeaderCell>Strategy</TableHeaderCell>
-            <TableHeaderCell>Confidence</TableHeaderCell>
-            <TableHeaderCell>Status</TableHeaderCell>
+            <TableHeaderCell 
+              className="cursor-pointer" 
+              onClick={() => handleSort('confidence')}
+            >
+              Confidence {sortField === 'confidence' && (sortDirection === 'asc' ? '↑' : '↓')}
+            </TableHeaderCell>
+            <TableHeaderCell>Time Open</TableHeaderCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {activeTrades.length === 0 ? (
+          {activeTradesList.length === 0 ? (
             <TableRow>
               <TableCell colSpan={8} className="text-center">
-                No active trades
+                <Text>No active trades</Text>
               </TableCell>
             </TableRow>
           ) : (
-            activeTrades.map((trade) => (
+            sortedTrades.map((trade) => (
               <TableRow key={trade.id}>
                 <TableCell>{trade.pair}</TableCell>
-                <TableCell>£{trade.entryPrice.toFixed(2)}</TableCell>
-                <TableCell>{trade.amount}</TableCell>
-                <TableCell>£{trade.currentPrice?.toFixed(2) || '-'}</TableCell>
+                <TableCell>£{trade.entryPrice.toFixed(6)}</TableCell>
+                <TableCell>{trade.amount.toFixed(6)}</TableCell>
+                <TableCell className="relative">
+                  £{(trade.currentPrice || 0).toFixed(6)}
+                  {trade.currentPrice !== undefined && trade.currentPrice > trade.entryPrice && (
+                    <Icon icon={ArrowTrendingUpIcon} color="emerald" className="ml-1 h-4 w-4 inline" />
+                  )}
+                  {trade.currentPrice !== undefined && trade.currentPrice < trade.entryPrice && (
+                    <Icon icon={ArrowTrendingDownIcon} color="red" className="ml-1 h-4 w-4 inline" />
+                  )}
+                </TableCell>
                 <TableCell>
-                  <Text color={trade.unrealizedProfit >= 0 ? "green" : "red"}>
-                    £{trade.unrealizedProfit?.toFixed(2) || '-'}
-                    ({trade.unrealizedProfitPercentage?.toFixed(2) || '-'}%)
+                  <Text color={getProfitColor(trade.unrealizedProfit)}>
+                    £{(trade.unrealizedProfit || 0).toFixed(2)}
+                    <span className="text-xs ml-1">
+                      ({(trade.unrealizedProfitPercentage || 0).toFixed(2)}%)
+                    </span>
                   </Text>
                 </TableCell>
                 <TableCell>{trade.strategy}</TableCell>
                 <TableCell>
                   <Badge
                     color={
-                      trade.confidence > 0.85 ? "green" :
-                      trade.confidence > 0.7 ? "yellow" : "red"
+                      trade.confidence > 0.85 ? "emerald" :
+                      trade.confidence > 0.7 ? "amber" : "rose"
                     }
                   >
                     {(trade.confidence * 100).toFixed(0)}%
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge>
-                    {trade.patternValidated && trade.quantumValidated ? 'Validated' : 'Pending'}
-                  </Badge>
+                  {trade.open_date ? formatTimeAgo(trade.open_date) : 'Unknown'}
                 </TableCell>
               </TableRow>
             ))
