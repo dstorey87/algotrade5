@@ -1,4 +1,5 @@
-version: '3.8'
+version: '3.9'
+
 services:
   freqtrade:
     container_name: freqtrade
@@ -33,14 +34,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.freqai-custom
-    container_name: freqai
+      target: production
+    ports:
+      - "8080:8080"
     volumes:
-      - "./models:/app/models"
-      - "./data:/app/data"
-      - "C:/AlgoTradPro5/models:/models"  # Map external models directory
-    environment:
-      - PYTHONPATH=/app
-      - CUDA_VISIBLE_DEVICES=0
+      - ./models:/app/models:ro
+      - ./data:/app/data
     deploy:
       resources:
         reservations:
@@ -49,17 +48,17 @@ services:
               count: 1
               capabilities: [gpu]
 
-  postgres:
-    image: postgres:latest
+  db:
+    image: postgres:14-alpine
     container_name: algotradepro5-db
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: algotrade
+      POSTGRES_PASSWORD: your_password_here
+      POSTGRES_DB: algotrade
     ports:
-      - "${DB_PORT}:5432"
+      - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
 
@@ -72,19 +71,22 @@ services:
     ports:
       - "5050:80"
     depends_on:
-      - postgres
+      - db
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: production
     container_name: algotradepro5-frontend
     ports:
       - "3000:3000"
+    environment:
+      - NODE_ENV=production
     depends_on:
-      - freqtrade
+      - freqai
     restart: unless-stopped
 
 volumes:
-  pgdata:
+  postgres_data:

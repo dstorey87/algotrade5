@@ -1,20 +1,18 @@
 'use client'
 
-import { ThemeProvider } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ReactNode } from 'react'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import theme from '@/theme'
 
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <ErrorBoundary>
-        <div className="dark">
-          {children}
-        </div>
-      </ErrorBoundary>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }

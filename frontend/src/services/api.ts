@@ -1,4 +1,25 @@
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import { metricsCache } from './metricsCache';
+import { TradingMetrics } from '../types/trading';
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+  timeout: 5000,
+});
+
+const addErrorInterceptor = (apiInstance: AxiosInstance) => {
+  apiInstance.interceptors.response.use(
+    (response: AxiosResponse) => response,
+    (error: AxiosError) => {
+      console.error('API Error:', error);
+      return Promise.reject(error);
+    }
+  );
+};
+
+addErrorInterceptor(api);
 
 // Create main FreqTrade API instance
 const freqtradeApi = axios.create({
@@ -15,17 +36,6 @@ const algoTradeApi = axios.create({
   baseURL: import.meta.env.VITE_ALGOTRADE_API_URL || 'http://localhost:8000',
   timeout: 15000
 });
-
-// Add response interceptors for error handling
-const addErrorInterceptor = (apiInstance) => {
-  apiInstance.interceptors.response.use(
-    response => response,
-    error => {
-      console.error('API Error:', error);
-      return Promise.reject(error);
-    }
-  );
-};
 
 addErrorInterceptor(freqtradeApi);
 addErrorInterceptor(algoTradeApi);
@@ -160,7 +170,34 @@ export const tradingApi = {
   ...freqtradeService,
   ...systemService,
   getSystemMetrics: systemService.getSystemMetrics,
-  getSystemLogs: systemService.getSystemLogs
+  getSystemLogs: systemService.getSystemLogs,
+  getMetrics: async () => {
+    const cachedMetrics = metricsCache.get('trading');
+    if (cachedMetrics) {
+      return cachedMetrics;
+    }
+
+    const { data } = await api.get<TradingMetrics>('/api/metrics');
+    metricsCache.set('trading', data);
+    return data;
+  }
+};
+
+const strategyApiBaseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+const strategyApiInstance = axios.create({
+  baseURL: strategyApiBaseURL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export const strategyApi = {
+  getStrategies: () => strategyApiInstance.get('/api/v1/strategies'),
+  getStrategy: (id: string) => strategyApiInstance.get(`/api/v1/strategies/${id}`),
+  updateStrategy: (id: string, data: any) => strategyApiInstance.put(`/api/v1/strategies/${id}`, data),
+  createStrategy: (data: any) => strategyApiInstance.post('/api/v1/strategies', data),
+  deleteStrategy: (id: string) => strategyApiInstance.delete(`/api/v1/strategies/${id}`),
 };
 
 export default {
@@ -172,6 +209,7 @@ export default {
     healthService,
     mlService,
     aiService,
-    tradingService
+    tradingService,
+    strategyApi
   }
 };

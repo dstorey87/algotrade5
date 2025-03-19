@@ -12,33 +12,19 @@ const AIModelMetrics = () => {
   const radarData = [
     {
       metric: 'Accuracy',
-      Model1: 0.92,
-      Model2: 0.85,
-      Model3: 0.88
+      value: aiMetrics.accuracy * 100
     },
     {
       metric: 'Precision',
-      Model1: 0.89,
-      Model2: 0.82,
-      Model3: 0.86
+      value: aiMetrics.precision * 100
     },
     {
       metric: 'Recall',
-      Model1: 0.87,
-      Model2: 0.84,
-      Model3: 0.85
+      value: aiMetrics.recall * 100
     },
     {
       metric: 'F1 Score',
-      Model1: 0.88,
-      Model2: 0.83,
-      Model3: 0.85
-    },
-    {
-      metric: 'ROC AUC',
-      Model1: 0.91,
-      Model2: 0.86,
-      Model3: 0.89
+      value: aiMetrics.f1Score * 100
     }
   ];
 
@@ -75,9 +61,9 @@ const AIModelMetrics = () => {
             <Box sx={{ height: 300 }}>
               <ResponsiveRadar
                 data={radarData}
-                keys={['Model1', 'Model2', 'Model3']}
+                keys={['value']}
                 indexBy="metric"
-                maxValue={1}
+                maxValue={100}
                 margin={{ top: 40, right: 40, bottom: 40, left: 40 }}
                 borderColor={{ from: 'color' }}
                 gridLabelOffset={20}
@@ -88,10 +74,21 @@ const AIModelMetrics = () => {
                 blendMode="multiply"
                 motionConfig="wobbly"
                 theme={{
-                  textColor: theme.palette.text.secondary,
+                  axis: {
+                    ticks: {
+                      text: {
+                        fill: theme.palette.text.secondary,
+                      },
+                    },
+                  },
                   grid: {
                     line: {
                       stroke: theme.palette.grey[800],
+                    },
+                  },
+                  labels: {
+                    text: {
+                      fill: theme.palette.text.secondary,
                     },
                   },
                 }}
@@ -111,35 +108,56 @@ const AIModelMetrics = () => {
                 borderWidth={1}
                 borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
                 arcLinkLabelsSkipAngle={10}
-                arcLinkLabelsTextColor={theme.palette.text.secondary}
+                arcLinkLabelsTextColor={theme.palette.text.primary}
                 arcLinkLabelsThickness={2}
                 arcLinkLabelsColor={{ from: 'color' }}
                 arcLabelsSkipAngle={10}
                 arcLabelsTextColor={{ from: 'color', modifiers: [['darker', 2]] }}
                 theme={{
-                  textColor: theme.palette.text.secondary,
+                  labels: {
+                    text: {
+                      fill: theme.palette.text.primary,
+                    }
+                  },
+                  legends: {
+                    text: {
+                      fill: theme.palette.text.secondary,
+                    }
+                  },
+                  tooltip: {
+                    container: {
+                      background: theme.palette.background.paper,
+                      color: theme.palette.text.primary,
+                      fontSize: '12px',
+                    },
+                  }
                 }}
+                legends={[
+                  {
+                    anchor: 'bottom',
+                    direction: 'row',
+                    justify: false,
+                    translateX: 0,
+                    translateY: 56,
+                    itemsSpacing: 0,
+                    itemWidth: 100,
+                    itemHeight: 18,
+                    itemTextColor: theme.palette.text.secondary,
+                    itemDirection: 'left-to-right',
+                    itemOpacity: 1,
+                    symbolSize: 18,
+                    symbolShape: 'circle'
+                  }
+                ]}
               />
             </Box>
           </Grid>
 
           <Grid item xs={12}>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip
-                label={`Ensemble Accuracy: ${(aiMetrics?.ensembleAccuracy * 100 || 0).toFixed(1)}%`}
-                color="primary"
-                variant="outlined"
-              />
-              <Chip
-                label={`Active Models: ${aiMetrics?.activeModels || 0}`}
-                color="secondary"
-                variant="outlined"
-              />
-              <Chip
-                label={`Training Status: ${aiMetrics?.trainingInProgress ? 'In Progress' : 'Idle'}`}
-                color={aiMetrics?.trainingInProgress ? 'warning' : 'success'}
-                variant="outlined"
-              />
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
+              <Chip label={`Last Updated: ${new Date().toLocaleTimeString()}`} size="small" />
+              <Chip label={`Model: ${aiMetrics.modelName}`} color="primary" size="small" />
+              <Chip label={`Confidence: ${(aiMetrics.confidence * 100).toFixed(1)}%`} color="secondary" size="small" />
             </Box>
           </Grid>
         </Grid>

@@ -1,8 +1,12 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Update npm and install global dependencies first
+RUN npm install -g npm@latest && \
+    npm install -g ts-node@latest --force
+
+# Copy package files
 COPY package*.json ./
 
 # Install dependencies

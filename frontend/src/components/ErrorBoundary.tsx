@@ -4,81 +4,48 @@ import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { Card, Title, Text, Button } from '@tremor/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
-interface ErrorBoundaryProps {
+interface Props {
   children: ReactNode
   fallback?: ReactNode
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
   componentName?: string
 }
 
-interface ErrorBoundaryState {
+interface State {
   hasError: boolean
-  error: Error | null
-  errorInfo: ErrorInfo | null
+  error?: Error
 }
 
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props)
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null
-    }
+export default class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return {
-      hasError: true,
-      error,
-      errorInfo: null
-    }
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    this.setState({
-      errorInfo
-    })
-
-    // Call the optional onError callback
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo)
-    }
-
-    // Log the error to console for debugging
-    console.error('Component Error:', error, errorInfo)
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Uncaught error:', error, errorInfo)
   }
 
-  render(): ReactNode {
-    const { hasError, error } = this.state
-    const { children, fallback, componentName } = this.props
-
-    if (hasError) {
-      // If a custom fallback is provided, use it
-      if (fallback) {
-        return fallback
-      }
-
-      // Otherwise show our default error UI
-      return (
+  public render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
         <Card decoration="top" decorationColor="rose">
           <div className="flex items-center mb-4">
             <ExclamationTriangleIcon className="h-8 w-8 text-rose-500 mr-2" />
-            <Title>Component Error</Title>
+            <Title>{this.props.componentName || 'Component'} Error</Title>
           </div>
           <Text className="mb-2">
-            {componentName 
-              ? `The ${componentName} component has encountered an error.` 
-              : 'A component has encountered an error.'
-            }
+            A component has encountered an error.
           </Text>
           <Text className="text-tremor-content-subtle text-sm mb-4">
-            {error?.message || 'Unknown error occurred'}
+            {this.state.error?.message || 'Unknown error occurred'}
           </Text>
           <Button 
             size="xs"
             color="rose"
-            onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
+            onClick={() => this.setState({ hasError: false, error: undefined })}
           >
             Try Again
           </Button>
@@ -86,8 +53,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       )
     }
 
-    return children
+    return this.props.children
   }
 }
-
-export default ErrorBoundary

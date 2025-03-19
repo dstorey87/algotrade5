@@ -149,3 +149,26 @@ logs/
 !config.json
 !docker-compose.yml
 !requirements*.txt
+
+# Docker ignore
+**/.git
+**/node_modules
+**/.next
+**/dist
+**/*.pyc
+**/__pycache__
+**/models/*
+!**/models/.gitkeep
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+*.log
+.DS_Store
+.idea/
+.vscode/
+trade_logs/*
+!trade_logs/.gitkeep

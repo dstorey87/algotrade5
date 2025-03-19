@@ -95,14 +95,7 @@ function validateDependencies(): void {
   if (missingDeps.length === 0) {
     console.log('✅ All dependencies are installed');
   }
-
-  // Update npx and ts-node globally if needed
-  try {
-    execSync('npm install -g npx ts-node', { stdio: 'inherit' });
-  } catch (error) {
-    console.error('❌ Failed to update global dependencies:', error);
-    process.exit(1);
-  }
+  // Removed global dependency installation
 }
 
 // Run validation

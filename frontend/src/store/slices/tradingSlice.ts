@@ -1,4 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { TradingState, AIMetrics } from '../../types/trading';
 
 interface TradingState {
   isLoading: boolean
@@ -34,6 +35,9 @@ interface TradingState {
     profitLoss: number
     timestamp: string
   }>
+  isConnected: boolean
+  currentStrategy: string | null
+  aiMetrics: AIMetrics
 }
 
 const initialState: TradingState = {
@@ -47,7 +51,19 @@ const initialState: TradingState = {
   },
   currentTrade: null,
   openPositions: [],
-  tradeHistory: []
+  tradeHistory: [],
+  isConnected: false,
+  currentStrategy: null,
+  aiMetrics: {
+    accuracy: 0,
+    precision: 0,
+    recall: 0,
+    f1Score: 0,
+    latency: 0,
+    ensembleAccuracy: 0,
+    activeModels: 0,
+    trainingInProgress: false
+  }
 }
 
 export const fetchTradeData = createAsyncThunk(
@@ -89,12 +105,45 @@ export const stopTrading = createAsyncThunk(
   }
 )
 
+export const fetchDashboardData = createAsyncThunk(
+  'trading/fetchDashboardData',
+  async () => {
+    try {
+      // TODO: Replace with actual API call
+      const response = await Promise.resolve({
+        balance: {
+          total: 1000,
+          free: 800,
+          used: 200
+        },
+        openPositions: [],
+        tradeHistory: []
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
 const tradingSlice = createSlice({
   name: 'trading',
   initialState,
   reducers: {
     resetError: (state) => {
       state.error = null
+    },
+    setConnection: (state, action: PayloadAction<boolean>) => {
+      state.isConnected = action.payload;
+    },
+    updateAIMetrics: (state, action: PayloadAction<Partial<AIMetrics>>) => {
+      state.aiMetrics = { ...state.aiMetrics, ...action.payload };
+    },
+    setCurrentStrategy: (state, action: PayloadAction<string>) => {
+      state.currentStrategy = action.payload;
+    },
+    updateBalance: (state, action: PayloadAction<number>) => {
+      state.balance = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -117,8 +166,22 @@ const tradingSlice = createSlice({
       .addCase(stopTrading.fulfilled, (state) => {
         state.tradingEnabled = false
       })
+      .addCase(fetchDashboardData.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchDashboardData.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.balance = action.payload.balance;
+        state.openPositions = action.payload.openPositions;
+        state.tradeHistory = action.payload.tradeHistory;
+      })
+      .addCase(fetchDashboardData.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to fetch dashboard data';
+      });
   }
 })
 
-export const { resetError } = tradingSlice.actions
+export const { resetError, setConnection, updateAIMetrics, setCurrentStrategy, updateBalance } = tradingSlice.actions
 export default tradingSlice.reducer

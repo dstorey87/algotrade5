@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '@/lib/store'
-import { Button, Icon, Tooltip } from '@tremor/react'
+import { Button } from '@tremor/react'
 import { BoltIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { setRealTimeEnabled } from '@/lib/slices/tradingSlice'
 import websocketService from '@/services/websocket'
+// Use MUI Tooltip instead since we're already using MUI components elsewhere
+import { Tooltip } from '@mui/material'
 
 interface ConnectionToggleProps {
   className?: string
@@ -44,7 +46,7 @@ export default function ConnectionToggle({ className = '' }: ConnectionTogglePro
   }
 
   return (
-    <Tooltip text={realTimeEnabled ? 'Switch to polling updates' : 'Switch to real-time updates'}>
+    <Tooltip title={realTimeEnabled ? 'Switch to polling updates' : 'Switch to real-time updates'}>
       <Button
         className={className}
         color={realTimeEnabled ? 'emerald' : 'blue'}
