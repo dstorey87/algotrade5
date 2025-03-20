@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 import {
   AppBar,
   Box,
@@ -50,8 +51,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(true);
 
   const handleDrawerToggle = () => {
@@ -59,7 +59,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const getPageTitle = () => {
-    const currentItem = navItems.find(item => item.path === location.pathname);
+    const currentItem = navItems.find(item => item.path === router.pathname);
     return currentItem?.name || 'AlgoTradePro5';
   };
 
@@ -109,18 +109,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           width: drawerWidth,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
-            width: drawerWidth,
             boxSizing: 'border-box',
             transition: theme.transitions.create('width', {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.enteringScreen,
             }),
             ...(drawerOpen ? {
-              overflowX: 'hidden',
               width: drawerWidth,
-            } : {
               overflowX: 'hidden',
+            } : {
               width: theme.spacing(7),
+              overflowX: 'hidden',
               [theme.breakpoints.up('sm')]: {
                 width: theme.spacing(9),
               },
@@ -156,32 +155,34 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <List>
           {navItems.map((item) => (
             <ListItem key={item.name} disablePadding sx={{ display: 'block' }}>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                sx={{
-                  minHeight: 48,
-                  justifyContent: drawerOpen ? 'initial' : 'center',
-                  px: 2.5,
-                }}
-                onClick={() => navigate(item.path)}
-              >
-                <ListItemIcon
+              <Link href={item.path} passHref style={{ textDecoration: 'none' }}>
+                <ListItemButton
+                  component="a"
+                  selected={router.pathname === item.path}
                   sx={{
-                    minWidth: 0,
-                    mr: drawerOpen ? 3 : 'auto',
-                    justifyContent: 'center',
+                    minHeight: 48,
+                    justifyContent: drawerOpen ? 'initial' : 'center',
+                    px: 2.5,
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.name}
-                  sx={{
-                    opacity: drawerOpen ? 1 : 0,
-                    color: location.pathname === item.path ? theme.palette.primary.main : 'inherit'
-                  }}
-                />
-              </ListItemButton>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: drawerOpen ? 3 : 'auto',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.name}
+                    sx={{
+                      opacity: drawerOpen ? 1 : 0,
+                      color: router.pathname === item.path ? theme.palette.primary.main : 'inherit'
+                    }}
+                  />
+                </ListItemButton>
+              </Link>
             </ListItem>
           ))}
         </List>

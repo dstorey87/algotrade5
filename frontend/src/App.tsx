@@ -1,11 +1,10 @@
-import { useState } from 'react'
-import { BrowserRouter } from 'react-router-dom'
+import { AppProps } from 'next/app';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
 import { Provider } from 'react-redux'
 import { store } from './store'
 import Layout from './components/Layout'
-import AppRoutes from './routes'
 
+// Create the theme
 const theme = createTheme({
   palette: {
     mode: 'dark',
@@ -91,16 +90,14 @@ const theme = createTheme({
   },
 })
 
-function App() {
+function App({ Component, pageProps }: AppProps) {
   return (
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <BrowserRouter>
-          <Layout>
-            <AppRoutes />
-          </Layout>
-        </BrowserRouter>
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
       </ThemeProvider>
     </Provider>
   )

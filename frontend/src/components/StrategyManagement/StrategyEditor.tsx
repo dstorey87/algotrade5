@@ -8,6 +8,11 @@ interface StrategyEditorProps {
 
 export const StrategyEditor: React.FC<StrategyEditorProps> = ({ onSave, isUpdating }) => {
     const [config, setConfig] = useState<StrategyConfig>({
+        id: '', // Will be set when saving
+        name: 'New Strategy',
+        code: '',
+        parameters: {},
+        isActive: false,
         maxOpenTrades: 3,
         stakeAmount: 10,
         minRoi: { "0": 0.05 },

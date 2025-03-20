@@ -143,7 +143,7 @@ class PreCommitHook:
         if not files:
             return
             
-        journal_path = os.path.join(self.repo_root, 'src', 'docs', 'journal.md')
+        journal_path = os.path.join(self.repo_root, 'journal.md')
         if os.path.exists(journal_path):
             with open(journal_path, 'r+') as f:
                 content = f.read()
@@ -178,7 +178,7 @@ class PreCommitHook:
 
     def update_copilot_session(self, files: List[str]) -> None:
         """Update copilot_session.md with progress and next tasks."""
-        session_path = os.path.join(self.repo_root, 'src', 'docs', 'copilot_session.md')
+        session_path = os.path.join(self.repo_root, 'copilot_interface.md')
         if os.path.exists(session_path):
             now = datetime.now().strftime('%Y-%m-%d %H:%M')
             
@@ -285,10 +285,8 @@ class PreCommitHook:
             self.print_summary()
             
             subprocess.run(['git', 'add', 
-                'frontend/FRONTEND_DEV_PLAN.md',
-                'src/docs/ARCHITECTURE_ANALYSIS.md',
-                'src/docs/journal.md',
-                'src/docs/copilot_session.md'
+                'journal.md',
+                'copilot_interface.md'
             ])
             
         except Exception as e:

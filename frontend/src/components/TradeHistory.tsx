@@ -11,6 +11,7 @@ import {
   Badge,
   Text,
   DateRangePicker,
+  DateRangePickerValue,
   Select,
   SelectItem,
   Flex,
@@ -24,7 +25,7 @@ import { formatDistanceToNow, format } from 'date-fns'
 
 export default function TradeHistory() {
   const { tradeHistory, realTimeEnabled, lastUpdated } = useSelector((state: RootState) => state.trading)
-  const [dateRange, setDateRange] = useState<{ from: Date | null, to: Date | null }>({ from: null, to: null })
+  const [dateRange, setDateRange] = useState<DateRangePickerValue>({ from: undefined, to: undefined })
   const [selectedStrategy, setSelectedStrategy] = useState<string>("all")
   const [sortField, setSortField] = useState<string>("close_date")
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')

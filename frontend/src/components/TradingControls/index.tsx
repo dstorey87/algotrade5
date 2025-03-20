@@ -1,20 +1,20 @@
-import { Button, Grid, Paper, Typography, Chip, Box } from '@mui/material'
-import { styled } from '@mui/material/styles'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from '../../store'
-import { startTrading, stopTrading, emergencyStop } from '../../store/slices/tradingSlice'
+import { Button, Grid, Paper, Typography, Chip, Box } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { startTrading, stopTrading, emergencyStop } from '../../store/tradingSlice';
 
 const Item = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   color: theme.palette.text.secondary,
-}))
+}));
 
 const StatusChip = styled(Chip)(({ theme }) => ({
   margin: theme.spacing(0.5),
-}))
+}));
 
 const TradingControls = () => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const {
     balance,
     totalProfit,
@@ -22,19 +22,19 @@ const TradingControls = () => {
     activeTrades,
     tradingEnabled,
     systemStatus
-  } = useSelector((state: RootState) => state.trading)
+  } = useSelector((state: RootState) => state.trading);
 
   const handleStartTrading = () => {
-    dispatch(startTrading())
-  }
+    dispatch(startTrading());
+  };
 
   const handleStopTrading = () => {
-    dispatch(stopTrading())
-  }
+    dispatch(stopTrading());
+  };
 
   const handleEmergencyStop = () => {
-    dispatch(emergencyStop())
-  }
+    dispatch(emergencyStop());
+  };
 
   return (
     <Grid container spacing={3}>
@@ -47,7 +47,8 @@ const TradingControls = () => {
       <Grid item xs={12} md={6}>
         <Item>
           <Typography variant="h6" gutterBottom>Account Status</Typography>
-          <Typography>Balance: £{balance.toFixed(2)}</Typography>
+          <Typography>Balance: £{balance.total.toFixed(2)}</Typography>
+          <Typography>Available: £{balance.free.toFixed(2)}</Typography>
           <Typography>Total Profit: £{totalProfit.toFixed(2)}</Typography>
           <Typography>Win Rate: {(winRate * 100).toFixed(2)}%</Typography>
           <Typography>Active Trades: {activeTrades}</Typography>
@@ -112,7 +113,7 @@ const TradingControls = () => {
         </Item>
       </Grid>
     </Grid>
-  )
-}
+  );
+};
 
-export default TradingControls
+export default TradingControls;

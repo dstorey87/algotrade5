@@ -4,7 +4,8 @@ const nextConfig = {
   poweredByHeader: false,
   images: {
     domains: ['localhost'],
-  }
+  },
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js']
 }
 
 module.exports = nextConfig

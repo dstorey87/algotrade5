@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Strategy } from '@/types';
 import { fetchStrategyPerformance } from '@/lib/api/strategies';
 
@@ -8,10 +8,10 @@ interface PerformanceMetricsProps {
 }
 
 export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ strategies }) => {
-    const { data: performance, isLoading } = useQuery(
-        ['strategyPerformance', strategies.map(s => s.id)],
-        () => Promise.all(strategies.map(s => fetchStrategyPerformance(s.id)))
-    );
+    const { data: performance, isLoading } = useQuery({
+        queryKey: ['strategyPerformance', strategies.map(s => s.id)],
+        queryFn: () => Promise.all(strategies.map(s => fetchStrategyPerformance(s.id)))
+    });
 
     if (isLoading) {
         return (

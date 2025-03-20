@@ -34,7 +34,7 @@ export const StrategyList: React.FC<StrategyListProps> = ({ strategies, isLoadin
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="font-medium">{strategy.name}</h3>
-                                <p className="text-sm text-gray-500">Win Rate: {(strategy.winRate * 100).toFixed(1)}%</p>
+                                <p className="text-sm text-gray-500">Win Rate: {(strategy.performance.winRate * 100).toFixed(1)}%</p>
                             </div>
                             <div className={`px-2 py-1 rounded text-sm ${
                                 strategy.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'

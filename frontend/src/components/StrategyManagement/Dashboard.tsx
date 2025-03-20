@@ -1,13 +1,20 @@
 import React from 'react';
-import { useQuery, useMutation } from 'react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { StrategyList } from './StrategyList';
 import { StrategyEditor } from './StrategyEditor';
 import { PerformanceMetrics } from './PerformanceMetrics';
 import { fetchStrategies, updateStrategy } from '@/lib/api/strategies';
+import type { Strategy } from '@/types';
 
 export const StrategyManagementDashboard: React.FC = () => {
-    const { data: strategies, isLoading } = useQuery('strategies', fetchStrategies);
-    const updateMutation = useMutation(updateStrategy);
+    const { data: strategies, isLoading } = useQuery<Strategy[]>({
+        queryKey: ['strategies'],
+        queryFn: fetchStrategies
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: updateStrategy
+    });
 
     return (
         <div className="grid grid-cols-12 gap-4 p-4" data-testid="strategy-management-dashboard">
@@ -20,7 +27,7 @@ export const StrategyManagementDashboard: React.FC = () => {
             <div className="col-span-12 lg:col-span-6">
                 <StrategyEditor 
                     onSave={updateMutation.mutate}
-                    isUpdating={updateMutation.isLoading}
+                    isUpdating={updateMutation.isPending}
                 />
             </div>
             <div className="col-span-12 lg:col-span-3">

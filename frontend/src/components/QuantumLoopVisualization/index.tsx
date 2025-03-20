@@ -85,7 +85,9 @@ const QuantumLoopVisualization = () => {
                 enableGridY={true}
                 lineWidth={3}
                 theme={{
-                  textColor: theme.palette.text.secondary,
+                  text: {
+                    fill: theme.palette.text.secondary,
+                  },
                   grid: {
                     line: {
                       stroke: theme.palette.grey[800],

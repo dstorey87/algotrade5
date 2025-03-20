@@ -12,6 +12,7 @@ import {
   FormControlLabel,
   Switch,
   Chip,
+  LinearProgress,
 } from '@mui/material';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import SyncIcon from '@mui/icons-material/Sync';
