@@ -15,6 +15,19 @@ export interface AIMetrics {
   trainingInProgress: boolean;
 }
 
+export interface TradingMetrics {
+  aiConfidence: number;
+  predictionAccuracy: number;
+  quantum?: {
+    loopStatus: string;
+  };
+  // Adding other potential fields based on component usage
+  winRate?: number;
+  profitLoss?: number;
+  activeStrategies?: number;
+  tradingVolume?: number;
+}
+
 export interface TradingState {
   isConnected: boolean;
   currentStrategy: string | null;

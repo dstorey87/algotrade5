@@ -91,10 +91,15 @@ const quantumSlice = createSlice({
       })
       .addCase(fetchQuantumMetrics.fulfilled, (state, action) => {
         state.metrics = action.payload.metrics;
-        state.addTimeseriesDataPoint({
+        // Instead of calling the reducer directly, just modify the state
+        state.timeseriesData.push({
           x: new Date().toLocaleTimeString(),
           y: action.payload.metrics.confidence
         });
+        // Maintain the array size
+        if (state.timeseriesData.length > 50) {
+          state.timeseriesData.shift();
+        }
       })
       .addCase(fetchQuantumMetrics.rejected, (state, action) => {
         state.error = action.error.message || 'Failed to fetch quantum metrics';

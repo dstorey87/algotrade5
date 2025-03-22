@@ -30,7 +30,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '../../store'
 import { fetchTradeData } from '../../store/slices/tradingSlice'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { tradingApi, getMockData } from '../../services/api'
+import { tradingApi } from '../../services/api'
 
 const Item = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -299,8 +299,8 @@ const TradeHistory = () => {
   })
 
   // Extract unique pairs and strategies for filters
-  const uniquePairs = [...new Set(trades.map(trade => trade.pair))]
-  const uniqueStrategies = [...new Set(trades.map(trade => trade.strategy))]
+  const uniquePairs = Array.from(new Set(trades.map(trade => trade.pair)))
+  const uniqueStrategies = Array.from(new Set(trades.map(trade => trade.strategy)))
 
   if (loading || storeLoading) {
     return (

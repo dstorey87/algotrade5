@@ -34,7 +34,7 @@ export const StrategyManager: React.FC = () => {
                 />
             </div>
             <div className="col-span-12 lg:col-span-12">
-                <PerformanceMetrics strategies={strategies || []} />
+                <PerformanceMetrics />
             </div>
         </div>
     );

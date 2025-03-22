@@ -1,8 +1,8 @@
-import { AppProps } from 'next/app';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
 import { Provider } from 'react-redux'
 import { store } from './store'
 import Layout from './components/Layout'
+import Dashboard from './components/pages/Dashboard'
 
 // Create the theme
 const theme = createTheme({
@@ -90,13 +90,13 @@ const theme = createTheme({
   },
 })
 
-function App({ Component, pageProps }: AppProps) {
+function App() {
   return (
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Layout>
-          <Component {...pageProps} />
+          <Dashboard />
         </Layout>
       </ThemeProvider>
     </Provider>

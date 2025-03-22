@@ -1,17 +1,21 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Strategy } from '@/types';
-import { fetchStrategyPerformance } from '@/lib/api/strategies';
+import { fetchStrategies, fetchStrategyPerformance } from '@/lib/api/strategies';
 
-interface PerformanceMetricsProps {
-    strategies: Strategy[];
-}
-
-export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ strategies }) => {
-    const { data: performance, isLoading } = useQuery({
-        queryKey: ['strategyPerformance', strategies.map(s => s.id)],
-        queryFn: () => Promise.all(strategies.map(s => fetchStrategyPerformance(s.id)))
+export const PerformanceMetrics: React.FC = () => {
+    const { data: strategies, isLoading: isLoadingStrategies } = useQuery({
+        queryKey: ['strategies'],
+        queryFn: fetchStrategies
     });
+
+    const { data: performance, isLoading: isLoadingPerformance } = useQuery({
+        queryKey: ['strategyPerformance', strategies?.map(s => s.id)],
+        queryFn: () => Promise.all((strategies || []).map(s => fetchStrategyPerformance(s.id))),
+        enabled: !!strategies
+    });
+
+    const isLoading = isLoadingStrategies || isLoadingPerformance;
 
     if (isLoading) {
         return (
@@ -35,8 +39,8 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ strategi
             </div>
             <div className="p-4 space-y-4">
                 {performance?.map((perf, index) => (
-                    <div key={strategies[index].id} className="border-b pb-4 last:border-0">
-                        <h3 className="font-medium mb-2">{strategies[index].name}</h3>
+                    <div key={strategies![index].id} className="border-b pb-4 last:border-0">
+                        <h3 className="font-medium mb-2">{strategies![index].name}</h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <p className="text-sm text-gray-500">Win Rate</p>

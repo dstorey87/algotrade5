@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Alert, CircularProgress } from '@mui/material';
-import api from '../services/api';
+import api, { tradingApi } from '../services/api';
 import { TradingMetrics } from '../types/trading';
 
 const TradingDashboard: React.FC = () => {
@@ -12,10 +12,10 @@ const TradingDashboard: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/api/metrics');
+      // Use the tradingApi.getMetrics method instead of api.get
+      const data = await tradingApi.getMetrics();
       
       // Validate required AI metrics fields
-      const data = response.data;
       if (!data.aiConfidence || !data.predictionAccuracy) {
         throw new Error('Invalid metrics data received');
       }
@@ -56,7 +56,7 @@ const TradingDashboard: React.FC = () => {
       {metrics.quantum?.loopStatus && (
         <Typography>Quantum Loop Status: {metrics.quantum.loopStatus}</Typography>
       )}
-      // ...existing metrics display code...
+      {/* ...existing metrics display code... */}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { TradingState, AIMetrics } from '../../types/trading';
+import { AIMetrics } from '../../types/trading'
 
+// Define the state interface here instead of importing it
 interface TradingState {
   isLoading: boolean
   error: string | null
@@ -10,31 +11,9 @@ interface TradingState {
     free: number
     used: number
   }
-  currentTrade: {
-    pair: string
-    side: 'buy' | 'sell'
-    amount: number
-    entryPrice: number
-    currentPrice: number
-    profitLoss: number
-  } | null
-  openPositions: Array<{
-    pair: string
-    side: 'buy' | 'sell'
-    amount: number
-    entryPrice: number
-    currentPrice: number
-    profitLoss: number
-  }>
-  tradeHistory: Array<{
-    pair: string
-    side: 'buy' | 'sell'
-    amount: number
-    entryPrice: number
-    exitPrice: number
-    profitLoss: number
-    timestamp: string
-  }>
+  currentTrade: any | null
+  openPositions: any[]
+  tradeHistory: any[]
   isConnected: boolean
   currentStrategy: string | null
   aiMetrics: AIMetrics
@@ -142,7 +121,7 @@ const tradingSlice = createSlice({
     setCurrentStrategy: (state, action: PayloadAction<string>) => {
       state.currentStrategy = action.payload;
     },
-    updateBalance: (state, action: PayloadAction<number>) => {
+    updateBalance: (state, action: PayloadAction<number | any>) => {
       state.balance = action.payload;
     }
   },

@@ -1,4 +1,4 @@
-import TradeHistory from '../components/pages/TradeHistory'
+import TradeHistory from './TradeHistory'
 
 export default function HistoryPage() {
   return <TradeHistory />

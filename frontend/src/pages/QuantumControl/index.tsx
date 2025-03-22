@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Grid,
@@ -10,18 +10,21 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { fetchQuantumMetrics } from '../../store/slices/quantumSlice';
 import QuantumControlPanel from '../../components/QuantumControlPanel';
 
 const QuantumControl = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
-  const { error } = useSelector((state: RootState) => state.quantum);
+  const [error, setError] = useState<string | null>(null);
+  
+  // We'll use the trading state when available
+  const tradingState = useSelector((state: RootState) => state.trading);
 
   useEffect(() => {
     // Set up polling for metrics
     const interval = setInterval(() => {
-      dispatch(fetchQuantumMetrics());
+      // We'll implement fetchQuantumMetrics when we have the quantum slice
+      // dispatch(fetchQuantumMetrics());
     }, 5000);
 
     return () => clearInterval(interval);

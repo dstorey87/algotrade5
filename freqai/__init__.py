@@ -1,0 +1,1 @@
+# FreqAI package initialization

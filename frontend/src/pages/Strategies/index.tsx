@@ -16,7 +16,7 @@ import {
   Divider
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { strategyApi, getMockData } from '../../services/api'
+import { strategyApi } from '../../services/api'
 import {
   BarChart,
   Bar,

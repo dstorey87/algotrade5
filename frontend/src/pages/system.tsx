@@ -1,4 +1,4 @@
-import SystemHealth from '../components/pages/SystemHealth'
+import SystemHealth from './SystemHealth'
 
 export default function SystemPage() {
   return <SystemHealth />

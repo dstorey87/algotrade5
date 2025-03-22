@@ -11,7 +11,7 @@ import { ResponsiveLine } from '@nivo/line';
 import { ResponsivePie } from '@nivo/pie';
 
 import { RootState } from '../../store';
-import { fetchDashboardData, fetchTradeData } from '../../store/slices/tradingSlice';
+import { fetchTradeData } from '../../store/slices/tradingSlice';
 import TradingControls from '../../components/TradingControls';
 import StrategyStats from '../../components/StrategyStats';
 import TradeLog from '../../components/TradeLog';
@@ -60,11 +60,7 @@ const MetricCard = ({ title, value, icon, change, color }: { title: string, valu
 const Dashboard: React.FC = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
-  const { dashboardData, loading } = useSelector((state: RootState) => state.trading);
-
-  useEffect(() => {
-    dispatch(fetchDashboardData() as any);
-  }, [dispatch]);
+  const { isLoading, totalProfit, winRate, activeTrades, tradingEnabled } = useSelector((state: RootState) => state.trading);
 
   useEffect(() => {
     // Fetch initial data

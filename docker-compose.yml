@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   freqtrade:
     container_name: freqtrade
@@ -29,15 +31,24 @@ services:
               capabilities: [gpu]
 
   freqai:
+    container_name: freqai
     build:
       context: .
       dockerfile: Dockerfile.freqai-custom
-      target: production
-    ports:
-      - "8080:8080"
+    env_file: .env
+    restart: unless-stopped
     volumes:
-      - ./models:/app/models:ro
+      - ./freqai:/app/freqai
+      - ./models:/app/models
       - ./data:/app/data
+      - ./logs:/app/logs
+    ports:
+      - "8001:8001"
+    environment:
+      - API_PORT=8001
+      - FRONTEND_URL=http://frontend:3000
+    networks:
+      - algo_network
     deploy:
       resources:
         reservations:
@@ -51,7 +62,7 @@ services:
     container_name: algotradepro5-db
     environment:
       POSTGRES_USER: algotrade
-      POSTGRES_PASSWORD: your_password_here
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-trading_secure_password}"
       POSTGRES_DB: algotrade
     ports:
       - "5432:5432"
@@ -64,8 +75,8 @@ services:
     image: dpage/pgadmin4
     container_name: algotradepro5-pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@algotradepro5.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: "${PGADMIN_EMAIL:-admin@algotradepro5.com}"
+      PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_PASSWORD:-admin}"
     ports:
       - "5050:80"
     depends_on:
@@ -82,9 +93,16 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - NEXT_PUBLIC_FREQAI_URL=http://freqai:8001
     depends_on:
       - freqai
+    networks:
+      - algo_network
     restart: unless-stopped
 
 volumes:
   postgres_data:
+
+networks:
+  algo_network:
+    driver: bridge

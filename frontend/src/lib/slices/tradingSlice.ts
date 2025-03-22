@@ -197,7 +197,7 @@ const tradingSlice = createSlice({
       
       // Calculate win rate based on closed trades
       if (action.payload.length > 0) {
-        const winningTrades = action.payload.filter(trade => trade.profit && trade.profit > 0).length;
+        const winningTrades = action.payload.filter((trade: Trade) => trade.profit && trade.profit > 0).length;
         state.winRate = winningTrades / action.payload.length;
       }
       
@@ -270,7 +270,7 @@ const tradingSlice = createSlice({
         
         // Calculate win rate based on closed trades
         if (action.payload.length > 0) {
-          const winningTrades = action.payload.filter(trade => trade.profit && trade.profit > 0).length;
+          const winningTrades = action.payload.filter((trade: Trade) => trade.profit && trade.profit > 0).length;
           state.winRate = winningTrades / action.payload.length;
         }
         

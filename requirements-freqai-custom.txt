@@ -1,0 +1,25 @@
+# FreqAI Custom Requirements
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.0.0
+matplotlib>=3.5.0
+seaborn>=0.12.0
+joblib>=1.1.0
+scipy>=1.7.0
+statsmodels>=0.13.0
+prophet>=1.1.0
+fastapi>=0.110.0
+uvicorn>=0.27.1
+httpx>=0.23.0
+pydantic>=2.6.3
+python-dotenv>=0.20.0
+psycopg2-binary>=2.9.0
+protobuf>=3.20.0
+tqdm>=4.65.0
+
+# Data handling
+pyarrow>=7.0.0
+sqlalchemy>=2.0.0
+
+# For FreqTrade integration
+ccxt>=1.90.0

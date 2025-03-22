@@ -1,12 +1,14 @@
 """FreqAI Interface with continuous learning and pattern analysis"""
 
 import logging
+import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import pandas as pd
-from data_manager import DataManager
-from trade_journal import TradeJournal
+# Use proper imports for these modules
+from core.data_manager import DataManager
+from core.trade_journal import TradeJournal
 
 logger = logging.getLogger(__name__)
 

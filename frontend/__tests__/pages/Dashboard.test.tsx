@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
 import systemReducer from '../../store/slices/systemSlice'
-import Dashboard from './index'
+import Dashboard from '../../pages/Dashboard'
 
 const createTestStore = (initialState = {}) => {
   return configureStore({

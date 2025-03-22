@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Card, Divider, List, ListItem, ListItemText, LinearProgress } from '@mui/material';
+import { Box, Typography, Grid, Card, Divider, List, ListItem, ListItemText, LinearProgress, useTheme } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { tradingApi } from '../../services/api';
@@ -24,6 +24,7 @@ const StatusIndicator = styled('span')(({ theme, status }: { theme: any, status:
 }));
 
 const SystemHealth = () => {
+  const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<any>(null);
@@ -106,7 +107,7 @@ const SystemHealth = () => {
                     Status
                   </Typography>
                   <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                    <StatusIndicator status={metrics.system_status.status === 'running' ? 'online' : 'warning'} />
+                    <StatusIndicator theme={theme} status={metrics.system_status.status === 'running' ? 'online' : 'warning'} />
                     {metrics.system_status.status === 'running' ? 'Online' : 'Degraded'}
                   </Typography>
                 </Grid>
@@ -144,7 +145,7 @@ const SystemHealth = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                    <StatusIndicator status={metrics.health.database ? 'online' : 'offline'} />
+                    <StatusIndicator theme={theme} status={metrics.health.database ? 'online' : 'offline'} />
                     Database
                   </Typography>
                   <Typography variant="body2">
@@ -153,7 +154,7 @@ const SystemHealth = () => {
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                    <StatusIndicator status={metrics.health.api_connected ? 'online' : 'offline'} />
+                    <StatusIndicator theme={theme} status={metrics.health.api_connected ? 'online' : 'offline'} />
                     API
                   </Typography>
                   <Typography variant="body2">
@@ -162,7 +163,7 @@ const SystemHealth = () => {
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                    <StatusIndicator status={metrics.health.quantum_ready ? 'online' : 'offline'} />
+                    <StatusIndicator theme={theme} status={metrics.health.quantum_ready ? 'online' : 'offline'} />
                     Quantum Circuit
                   </Typography>
                   <Typography variant="body2">
