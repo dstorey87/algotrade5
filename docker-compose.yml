@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   freqtrade:
     container_name: freqtrade
@@ -34,11 +32,11 @@ services:
     container_name: freqai
     build:
       context: .
-      dockerfile: Dockerfile.freqai-custom
+      dockerfile: Dockerfile.freqai
     env_file: .env
     restart: unless-stopped
     volumes:
-      - ./freqai:/app/freqai
+      - ./src:/app/src
       - ./models:/app/models
       - ./data:/app/data
       - ./logs:/app/logs
@@ -47,6 +45,7 @@ services:
     environment:
       - API_PORT=8001
       - FRONTEND_URL=http://frontend:3000
+      - MODEL_DIR=/app/models
     networks:
       - algo_network
     deploy:

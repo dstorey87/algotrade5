@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements files
+COPY requirements-freqai.txt .
+COPY requirements-llm.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements-freqai.txt
+RUN pip install --no-cache-dir -r requirements-llm.txt
+
+# Copy source code last to optimize rebuilds
+COPY . .
+
+# API Configuration
+ENV API_PORT=8001
+ENV PYTHONPATH=/app
+
+EXPOSE 8001
+
+# Run FastAPI server with proper module path
+CMD ["uvicorn", "src.freqai_interface:app", "--host", "0.0.0.0", "--port", "8001"]
