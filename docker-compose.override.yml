@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  freqai:
+    build:
+      context: .
+      dockerfile: Dockerfile.freqai
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+      cache_from:
+        - type=local,src=/tmp/.buildx-cache
+      cache_to:
+        - type=local,dest=/tmp/.buildx-cache-new,mode=max

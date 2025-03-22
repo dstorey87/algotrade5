@@ -1,0 +1,36 @@
+{
+    "name": "copilot-manifest-header",
+    "displayName": "Copilot Manifest Header",
+    "description": "Automatically injects a header from project_manifest.txt into files to keep Copilot on track.",
+    "version": "0.0.1",
+    "publisher": "YourName",
+    "engines": {
+      "vscode": "^1.60.0"
+    },
+    "categories": [
+      "Other"
+    ],
+    "activationEvents": [
+      "onDidOpenTextDocument",
+      "onDidSaveTextDocument"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+      "commands": [
+        {
+          "command": "copilotManifestHeader.insertHeader",
+          "title": "Insert Project Manifest Header"
+        }
+      ]
+    },
+    "scripts": {
+      "vscode:prepublish": "npm run compile",
+      "compile": "tsc -p ./"
+    },
+    "devDependencies": {
+      "typescript": "^4.4.3",
+      "vscode": "^1.1.37",
+      "@types/node": "^14.14.37"
+    }
+  }
+  

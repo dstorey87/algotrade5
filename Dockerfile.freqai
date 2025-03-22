@@ -1,20 +1,32 @@
-FROM python:3.11-slim
+# Base python builder with common dependencies
+FROM python:3.11-slim as builder
 
 WORKDIR /app
 
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements files
+# Install base dependencies first for better caching
 COPY requirements-freqai.txt .
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements-freqai.txt
+
+# Install LLM dependencies
 COPY requirements-llm.txt .
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements-llm.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements-freqai.txt
-RUN pip install --no-cache-dir -r requirements-llm.txt
+# Final stage
+FROM python:3.11-slim
 
-# Copy source code last to optimize rebuilds
+WORKDIR /app
+
+# Copy only necessary files from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+
+# Copy application code
 COPY . .
 
 # API Configuration

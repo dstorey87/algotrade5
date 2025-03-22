@@ -17,3 +17,4 @@ pydantic>=2.4.2
 transformers>=4.36.0
 auto-gptq>=0.6.0
 optimum>=1.16.0
+watchdog>=3.0.0
