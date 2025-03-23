@@ -7,6 +7,7 @@ WORKDIR /deps
 RUN apt-get update && apt-get install -y \
     build-essential \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -26,22 +27,31 @@ WORKDIR /app
 COPY --from=dependencies /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Create necessary directories
-RUN mkdir -p /app/src /app/logs /app/models
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/src /app/logs /app/models /app/cache && \
+    chown -R 1000:1000 /app
 
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV MODEL_DIR=/app/models
 ENV DOCKER_BUILDKIT=1
+ENV LOG_LEVEL=INFO
+ENV LOG_FILE=/app/logs/freqai.log
 
-# Copy FreqAI source files
-COPY src/freqai_interface.py src/
-COPY src/freqai_service.py src/
-COPY src/core/models/freqai_interface.py src/core/models/
+# Copy source files
+COPY src/freqai_interface.py /app/src/
+COPY src/freqai_service.py /app/src/
 
-# Use non-root user
-RUN useradd -m freqai
-RUN chown -R freqai:freqai /app
+# Use non-root user for security
+RUN useradd -m -u 1000 freqai
 USER freqai
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1
+
+# Start FreqAI service
 CMD ["python", "-m", "uvicorn", "src.freqai_interface:app", "--host", "0.0.0.0", "--port", "8001"]

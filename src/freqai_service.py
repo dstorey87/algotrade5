@@ -266,3 +266,99 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+from __future__ import annotations
+import logging
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+logger = logging.getLogger("freqai.service")
+
+class FreqAIService:
+    """Core service for FreqAI model management and inference"""
+    
+    def __init__(self, model_dir: str):
+        self.model_dir = Path(model_dir)
+        self.loaded_models: Dict[str, AutoModelForCausalLM] = {}
+        self.loaded_tokenizers: Dict[str, AutoTokenizer] = {}
+        self.model_stats: Dict[str, Dict] = {}
+        
+    def load_model(self, model_name: str) -> Tuple[AutoModelForCausalLM, Optional[AutoTokenizer]]:
+        """Load an AI model with optimizations"""
+        if model_name in self.loaded_models:
+            logger.info(f"Using cached model: {model_name}")
+            return self.loaded_models[model_name], self.loaded_tokenizers.get(model_name)
+            
+        logger.info(f"Loading model: {model_name}")
+        model_path = self.model_dir
+        
+        if model_name in ["openchat", "mixtral"]:
+            subfolder = "openchat_3.5-GPTQ" if model_name == "openchat" else "Mixtral-8x7B-v0.1-GPTQ"
+            model_path = model_path / "llm" / subfolder
+            
+            model = AutoModelForCausalLM.from_pretrained(
+                str(model_path),
+                device_map="auto",
+                torch_dtype=torch.float16,
+                trust_remote_code=False
+            )
+            tokenizer = AutoTokenizer.from_pretrained(str(model_path), use_fast=True)
+            
+            self.loaded_models[model_name] = model
+            self.loaded_tokenizers[model_name] = tokenizer
+            return model, tokenizer
+            
+        else:
+            model_path = model_path / "ml" / model_name
+            if not model_path.exists():
+                raise ValueError(f"Model {model_name} not found at {model_path}")
+                
+            # TODO: Implement ML model loading
+            # For now return a mock model function
+            mock_model = lambda x: (
+                float(np.clip(np.random.normal(0.5, 0.2), 0, 1)),
+                float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
+            )
+            self.loaded_models[model_name] = mock_model
+            return mock_model, None
+            
+    def predict(self, model_name: str, features: np.ndarray) -> Tuple[float, float]:
+        """Make predictions using a model"""
+        model, tokenizer = self.load_model(model_name)
+        
+        if model_name in ["openchat", "mixtral"]:
+            # Format features for LLM input
+            feature_text = " ".join([f"{k}: {v}" for k, v in features.items()])
+            prompt = f"Analyze the following trading data and predict if the price will go up or down:\n{feature_text}"
+            
+            inputs = tokenizer(prompt, return_tensors="pt")
+            with torch.no_grad():
+                outputs = model.generate(**inputs, max_new_tokens=50)
+            response = tokenizer.decode(outputs[0])
+            
+            # Parse response to get prediction and confidence
+            # TODO: Implement proper response parsing
+            prediction = float(np.random.random())
+            confidence = float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
+            
+        else:
+            # ML model prediction
+            prediction, confidence = model(features)
+            
+        return prediction, confidence
+        
+    def update_model_stats(self, model_name: str, stats: Dict):
+        """Update performance statistics for a model"""
+        self.model_stats[model_name] = {
+            **self.model_stats.get(model_name, {}),
+            **stats,
+            "last_updated": str(datetime.now())
+        }
+        
+    def get_model_stats(self, model_name: str) -> Dict:
+        """Get performance statistics for a model"""
+        return self.model_stats.get(model_name, {})

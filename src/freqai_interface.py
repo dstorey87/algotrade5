@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -9,11 +10,38 @@ import numpy as np
 import pandas as pd
 import torch
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from transformers import AutoModelForCausalLM, AutoTokenizer
+import asyncio
 
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/app/logs/freqai.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("freqai")
+
+# Enhanced monitoring metrics
+class ModelActivity(BaseModel):
+    timestamp: str
+    model_name: str
+    action: str
+    success: bool
+    details: Dict[str, Any]
+    metrics: Optional[Dict[str, float]]
+
+class SystemMetrics(BaseModel):
+    gpu_usage: float
+    memory_usage: float
+    model_cache_size: int
+    active_requests: int
+    last_error: Optional[str]
 
 class TradingStatus(BaseModel):
     is_running: bool
@@ -87,6 +115,42 @@ class ModelLoader:
     def __init__(self):
         self.loaded_models = {}
         self.loaded_tokenizers = {}
+        self.model_activity: List[ModelActivity] = []
+        self.system_metrics = SystemMetrics(
+            gpu_usage=0.0,
+            memory_usage=0.0,
+            model_cache_size=0,
+            active_requests=0,
+            last_error=None
+        )
+        
+    def log_activity(self, model_name: str, action: str, success: bool, details: Dict[str, Any], metrics: Optional[Dict[str, float]] = None):
+        activity = ModelActivity(
+            timestamp=datetime.now().isoformat(),
+            model_name=model_name,
+            action=action,
+            success=success,
+            details=details,
+            metrics=metrics
+        )
+        self.model_activity.append(activity)
+        if len(self.model_activity) > 1000:  # Keep last 1000 activities
+            self.model_activity = self.model_activity[-1000:]
+        
+        if success:
+            logger.info(f"Model {model_name}: {action} - {details}")
+        else:
+            logger.error(f"Model {model_name}: {action} failed - {details}")
+
+    def update_system_metrics(self):
+        try:
+            if torch.cuda.is_available():
+                self.system_metrics.gpu_usage = torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated()
+            self.system_metrics.model_cache_size = len(self.loaded_models)
+            self.system_metrics.memory_usage = self.system_metrics.model_cache_size * 0.1  # Approximate GB per model
+        except Exception as e:
+            logger.error(f"Failed to update system metrics: {str(e)}")
+            self.system_metrics.last_error = str(e)
         
     def load_llm(self, model_name: str):
         """Load an LLM model with optimizations"""
@@ -237,14 +301,17 @@ async def list_models():
 async def predict(data: PredictionRequest):
     """Make trading predictions using FreqAI models"""
     try:
+        logger.info(f"Prediction request received for {data.pair} using {data.model_name}")
         # Load the requested model (cached)
         model = load_model(data.model_name)
         
         # Convert features to numpy array
         features = np.array([list(data.features.values())])
         
+        start_time = datetime.now()
         # Get prediction and confidence
         prediction, confidence = model(features)
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # Apply confidence threshold
         if confidence < MIN_CONFIDENCE:
@@ -256,15 +323,38 @@ async def predict(data: PredictionRequest):
         # Get model metrics (cached)
         metrics = get_model_metrics(data.model_name)
         
+        model_loader.log_activity(
+            model_name=data.model_name,
+            action="predict",
+            success=True,
+            details={
+                "pair": data.pair,
+                "timeframe": data.timeframe,
+                "prediction": float(prediction),
+                "confidence": float(confidence),
+                "processing_time": processing_time
+            },
+            metrics=metrics.dict()
+        )
+        
         return {
             "prediction": float(prediction),
             "confidence": float(confidence),
             "model_used": data.model_name,
             "timestamp": datetime.now().isoformat(),
-            "metrics": metrics
+            "metrics": metrics,
+            "processing_time": processing_time
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        logger.error(f"Prediction failed: {error_msg}")
+        model_loader.log_activity(
+            model_name=data.model_name,
+            action="predict",
+            success=False,
+            details={"error": error_msg}
+        )
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @app.get("/metrics")
 async def get_metrics():
@@ -274,6 +364,94 @@ async def get_metrics():
         "drawdown": 0.10,
         "win_rate": 0.85
     }
+
+# Add new monitoring endpoints
+@app.get("/api/v1/system/metrics")
+async def get_system_metrics():
+    """Get current system metrics"""
+    model_loader.update_system_metrics()
+    return model_loader.system_metrics
+
+@app.get("/api/v1/system/activity")
+async def get_model_activity(limit: int = 100):
+    """Get recent model activity"""
+    return {"activities": model_loader.model_activity[-limit:]}
+
+@app.get("/api/v1/system/logs")
+async def get_system_logs(limit: int = 100):
+    """Get recent system logs"""
+    try:
+        with open("/app/logs/freqai.log", "r") as f:
+            logs = f.readlines()[-limit:]
+        return {"logs": logs}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read logs: {str(e)}")
+
+# WebSocket manager for real-time updates
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}
+        self.last_metrics = {}
+
+    async def connect(self, websocket: WebSocket, client_id: str):
+        await websocket.accept()
+        self.active_connections[client_id] = websocket
+        logger.info(f"WebSocket client {client_id} connected")
+
+    def disconnect(self, client_id: str):
+        if client_id in self.active_connections:
+            del self.active_connections[client_id]
+            logger.info(f"WebSocket client {client_id} disconnected")
+
+    async def broadcast_metrics(self, message: dict):
+        self.last_metrics = message
+        for client_id, connection in self.active_connections.items():
+            try:
+                await connection.send_json(message)
+            except Exception as e:
+                logger.error(f"Failed to send to client {client_id}: {str(e)}")
+                await self.disconnect(client_id)
+
+# Create connection manager instance
+manager = ConnectionManager()
+
+# Add background task to periodically broadcast metrics
+@app.on_event("startup")
+async def start_metrics_broadcast():
+    async def broadcast_metrics_periodically():
+        while True:
+            try:
+                model_loader.update_system_metrics()
+                metrics_data = {
+                    "timestamp": datetime.now().isoformat(),
+                    "system_metrics": model_loader.system_metrics.dict(),
+                    "recent_activity": model_loader.model_activity[-5:],
+                }
+                await manager.broadcast_metrics(metrics_data)
+            except Exception as e:
+                logger.error(f"Metrics broadcast error: {str(e)}")
+            await asyncio.sleep(1)  # Update every second
+
+    asyncio.create_task(broadcast_metrics_periodically())
+
+@app.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: str):
+    await manager.connect(websocket, client_id)
+    try:
+        # Send initial state
+        if manager.last_metrics:
+            await websocket.send_json(manager.last_metrics)
+            
+        # Keep connection alive and handle incoming messages
+        while True:
+            data = await websocket.receive_text()
+            # Handle any client requests here
+            await websocket.send_json({"message": "received", "data": data})
+    except WebSocketDisconnect:
+        manager.disconnect(client_id)
+    except Exception as e:
+        logger.error(f"WebSocket error for client {client_id}: {str(e)}")
+        manager.disconnect(client_id)
 
 if __name__ == "__main__":
     uvicorn.run(
