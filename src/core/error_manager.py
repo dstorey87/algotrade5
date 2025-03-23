@@ -13,39 +13,39 @@ Author: GitHub Copilot
 Last Updated: 2025-03-12
 """
 
-import datetime
+# REMOVED_UNUSED_CODE: import datetime
 import enum
-import json
+# REMOVED_UNUSED_CODE: import json
 import logging
-import os
+# REMOVED_UNUSED_CODE: import os
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Dict, List, Optional
+# REMOVED_UNUSED_CODE: from typing import Dict, List, Optional
 
 
-class ErrorSeverity(enum.Enum):
-    """Error severity levels"""
-
-    LOW = 1  # Non-critical issues
-    MEDIUM = 2  # Important but non-blocking issues
-    HIGH = 3  # Critical issues requiring attention
-    CRITICAL = 4  # System-stopping issues
+# REMOVED_UNUSED_CODE: class ErrorSeverity(enum.Enum):
+# REMOVED_UNUSED_CODE:     """Error severity levels"""
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     LOW = 1  # Non-critical issues
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     MEDIUM = 2  # Important but non-blocking issues
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     HIGH = 3  # Critical issues requiring attention
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     CRITICAL = 4  # System-stopping issues
 
 
 class ErrorCategory(enum.Enum):
     """Error categories for classification"""
 
-    SYSTEM = "System"
+# REMOVED_UNUSED_CODE:     SYSTEM = "System"
     TRADE = "Trade"
     MODEL = "Model"
     DATA = "Data"
-    NETWORK = "Network"
+# REMOVED_UNUSED_CODE:     NETWORK = "Network"
     GPU = "GPU"
-    QUANTUM = "Quantum"
-    SETUP = "Setup"
-    CUDA = "CUDA"
-    OTHER = "Other"
+# REMOVED_UNUSED_CODE:     QUANTUM = "Quantum"
+# REMOVED_UNUSED_CODE:     SETUP = "Setup"
+# REMOVED_UNUSED_CODE:     CUDA = "CUDA"
+# REMOVED_UNUSED_CODE:     OTHER = "Other"
 
 
 class ErrorManager:
@@ -60,16 +60,16 @@ class ErrorManager:
         self._setup_logging()
 
         # Error statistics
-        self.error_counts: Dict[str, int] = {}
-        self.last_errors: Dict[str, List[Dict]] = {}
+# REMOVED_UNUSED_CODE:         self.error_counts: Dict[str, int] = {}
+# REMOVED_UNUSED_CODE:         self.last_errors: Dict[str, List[Dict]] = {}
 
         # Recovery procedures
-        self.recovery_handlers = {
-            ErrorCategory.GPU.value: self._handle_gpu_error,
-            ErrorCategory.MODEL.value: self._handle_model_error,
-            ErrorCategory.TRADE.value: self._handle_trade_error,
-            ErrorCategory.DATA.value: self._handle_data_error,
-        }
+# REMOVED_UNUSED_CODE:         self.recovery_handlers = {
+# REMOVED_UNUSED_CODE:             ErrorCategory.GPU.value: self._handle_gpu_error,
+# REMOVED_UNUSED_CODE:             ErrorCategory.MODEL.value: self._handle_model_error,
+# REMOVED_UNUSED_CODE:             ErrorCategory.TRADE.value: self._handle_trade_error,
+# REMOVED_UNUSED_CODE:             ErrorCategory.DATA.value: self._handle_data_error,
+# REMOVED_UNUSED_CODE:         }
 
     def _setup_logging(self) -> None:
         """Set up logging configuration"""
@@ -98,115 +98,115 @@ class ErrorManager:
         file_handler.setFormatter(file_format)
         self.logger.addHandler(file_handler)
 
-    def log_error(
-        self, message: str, severity: int, category: str = "OTHER", **kwargs
-    ) -> None:
-        """Log an error with given severity and category"""
-        # Update statistics
-        self.error_counts[category] = self.error_counts.get(category, 0) + 1
+# REMOVED_UNUSED_CODE:     def log_error(
+# REMOVED_UNUSED_CODE:         self, message: str, severity: int, category: str = "OTHER", **kwargs
+# REMOVED_UNUSED_CODE:     ) -> None:
+# REMOVED_UNUSED_CODE:         """Log an error with given severity and category"""
+# REMOVED_UNUSED_CODE:         # Update statistics
+# REMOVED_UNUSED_CODE:         self.error_counts[category] = self.error_counts.get(category, 0) + 1
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE:         # Format error details
+# REMOVED_UNUSED_CODE:         error_detail = {
+# REMOVED_UNUSED_CODE:             "message": message,
+# REMOVED_UNUSED_CODE:             "severity": severity,
+# REMOVED_UNUSED_CODE:             "timestamp": datetime.datetime.now().isoformat(),
+# REMOVED_UNUSED_CODE:             "category": category,
+# REMOVED_UNUSED_CODE:             **kwargs,
+# REMOVED_UNUSED_CODE:         }
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE:         # Add to recent errors
+# REMOVED_UNUSED_CODE:         if category not in self.last_errors:
+# REMOVED_UNUSED_CODE:             self.last_errors[category] = []
+# REMOVED_UNUSED_CODE:         self.last_errors[category].append(error_detail)
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE:         # Keep only last 100 errors per category
+# REMOVED_UNUSED_CODE:         self.last_errors[category] = self.last_errors[category][-100:]
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE:         # Log based on severity
+# REMOVED_UNUSED_CODE:         if severity >= ErrorSeverity.CRITICAL.value:
+# REMOVED_UNUSED_CODE:             self.logger.critical(f"[{category}] {message}")
+# REMOVED_UNUSED_CODE:             self._handle_critical_error(error_detail)
+# REMOVED_UNUSED_CODE:         elif severity >= ErrorSeverity.HIGH.value:
+# REMOVED_UNUSED_CODE:             self.logger.error(f"[{category}] {message}")
+# REMOVED_UNUSED_CODE:             self._attempt_recovery(error_detail)
+# REMOVED_UNUSED_CODE:         elif severity >= ErrorSeverity.MEDIUM.value:
+# REMOVED_UNUSED_CODE:             self.logger.warning(f"[{category}] {message}")
+# REMOVED_UNUSED_CODE:         else:
+# REMOVED_UNUSED_CODE:             self.logger.info(f"[{category}] {message}")
 
-        # Format error details
-        error_detail = {
-            "message": message,
-            "severity": severity,
-            "timestamp": datetime.datetime.now().isoformat(),
-            "category": category,
-            **kwargs,
-        }
+# REMOVED_UNUSED_CODE:     def _handle_critical_error(self, error: Dict) -> None:
+# REMOVED_UNUSED_CODE:         """Handle critical system errors"""
+# REMOVED_UNUSED_CODE:         try:
+# REMOVED_UNUSED_CODE:             # Save error state
+# REMOVED_UNUSED_CODE:             state_file = self.log_dir / "critical_error_state.json"
+# REMOVED_UNUSED_CODE:             with open(state_file, "w") as f:
+# REMOVED_UNUSED_CODE:                 json.dump(error, f, indent=2)
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE:             # Attempt recovery if handler exists
+# REMOVED_UNUSED_CODE:             self._attempt_recovery(error)
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE:         except Exception as e:
+# REMOVED_UNUSED_CODE:             self.logger.critical(f"Failed to handle critical error: {e}")
 
-        # Add to recent errors
-        if category not in self.last_errors:
-            self.last_errors[category] = []
-        self.last_errors[category].append(error_detail)
+# REMOVED_UNUSED_CODE:     def _attempt_recovery(self, error: Dict) -> None:
+# REMOVED_UNUSED_CODE:         """Attempt to recover from error"""
+# REMOVED_UNUSED_CODE:         category = error.get("category", "OTHER")
+# REMOVED_UNUSED_CODE:         handler = self.recovery_handlers.get(category)
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE:         if handler:
+# REMOVED_UNUSED_CODE:             try:
+# REMOVED_UNUSED_CODE:                 handler(error)
+# REMOVED_UNUSED_CODE:             except Exception as e:
+# REMOVED_UNUSED_CODE:                 self.logger.error(f"Recovery failed for {category}: {e}")
 
-        # Keep only last 100 errors per category
-        self.last_errors[category] = self.last_errors[category][-100:]
+# REMOVED_UNUSED_CODE:     def _handle_gpu_error(self, error: Dict) -> None:
+# REMOVED_UNUSED_CODE:         """Handle GPU-related errors"""
+# REMOVED_UNUSED_CODE:         try:
+# REMOVED_UNUSED_CODE:             import torch
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE:             if torch.cuda.is_available():
+# REMOVED_UNUSED_CODE:                 torch.cuda.empty_cache()
+# REMOVED_UNUSED_CODE:                 torch.cuda.reset_peak_memory_stats()
+# REMOVED_UNUSED_CODE:         except ImportError:
+# REMOVED_UNUSED_CODE:             pass
 
-        # Log based on severity
-        if severity >= ErrorSeverity.CRITICAL.value:
-            self.logger.critical(f"[{category}] {message}")
-            self._handle_critical_error(error_detail)
-        elif severity >= ErrorSeverity.HIGH.value:
-            self.logger.error(f"[{category}] {message}")
-            self._attempt_recovery(error_detail)
-        elif severity >= ErrorSeverity.MEDIUM.value:
-            self.logger.warning(f"[{category}] {message}")
-        else:
-            self.logger.info(f"[{category}] {message}")
+# REMOVED_UNUSED_CODE:     def _handle_model_error(self, error: Dict) -> None:
+# REMOVED_UNUSED_CODE:         """Handle ML model errors"""
+# REMOVED_UNUSED_CODE:         # Implement model error recovery
+# REMOVED_UNUSED_CODE:         pass
 
-    def _handle_critical_error(self, error: Dict) -> None:
-        """Handle critical system errors"""
-        try:
-            # Save error state
-            state_file = self.log_dir / "critical_error_state.json"
-            with open(state_file, "w") as f:
-                json.dump(error, f, indent=2)
+# REMOVED_UNUSED_CODE:     def _handle_trade_error(self, error: Dict) -> None:
+# REMOVED_UNUSED_CODE:         """Handle trading errors"""
+# REMOVED_UNUSED_CODE:         # Implement trade error recovery
+# REMOVED_UNUSED_CODE:         pass
 
-            # Attempt recovery if handler exists
-            self._attempt_recovery(error)
+# REMOVED_UNUSED_CODE:     def _handle_data_error(self, error: Dict) -> None:
+# REMOVED_UNUSED_CODE:         """Handle data-related errors"""
+# REMOVED_UNUSED_CODE:         # Implement data error recovery
+# REMOVED_UNUSED_CODE:         pass
 
-        except Exception as e:
-            self.logger.critical(f"Failed to handle critical error: {e}")
+# REMOVED_UNUSED_CODE:     def get_error_summary(self) -> Dict:
+# REMOVED_UNUSED_CODE:         """Get summary of error statistics"""
+# REMOVED_UNUSED_CODE:         return {
+# REMOVED_UNUSED_CODE:             "counts": self.error_counts,
+# REMOVED_UNUSED_CODE:             "recent": {k: v[-5:] for k, v in self.last_errors.items()},
+# REMOVED_UNUSED_CODE:             "categories": [c.value for c in ErrorCategory],
+# REMOVED_UNUSED_CODE:         }
 
-    def _attempt_recovery(self, error: Dict) -> None:
-        """Attempt to recover from error"""
-        category = error.get("category", "OTHER")
-        handler = self.recovery_handlers.get(category)
-
-        if handler:
-            try:
-                handler(error)
-            except Exception as e:
-                self.logger.error(f"Recovery failed for {category}: {e}")
-
-    def _handle_gpu_error(self, error: Dict) -> None:
-        """Handle GPU-related errors"""
-        try:
-            import torch
-
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                torch.cuda.reset_peak_memory_stats()
-        except ImportError:
-            pass
-
-    def _handle_model_error(self, error: Dict) -> None:
-        """Handle ML model errors"""
-        # Implement model error recovery
-        pass
-
-    def _handle_trade_error(self, error: Dict) -> None:
-        """Handle trading errors"""
-        # Implement trade error recovery
-        pass
-
-    def _handle_data_error(self, error: Dict) -> None:
-        """Handle data-related errors"""
-        # Implement data error recovery
-        pass
-
-    def get_error_summary(self) -> Dict:
-        """Get summary of error statistics"""
-        return {
-            "counts": self.error_counts,
-            "recent": {k: v[-5:] for k, v in self.last_errors.items()},
-            "categories": [c.value for c in ErrorCategory],
-        }
-
-    def clear_errors(self, category: Optional[str] = None) -> None:
-        """Clear error statistics"""
-        if category:
-            self.error_counts.pop(category, None)
-            self.last_errors.pop(category, None)
-        else:
-            self.error_counts.clear()
-            self.last_errors.clear()
+# REMOVED_UNUSED_CODE:     def clear_errors(self, category: Optional[str] = None) -> None:
+# REMOVED_UNUSED_CODE:         """Clear error statistics"""
+# REMOVED_UNUSED_CODE:         if category:
+# REMOVED_UNUSED_CODE:             self.error_counts.pop(category, None)
+# REMOVED_UNUSED_CODE:             self.last_errors.pop(category, None)
+# REMOVED_UNUSED_CODE:         else:
+# REMOVED_UNUSED_CODE:             self.error_counts.clear()
+# REMOVED_UNUSED_CODE:             self.last_errors.clear()
 
 
 # Create global instance
 _error_manager = ErrorManager()
 
 
-def get_error_manager() -> ErrorManager:
-    """Get global error manager instance"""
-    return _error_manager
+# REMOVED_UNUSED_CODE: def get_error_manager() -> ErrorManager:
+# REMOVED_UNUSED_CODE:     """Get global error manager instance"""
+# REMOVED_UNUSED_CODE:     return _error_manager

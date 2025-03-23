@@ -1,0 +1,14 @@
+from enum import Enum
+
+
+# REMOVED_UNUSED_CODE: class State(Enum):
+# REMOVED_UNUSED_CODE:     """
+# REMOVED_UNUSED_CODE:     Bot application states
+# REMOVED_UNUSED_CODE:     """
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     RUNNING = 1
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     STOPPED = 2
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     RELOAD_CONFIG = 3
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE:     def __str__(self):
+# REMOVED_UNUSED_CODE:         return f"{self.name.lower()}"

@@ -1,30 +1,30 @@
 import os
 import time
-from functools import wraps
-from threading import Lock, Timer
+# REMOVED_UNUSED_CODE: from functools import wraps
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE: from threading import Lock, Timer
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 
-def debounce(wait):
-    """Decorator to debounce function calls"""
-    def decorator(fn):
-        lock = Lock()
-        timer = None
-        
-        @wraps(fn)
-        def debounced(*args, **kwargs):
-            nonlocal timer
-            
-            with lock:
-                if timer is not None:
-                    timer.cancel()
-                timer = Timer(wait, lambda: fn(*args, **kwargs))
-                timer.start()
-                
-        return debounced
-    return decorator
+# REMOVED_UNUSED_CODE: def debounce(wait):
+# REMOVED_UNUSED_CODE:     """Decorator to debounce function calls"""
+# REMOVED_UNUSED_CODE:     def decorator(fn):
+# REMOVED_UNUSED_CODE:         lock = Lock()
+# REMOVED_UNUSED_CODE:         timer = None
+# REMOVED_UNUSED_CODE:         
+# REMOVED_UNUSED_CODE:         @wraps(fn)
+# REMOVED_UNUSED_CODE:         def debounced(*args, **kwargs):
+# REMOVED_UNUSED_CODE:             nonlocal timer
+# REMOVED_UNUSED_CODE:             
+# REMOVED_UNUSED_CODE:             with lock:
+# REMOVED_UNUSED_CODE:                 if timer is not None:
+# REMOVED_UNUSED_CODE:                     timer.cancel()
+# REMOVED_UNUSED_CODE:                 timer = Timer(wait, lambda: fn(*args, **kwargs))
+# REMOVED_UNUSED_CODE:                 timer.start()
+# REMOVED_UNUSED_CODE:                 
+# REMOVED_UNUSED_CODE:         return debounced
+# REMOVED_UNUSED_CODE:     return decorator
 
 # Directories and files to exclude from manifest
 EXCLUDED_DIRS = {
@@ -104,26 +104,26 @@ class ManifestUpdateHandler(FileSystemEventHandler):
         self.manifest_file = manifest_file
         super().__init__()
     
-    @debounce(wait=1.0)
-    def update_manifest(self):
-        print("Change detected; updating manifest...")
-        generate_manifest(self.manifest_file)
-        print("Manifest updated. Watching for changes...")
+# REMOVED_UNUSED_CODE:     @debounce(wait=1.0)
+# REMOVED_UNUSED_CODE:     def update_manifest(self):
+# REMOVED_UNUSED_CODE:         print("Change detected; updating manifest...")
+# REMOVED_UNUSED_CODE:         generate_manifest(self.manifest_file)
+# REMOVED_UNUSED_CODE:         print("Manifest updated. Watching for changes...")
 
-    def on_any_event(self, event):
-        # Skip if the path contains any excluded directory
-        if any(excl in event.src_path for excl in EXCLUDED_DIRS):
-            return
-            
-        # Skip if the file has an excluded extension
-        if any(event.src_path.endswith(ext) for ext in EXCLUDED_FILES):
-            return
-            
-        # Skip the manifest file itself
-        if event.src_path.endswith(self.manifest_file):
-            return
-            
-        self.update_manifest()
+# REMOVED_UNUSED_CODE:     def on_any_event(self, event):
+# REMOVED_UNUSED_CODE:         # Skip if the path contains any excluded directory
+# REMOVED_UNUSED_CODE:         if any(excl in event.src_path for excl in EXCLUDED_DIRS):
+# REMOVED_UNUSED_CODE:             return
+# REMOVED_UNUSED_CODE:             
+# REMOVED_UNUSED_CODE:         # Skip if the file has an excluded extension
+# REMOVED_UNUSED_CODE:         if any(event.src_path.endswith(ext) for ext in EXCLUDED_FILES):
+# REMOVED_UNUSED_CODE:             return
+# REMOVED_UNUSED_CODE:             
+# REMOVED_UNUSED_CODE:         # Skip the manifest file itself
+# REMOVED_UNUSED_CODE:         if event.src_path.endswith(self.manifest_file):
+# REMOVED_UNUSED_CODE:             return
+# REMOVED_UNUSED_CODE:             
+# REMOVED_UNUSED_CODE:         self.update_manifest()
 
 if __name__ == "__main__":
     manifest_path = "project_manifest.txt"

@@ -3,28 +3,28 @@ ALGOTRADEPRO5 CODE CLEANER REPORT
 ==================================================
 
 Files scanned: 461
-Unused code items: 3513
+Unused code items: 3515
 Circular import chains: 0
 Import issues: 0
-Duplicate code blocks: 5923
-Orphaned files: 0
+Duplicate code blocks: 5927
+Orphaned files: 6
 Code quality issues: 0
 Overall code quality score: 0/10
 
 --------------------------------------------------
 UNUSED CODE
 --------------------------------------------------
-code_cleaner.py:339: unused variable 'file_lock' (60% confidence, 1 line) (60% confidence)
-code_cleaner.py:354: unused variable 'dir_name' (60% confidence, 1 line) (60% confidence)
-code_cleaner.py:1091: unused method 'on_created' (60% confidence, 7 lines) (60% confidence)
-code_cleaner.py:1080: unused method 'on_modified' (60% confidence, 10 lines) (60% confidence)
-code_cleaner.py:134: unused function 'is_path_excluded' (60% confidence, 14 lines) (60% confidence)
+code_cleaner.py:501: unused variable 'file_lock' (60% confidence, 1 line) (60% confidence)
+code_cleaner.py:516: unused variable 'dir_name' (60% confidence, 1 line) (60% confidence)
+code_cleaner.py:177: unused method 'clear_cache' (60% confidence, 6 lines) (60% confidence)
+code_cleaner.py:149: unused method 'save_cache' (60% confidence, 7 lines) (60% confidence)
+code_cleaner.py:1253: unused method 'on_created' (60% confidence, 7 lines) (60% confidence)
+code_cleaner.py:1242: unused method 'on_modified' (60% confidence, 10 lines) (60% confidence)
+code_cleaner.py:296: unused function 'is_path_excluded' (60% confidence, 14 lines) (60% confidence)
 freqai\api.py:10: unused variable 'is_running' (60% confidence, 1 line) (60% confidence)
 freqai\api.py:11: unused variable 'active_models' (60% confidence, 1 line) (60% confidence)
 freqai\api.py:12: unused variable 'current_trades' (60% confidence, 1 line) (60% confidence)
-freqai\api.py:13: unused variable 'current_balance' (60% confidence, 1 line) (60% confidence)
-freqai\api.py:14: unused variable 'drawdown' (60% confidence, 1 line) (60% confidence)
-... and 3503 more unused items
+... and 3505 more unused items
 
 --------------------------------------------------
 DUPLICATE CODE
@@ -43,13 +43,23 @@ Duplicate block (3 lines) found in:
   - C:\AlgoTradPro5\code_cleaner.py:68-70
 
 Duplicate block (56 lines) found in:
-  - C:\AlgoTradPro5\code_cleaner.py:150-205
-  - C:\AlgoTradPro5\code_cleaner.py:150-205
+  - C:\AlgoTradPro5\code_cleaner.py:312-367
+  - C:\AlgoTradPro5\code_cleaner.py:312-367
 
 Duplicate block (52 lines) found in:
-  - C:\AlgoTradPro5\code_cleaner.py:208-259
-  - C:\AlgoTradPro5\code_cleaner.py:208-259
+  - C:\AlgoTradPro5\code_cleaner.py:370-421
+  - C:\AlgoTradPro5\code_cleaner.py:370-421
 
-... and 5918 more duplicate blocks
+... and 5922 more duplicate blocks
+
+--------------------------------------------------
+ORPHANED FILES
+--------------------------------------------------
+C:\AlgoTradPro5\code_cleaner.py
+C:\AlgoTradPro5\freqai\api.py
+C:\AlgoTradPro5\scripts\cache_dependencies.py
+C:\AlgoTradPro5\scripts\update_docs.py
+C:\AlgoTradPro5\scripts\install_hooks.py
+C:\AlgoTradPro5\scripts\watch_manifest.py
 
 ==================================================
