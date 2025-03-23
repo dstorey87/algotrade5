@@ -56,7 +56,65 @@ EXCLUDED_DIRS = [
     "__pycache__", 
     "node_modules",
     "models",
-    "log_dir",
+    "log_dir",docker-compose up -d --build freqai
+PS C:\AlgoTradPro5> docker-compose up -d --build freqai
+WARNING: Error parsing config file (C:\Users\darre\.docker\config.json): json: cannot unmarshal number into Go value of type configfile.ConfigFile
+Compose now can delegate build to bake for better performances
+Just set COMPOSE_BAKE=true
+#0 building with "default" instance using docker driver
+
+#1 [freqai internal] load build definition from Dockerfile.freqai
+#1 transferring dockerfile: 603B 0.1s done
+#1 DONE 0.1s
+
+#2 [freqai internal] load metadata for docker.io/library/python:3.11-slim
+#2 ...
+
+#3 [freqai auth] library/python:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 [freqai internal] load metadata for docker.io/library/python:3.11-slim
+#2 DONE 1.7s
+
+#4 [freqai internal] load .dockerignore
+#4 transferring context: 3.27kB done
+#4 DONE 0.0s
+
+#5 [freqai 1/7] FROM docker.io/library/python:3.11-slim@sha256:7029b00486ac40bed03e36775b864d3f3d39dcbdf19cd45e6a52d541e6c178f0
+#5 DONE 0.0s
+
+#6 [freqai 2/7] WORKDIR /app
+#6 CACHED
+
+#7 [freqai internal] load build context
+#7 transferring context: 45B 0.0s done
+#7 DONE 0.1s
+
+#8 [freqai 3/7] RUN apt-get update && apt-get install -y     build-essential     git     && rm -rf /var/lib/apt/lists/*
+#8 ...
+
+#9 [freqai 4/7] COPY requirements-freqai.txt .
+#9 CACHED
+
+#10 [freqai 5/7] RUN pip install -r requirements-freqai.txt
+#10 CACHED
+
+#11 [freqai 7/7] COPY ./src/freqai_service.py /app/src/
+#11 ERROR: failed to calculate checksum of ref 6e04d618-cb39-4ea9-998e-192d09f8966d::cnwoa9n4it35nkcpjj2knc8xk: "/src/freqai_service.py": not found
+
+#12 [freqai 6/7] COPY ./src/freqai_interface.py /app/src/
+#12 ERROR: failed to calculate checksum of ref 6e04d618-cb39-4ea9-998e-192d09f8966d::cnwoa9n4it35nkcpjj2knc8xk: "/src/freqai_interface.py": not found
+
+#8 [freqai 3/7] RUN apt-get update && apt-get install -y     build-essential     git     && rm -rf /var/lib/apt/lists/*
+#8 CANCELED
+------
+ > [freqai 6/7] COPY ./src/freqai_interface.py /app/src/:
+------
+------
+ > [freqai 7/7] COPY ./src/freqai_service.py /app/src/:
+------
+failed to solve: failed to compute cache key: failed to calculate checksum of ref 6e04d618-cb39-4ea9-998e-192d09f8966d::cnwoa9n4it35nkcpjj2knc8xk: "/src/freqa
+i_service.py": not found                                                                                                                                      
     "docker/programdata",
     "site-packages",
     "dist",

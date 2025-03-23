@@ -32,17 +32,30 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile.freqai
+      cache_from:
+        - freqai-deps:latest
+        - freqai-runtime:latest
     ports:
-      - "8001:8001"
+      - "8002:8001"  # Changed from 8001:8001 to 8002:8001
     volumes:
       - type: bind
         source: ./src
         target: /app/src
+        read_only: true
       - type: bind
         source: ./models
         target: /app/models
+        read_only: true
+      - type: volume
+        source: freqai_cache
+        target: /app/cache
+      - type: volume
+        source: freqai_logs
+        target: /app/logs
     environment:
       - PYTHONPATH=/app
+      - MODEL_DIR=/app/models
+      - CACHE_DIR=/app/cache
       - DOCKER_BUILDKIT=1
     container_name: freqai
     restart: unless-stopped
@@ -101,6 +114,10 @@ services:
 
 volumes:
   postgres_data:
+  freqai_cache:
+    name: freqai_cache
+  freqai_logs:
+    name: freqai_logs
 
 networks:
   algo_network:
