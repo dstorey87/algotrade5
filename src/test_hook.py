@@ -1,6 +1,7 @@
 """Test module for pre-commit hook functionality."""
 from typing import Union
 
+
 def some_function() -> None:
     """Demonstrate a function that follows good practices."""
     return None

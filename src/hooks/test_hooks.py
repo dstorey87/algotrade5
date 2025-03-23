@@ -7,10 +7,10 @@ This script tests the functionality of the pre-commit hook system,
 verifying that it correctly maintains state, logs changes, and updates documentation.
 """
 
-import os
-import sys
 import datetime
 import json
+import os
+import sys
 from pathlib import Path
 
 # Add the src directory to the Python path
@@ -19,6 +19,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import project modules
 from hooks.pre_commit_hook import PreCommitHook
 from hooks.task_manager import TaskManager
+
 
 def test_session_state():
     """Test updating and maintaining session state."""

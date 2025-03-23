@@ -4,16 +4,16 @@ AlgoTradePro5 Pre-commit Hook Script
 This script performs automated checks, documentation updates, and code formatting before each commit.
 """
 
-import os
-import sys
 import json
-import re
 import logging
-import traceback
+import os
+import re
 import subprocess
+import sys
+import time
+import traceback
 from datetime import datetime
 from pathlib import Path
-import time
 
 # Setup logging
 logging.basicConfig(

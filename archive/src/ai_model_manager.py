@@ -1,7 +1,8 @@
-from typing import Dict, List, Optional
+import logging
 import os
 from pathlib import Path
-import logging
+from typing import Dict, List, Optional
+
 
 class AIModelManager:
     def __init__(self, models_dir: str = "C:/AlgoTradPro5/models"):

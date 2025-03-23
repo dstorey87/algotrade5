@@ -6,9 +6,9 @@ Pre-commit Hook Runner for AlgoTradePro5.
 This script is called by Git when committing changes and runs the pre-commit hook.
 """
 
+import logging
 import os
 import sys
-import logging
 
 # Add the src directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -10,13 +10,13 @@ This module handles automated tasks that should be performed before each commit:
 - Task management
 """
 
+import datetime
+import json
+import logging
 import os
 import sys
-import json
-import datetime
-import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # Configure logging
 logging.basicConfig(

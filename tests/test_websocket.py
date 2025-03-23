@@ -4,12 +4,13 @@ Test module for WebSocket functionality.
 This module contains unit tests for both the WebSocket client and server implementations.
 """
 
-import unittest
-from unittest.mock import patch, MagicMock
-import pytest
 import asyncio
 import os
 import sys
+import unittest
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add the src directory to the path so we can import the modules
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -44,7 +45,7 @@ class TestWebSocketServer(unittest.TestCase):
     def test_setup_event_handlers(self, mock_app, mock_sio):
         """Test WebSocketServer event handlers setup."""
         from backend.websocket_server import WebSocketServer
-        
+
         # Create mock socketio server
         mock_sio_instance = MagicMock()
         mock_sio.return_value = mock_sio_instance
@@ -101,7 +102,7 @@ class TestWebSocketClient:
     def test_websocket_service_connect(self, mock_io):
         """Test WebSocketService connect method."""
         from frontend.components.WebSocketProvider import WebSocketService
-        
+
         # Mock socket.io client
         mock_socket = MagicMock()
         mock_io.return_value = mock_socket
@@ -126,7 +127,7 @@ class TestWebSocketClient:
     def test_websocket_service_disconnect(self, mock_io):
         """Test WebSocketService disconnect method."""
         from frontend.components.WebSocketProvider import WebSocketService
-        
+
         # Mock socket.io client
         mock_socket = MagicMock()
         mock_io.return_value = mock_socket

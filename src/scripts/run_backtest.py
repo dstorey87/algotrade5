@@ -22,12 +22,13 @@ Series: TypeAlias = "pd.Series"
 sys.path.append(str(Path(__file__).parent))
 from datetime import datetime, timedelta
 
-from ai_model_manager import AIModelManager
 from config_manager import ConfigManager
 from data_manager import DataManager
 from error_manager import ErrorCode, ErrorManager
 from quantum_optimizer import QuantumOptimizer
 from strategy_engine import StrategyEngine
+
+from ai_model_manager import AIModelManager
 
 # Configure logging
 logging.basicConfig(

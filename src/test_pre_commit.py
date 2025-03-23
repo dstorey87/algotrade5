@@ -10,9 +10,9 @@ that would normally trigger the hook, such as:
 - Updating documentation
 """
 
-import sys
-import os
 import datetime
+import os
+import sys
 from pathlib import Path
 
 # Add the src directory to the Python path

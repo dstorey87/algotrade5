@@ -1,0 +1,103 @@
+==================================================
+ALGOTRADEPRO5 CODE CLEANER REPORT
+==================================================
+
+Files scanned: 112
+Unused code items: 0
+Circular import chains: 0
+Import issues: 334
+Duplicate code blocks: 1060
+Orphaned files: 45
+Code quality issues: 0
+Overall code quality score: 0/10
+
+--------------------------------------------------
+IMPORT ISSUES
+--------------------------------------------------
+C:\AlgoTradPro5\code_cleaner.py: Imports are not properly sorted
+C:\AlgoTradPro5\code_cleaner.py:18: 'sys' imported but unused
+C:\AlgoTradPro5\code_cleaner.py:24: 'glob' imported but unused
+C:\AlgoTradPro5\code_cleaner.py:27: 'importlib' imported but unused
+C:\AlgoTradPro5\code_cleaner.py:28: 'typing.Tuple' imported but unused
+C:\AlgoTradPro5\archive\strategies\QuantumHybridStrategy.py:14: 'numpy as np' imported but unused
+C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py:9: 'datetime.datetime' imported but unused
+C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py:9: 'datetime.timezone' imported but unused
+C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py:11: 'typing.Dict' imported but unused
+C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py:11: 'typing.List' imported but unused
+... and 324 more import issues
+
+--------------------------------------------------
+DUPLICATE CODE
+--------------------------------------------------
+Duplicate block (14 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:2-15
+  - C:\AlgoTradPro5\code_cleaner.py:2-15
+
+Duplicate block (8 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:36-43
+  - C:\AlgoTradPro5\code_cleaner.py:36-43
+
+Duplicate block (22 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:51-72
+  - C:\AlgoTradPro5\code_cleaner.py:51-72
+
+Duplicate block (4 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:75-78
+  - C:\AlgoTradPro5\code_cleaner.py:75-78
+
+Duplicate block (29 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:81-109
+  - C:\AlgoTradPro5\code_cleaner.py:81-109
+
+... and 1055 more duplicate blocks
+
+--------------------------------------------------
+ORPHANED FILES
+--------------------------------------------------
+C:\AlgoTradPro5\archive\strategies\QuantumHybridStrategy.py
+C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py
+C:\AlgoTradPro5\archive\strategies\quantum_simple_strategy.py
+C:\AlgoTradPro5\scripts\generate_manifest.py
+C:\AlgoTradPro5\scripts\manage_dependencies.py
+C:\AlgoTradPro5\src\ai_model_manager.py
+C:\AlgoTradPro5\src\dependency_manager.py
+C:\AlgoTradPro5\src\initialize_system.py
+C:\AlgoTradPro5\src\api\main.py
+C:\AlgoTradPro5\src\core\cache_config.py
+C:\AlgoTradPro5\src\core\continuous_backtester.py
+C:\AlgoTradPro5\src\core\package_manager.py
+C:\AlgoTradPro5\src\core\system_integration.py
+C:\AlgoTradPro5\src\core\trade_journal.py
+C:\AlgoTradPro5\src\core\backtest\continuous_backtester.py
+C:\AlgoTradPro5\src\core\config\config_manager.py
+C:\AlgoTradPro5\src\core\data\data_manager.py
+C:\AlgoTradPro5\src\core\patterns\pattern_catalog.py
+C:\AlgoTradPro5\src\core\quantum\quantum_optimizer.py
+C:\AlgoTradPro5\src\core\risk\risk_manager.py
+C:\AlgoTradPro5\src\core\risk\risk_validator.py
+C:\AlgoTradPro5\src\core\trading\quantum_hybrid_strategy.py
+C:\AlgoTradPro5\src\monitoring\doc_validator.py
+C:\AlgoTradPro5\src\quantum\quantum_optimizer.py
+C:\AlgoTradPro5\src\risk\risk_manager.py
+C:\AlgoTradPro5\src\scripts\doc_validator.py
+C:\AlgoTradPro5\src\scripts\trade_journal.py
+C:\AlgoTradPro5\src\services\cache_cleanup_scheduler.py
+C:\AlgoTradPro5\src\services\system_metrics_service.py
+C:\AlgoTradPro5\src\strategies\quantum_hybrid_strategy.py
+C:\AlgoTradPro5\src\utils\cuda\cuda_utils.py
+C:\AlgoTradPro5\strategies\QuantumLoopStrategy.py
+C:\AlgoTradPro5\tests\integration\continuous_backtester.py
+C:\AlgoTradPro5\user_data\hyperopts\QuantumSimpleHyperopt.py
+C:\AlgoTradPro5\user_data\strategies\ai_enhanced_strategy.py
+C:\AlgoTradPro5\user_data\strategies\ai_model_manager.py
+C:\AlgoTradPro5\user_data\strategies\BasicTestStrategy.py
+C:\AlgoTradPro5\user_data\strategies\QuantumHybrid.py
+C:\AlgoTradPro5\user_data\strategies\QuantumHybridStrategy.py
+C:\AlgoTradPro5\user_data\strategies\quantum_hybrid_strategy.py
+C:\AlgoTradPro5\user_data\strategies\quantum_optimizer.py
+C:\AlgoTradPro5\user_data\strategies\trade_analyzer.py
+C:\AlgoTradPro5\user_data\strategies\__init__.py
+C:\AlgoTradPro5\user_data\strategies\utils\quantum_optimizer.py
+C:\AlgoTradPro5\user_data\strategies\utils\__init__.py
+
+==================================================

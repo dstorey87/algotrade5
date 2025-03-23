@@ -7,11 +7,12 @@ This script installs the pre-commit hook into the .git/hooks directory.
 """
 
 import os
-import sys
-import stat
 import shutil
+import stat
 import subprocess
+import sys
 from pathlib import Path
+
 
 def get_repo_root():
     """Get the root directory of the Git repository."""

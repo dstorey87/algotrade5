@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+import json
 import os
+import re
 import sys
 from datetime import datetime
-import json
-import re
 from pathlib import Path
+
 
 def update_frontend_dev_plan(changed_files):
     """Update FRONTEND_DEV_PLAN.md based on frontend changes"""

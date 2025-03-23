@@ -4,10 +4,10 @@ WebSocket server for AlgoTradePro5 backend.
 This module implements the server-side WebSocket functionality for real-time data streaming.
 """
 
-import logging
 import asyncio
 import json
-from typing import Dict, Set, Any, Optional, List, Callable
+import logging
+from typing import Any, Callable, Dict, List, Optional, Set
 
 import socketio
 from aiohttp import web

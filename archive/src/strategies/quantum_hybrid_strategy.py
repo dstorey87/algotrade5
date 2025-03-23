@@ -44,8 +44,9 @@ except ImportError:
     logger.error("CRITICAL: Could not validate dependencies")
     sys.exit(1)
 
-from ai_model_manager import AIModelManager
 from quantum_optimizer import QuantumOptimizer
+
+from ai_model_manager import AIModelManager
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,9 @@
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
+
 from src.quantum_loop_optimizer import QuantumLoopOptimizer
+
 
 @pytest.fixture
 def sample_data():

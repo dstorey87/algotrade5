@@ -5,10 +5,11 @@ This script copies the pre-commit hook to the Git hooks directory
 """
 
 import os
-import sys
 import shutil
-from pathlib import Path
 import subprocess
+import sys
+from pathlib import Path
+
 
 def install_hook():
     """Install the pre-commit hook into the Git repository."""

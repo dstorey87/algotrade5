@@ -1,7 +1,10 @@
 from typing import Dict, List, Optional, Tuple
+
 import pandas as pd
+
 from freqai.base_models.BaseRegressionModel import BaseRegressionModel
 from freqai.prediction_models.LightGBMRegressor import LightGBMRegressor
+
 
 class QuantumLoopOptimizer:
     def __init__(self, config: dict):

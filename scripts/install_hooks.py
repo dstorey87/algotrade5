@@ -5,10 +5,11 @@ This script sets up the Git pre-commit hook to properly use Python on Windows.
 """
 
 import os
-import sys
 import shutil
 import subprocess
+import sys
 from pathlib import Path
+
 
 def main():
     """Set up the pre-commit hook for the repository."""

@@ -1,0 +1,6 @@
+watchdog>=3.0.0
+pylint>=3.0.0
+vulture>=2.10
+pydeps>=1.12.12
+isort>=5.13.0
+pyflakes>=3.2.0

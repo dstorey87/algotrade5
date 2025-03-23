@@ -8,12 +8,12 @@ coordinating pre-commit hooks, task management, and documentation updates.
 It's designed to be run by GitHub Copilot to automate development tasks.
 """
 
+import argparse
+import datetime
+import logging
 import os
 import sys
-import datetime
-import argparse
-import logging
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(

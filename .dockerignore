@@ -172,3 +172,64 @@ venv/
 .vscode/
 trade_logs/*
 !trade_logs/.gitkeep
+
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+
+# Models and data (mount these instead of copying)
+models/
+data/
+*.pkl
+*.joblib
+*.pt
+
+# Logs and databases
+*.log
+*.sqlite
+logs/
+log_dir/
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation
+docs/
+*.md
+
+# Temp files
+*.swp
+*.swo
+.DS_Store

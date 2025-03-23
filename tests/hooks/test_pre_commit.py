@@ -1,8 +1,8 @@
 """Unit tests for the pre-commit hook functionality."""
-import unittest
-from unittest.mock import patch, MagicMock
 import sys
+import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 # Add hooks directory to path before imports
 HOOKS_PATH = str(Path(__file__).parent.parent.parent / '.git' / 'hooks')
