@@ -1,5 +1,4 @@
 class StrategyEngine:
-    // ...existing code...
 
     def optimize_strategy_parameters(self) -> Dict:
         """Optimize strategy parameters based on performance metrics"""

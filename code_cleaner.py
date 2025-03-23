@@ -28,383 +28,753 @@ import importlib
 from typing import List, Set, Dict, Tuple, Optional
 import ast
 import hashlib
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from queue import Queue
+from threading import Lock
+import threading
+import pickle
+import json
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-# Configure logging
+class RealTimeOutputHandler(logging.Handler):
+    """Custom handler to ensure real-time console output"""
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            print(msg, flush=True)  # Force flush after each message
+        except Exception:
+            self.handleError(record)
+
+# Configure logging with more detail and verbosity
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
+    level=logging.DEBUG,  # Set to DEBUG for maximum verbosity
+    format='%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
+    force=True,
     handlers=[
-        logging.FileHandler("code_cleaner.log"),
-        logging.StreamHandler()
+        logging.FileHandler("code_cleaner.log", mode='w', encoding='utf-8'),  # Overwrite log each run
+        RealTimeOutputHandler()  # Custom handler for real-time console output
     ]
 )
+
 logger = logging.getLogger("CodeCleaner")
+logger.setLevel(logging.DEBUG)
+
+# Add file handler with more detailed format for the log file
+file_handler = logging.FileHandler("code_cleaner_detailed.log", mode='w', encoding='utf-8')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(funcName)s - %(message)s'
+))
+logger.addHandler(file_handler)
+
+# Add thread-safe logging
+class ThreadSafeLogger:
+    def __init__(self, name):
+        self.logger = logging.getLogger(name)
+        self.lock = Lock()
+        
+    def debug(self, msg, *args, **kwargs):
+        with self.lock:
+            self.logger.debug(msg, *args, **kwargs)
+            
+    def info(self, msg, *args, **kwargs):
+        with self.lock:
+            self.logger.info(msg, *args, **kwargs)
+            
+    def warning(self, msg, *args, **kwargs):
+        with self.lock:
+            self.logger.warning(msg, *args, **kwargs)
+            
+    def error(self, msg, *args, **kwargs):
+        with self.lock:
+            self.logger.error(msg, *args, **kwargs)
+
+# Replace logger with thread-safe version
+logger = ThreadSafeLogger("CodeCleaner")
+
+# Thread-safe stats counter
+class Stats:
+    def __init__(self):
+        self._stats = {
+            "unused_code": 0,
+            "circular_imports": 0,
+            "duplicate_code": 0,
+            "import_issues": 0,
+            "quality_issues": 0,
+            "files_scanned": 0
+        }
+        self._lock = Lock()
+    
+    def increment(self, key, amount=1):
+        with self._lock:
+            self._stats[key] += amount
+    
+    def get(self, key):
+        with self._lock:
+            return self._stats[key]
+    
+    def set(self, key, value):
+        with self._lock:
+            self._stats[key] = value
+            
+    def get_all(self):
+        with self._lock:
+            return self._stats.copy()
+
+# Replace global STATS with thread-safe version
+STATS = Stats()
+
+# File cache for optimizing imports analysis
+class FileCache:
+    """Cache for file content hashes to avoid reprocessing unchanged files"""
+    def __init__(self, cache_file=None):
+        self.cache_file = cache_file or Path(os.path.dirname(os.path.abspath(__file__))) / ".filecache.pkl"
+        self.cache = {}
+        self.load_cache()
+        self.lock = Lock()
+        
+    def load_cache(self):
+        """Load cache from disk"""
+        try:
+            if self.cache_file.exists():
+                with open(self.cache_file, 'rb') as f:
+                    self.cache = pickle.load(f)
+        except Exception as e:
+            # If loading fails, start with empty cache
+            self.cache = {}
+    
+    def save_cache(self):
+        """Save cache to disk"""
+        try:
+            with open(self.cache_file, 'wb') as f:
+                pickle.dump(self.cache, f)
+        except Exception as e:
+            pass  # Gracefully handle cache save failures
+            
+    def get_file_hash(self, file_path: Path) -> str:
+        """Calculate hash of file contents"""
+        try:
+            with open(file_path, 'rb') as f:
+                content = f.read()
+                return hashlib.md5(content).hexdigest()
+        except Exception:
+            return ""  # Return empty string for failed hashes
+    
+    def is_cached(self, file_path: Path, file_hash: str) -> bool:
+        """Check if file is in cache with matching hash"""
+        with self.lock:
+            path_str = str(file_path)
+            return path_str in self.cache and self.cache[path_str] == file_hash
+    
+    def update_cache(self, file_path: Path, file_hash: str):
+        """Update cache with new file hash"""
+        with self.lock:
+            self.cache[str(file_path)] = file_hash
+            
+    def clear_cache(self):
+        """Clear the entire cache"""
+        with self.lock:
+            self.cache = {}
+            if self.cache_file.exists():
+                self.cache_file.unlink()
+
+# Initialize file cache
+file_cache = FileCache()
+
+def check_file_imports(file_path: Path) -> List[Dict]:
+    """Check a single file for import issues"""
+    issues = []
+    
+    try:
+        # Call isort in check-only mode
+        isort_result = subprocess.run(
+            ["isort", "--check-only", "--quiet", str(file_path)],
+            capture_output=True,
+            text=True
+        )
+        
+        if isort_result.returncode != 0:
+            issues.append({
+                "file": str(file_path),
+                "type": "unsorted_imports",
+                "description": "Unsorted imports detected"
+            })
+        
+        # Check for unused imports with pyflakes
+        pyflakes_result = subprocess.run(
+            ["pyflakes", str(file_path)],
+            capture_output=True,
+            text=True
+        )
+        
+        if pyflakes_result.stdout:
+            for line in pyflakes_result.stdout.splitlines():
+                match = re.match(r'(.+):(\d+):(\d+): (.*)', line)
+                if match:
+                    _, line_num, _, message = match.groups()
+                    if "imported but unused" in message:
+                        issues.append({
+                            "file": str(file_path),
+                            "line": int(line_num),
+                            "type": "unused_import",
+                            "description": message
+                        })
+        
+        # Update cache with current file hash
+        file_hash = file_cache.get_file_hash(file_path)
+        file_cache.update_cache(file_path, file_hash)
+        
+    except Exception as e:
+        logger.error(f"Error checking imports in {file_path}: {e}")
+    
+    return issues
+
+def analyze_imports(python_files: List[Path]) -> Tuple[List[Dict], Set[str]]:
+    """Analyze imports across all Python files"""
+    logger.info("Analyzing imports across all files...")
+    import_issues = []
+    imported_modules = set()
+    
+    for file_path in python_files:
+        try:
+            # Skip checking if file is in cache and unchanged
+            file_hash = file_cache.get_file_hash(file_path)
+            if file_cache.is_cached(file_path, file_hash):
+                continue
+                
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            try:
+                tree = ast.parse(content)
+            except SyntaxError:
+                # Skip files with syntax errors
+                continue
+                
+            # Find all imports
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for name in node.names:
+                        imported_name = name.name.split('.')[0]  # Get top-level module
+                        imported_modules.add(imported_name)
+                        
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    # For relative imports, we need the full context
+                    if node.level > 0:
+                        # Relative import, get the current module's context
+                        rel_path = file_path.relative_to(PROJECT_ROOT)
+                        current_module = str(rel_path).replace(os.path.sep, '.').replace('.py', '')
+                        parts = current_module.split('.')
+                        # Adjust for the level of relative import
+                        if node.level <= len(parts):
+                            parent_module = '.'.join(parts[:-node.level])
+                            if parent_module:
+                                full_module = f"{parent_module}.{node.module}"
+                            else:
+                                full_module = node.module
+                            imported_modules.add(full_module.split('.')[0])
+                    else:
+                        # Absolute import
+                        imported_modules.add(node.module.split('.')[0])
+                    
+            # Update cache
+            file_cache.update_cache(file_path, file_hash)
+            
+        except Exception as e:
+            logger.error(f"Error analyzing imports in {file_path}: {e}")
+    
+    logger.info(f"Found {len(imported_modules)} unique imported modules")
+    return import_issues, imported_modules
 
 # Project configuration
 PROJECT_ROOT = Path(os.path.dirname(os.path.abspath(__file__)))
 ENV_FILE = PROJECT_ROOT / ".env"
 
-# Directories to exclude from scanning
+def is_path_excluded(path: Path, exclude_dirs: List[str]) -> bool:
+    """Check if a path should be excluded based on any part of its path"""
+    # Convert path to parts for comparison
+    path_parts = path.parts
+    
+    # Check if any part of the path matches an excluded dir
+    for exclude_dir in exclude_dirs:
+        exclude_parts = Path(exclude_dir).parts
+        
+        # Check if the exclude pattern appears anywhere in the path
+        for i in range(len(path_parts) - len(exclude_parts) + 1):
+            if path_parts[i:i+len(exclude_parts)] == exclude_parts:
+                return True
+    return False
+
+# Original EXCLUDED_DIRS list expanded to match .gitignore patterns
 EXCLUDED_DIRS = [
-    ".git", 
-    ".venv", 
+    # Python & Cache
+    "__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".mypy_cache",
+    
+    # Version Control
+    ".git",
+    
+    # Virtual Environments
+    ".env",
     "venv",
-    "env",
-    "__pycache__", 
-    "node_modules",
-    "models",
-    "log_dir",docker-compose up -d --build freqai
-PS C:\AlgoTradPro5> docker-compose up -d --build freqai
-WARNING: Error parsing config file (C:\Users\darre\.docker\config.json): json: cannot unmarshal number into Go value of type configfile.ConfigFile
-Compose now can delegate build to bake for better performances
-Just set COMPOSE_BAKE=true
-#0 building with "default" instance using docker driver
-
-#1 [freqai internal] load build definition from Dockerfile.freqai
-#1 transferring dockerfile: 603B 0.1s done
-#1 DONE 0.1s
-
-#2 [freqai internal] load metadata for docker.io/library/python:3.11-slim
-#2 ...
-
-#3 [freqai auth] library/python:pull token for registry-1.docker.io
-#3 DONE 0.0s
-
-#2 [freqai internal] load metadata for docker.io/library/python:3.11-slim
-#2 DONE 1.7s
-
-#4 [freqai internal] load .dockerignore
-#4 transferring context: 3.27kB done
-#4 DONE 0.0s
-
-#5 [freqai 1/7] FROM docker.io/library/python:3.11-slim@sha256:7029b00486ac40bed03e36775b864d3f3d39dcbdf19cd45e6a52d541e6c178f0
-#5 DONE 0.0s
-
-#6 [freqai 2/7] WORKDIR /app
-#6 CACHED
-
-#7 [freqai internal] load build context
-#7 transferring context: 45B 0.0s done
-#7 DONE 0.1s
-
-#8 [freqai 3/7] RUN apt-get update && apt-get install -y     build-essential     git     && rm -rf /var/lib/apt/lists/*
-#8 ...
-
-#9 [freqai 4/7] COPY requirements-freqai.txt .
-#9 CACHED
-
-#10 [freqai 5/7] RUN pip install -r requirements-freqai.txt
-#10 CACHED
-
-#11 [freqai 7/7] COPY ./src/freqai_service.py /app/src/
-#11 ERROR: failed to calculate checksum of ref 6e04d618-cb39-4ea9-998e-192d09f8966d::cnwoa9n4it35nkcpjj2knc8xk: "/src/freqai_service.py": not found
-
-#12 [freqai 6/7] COPY ./src/freqai_interface.py /app/src/
-#12 ERROR: failed to calculate checksum of ref 6e04d618-cb39-4ea9-998e-192d09f8966d::cnwoa9n4it35nkcpjj2knc8xk: "/src/freqai_interface.py": not found
-
-#8 [freqai 3/7] RUN apt-get update && apt-get install -y     build-essential     git     && rm -rf /var/lib/apt/lists/*
-#8 CANCELED
-------
- > [freqai 6/7] COPY ./src/freqai_interface.py /app/src/:
-------
-------
- > [freqai 7/7] COPY ./src/freqai_service.py /app/src/:
-------
-failed to solve: failed to compute cache key: failed to calculate checksum of ref 6e04d618-cb39-4ea9-998e-192d09f8966d::cnwoa9n4it35nkcpjj2knc8xk: "/src/freqa
-i_service.py": not found                                                                                                                                      
-    "docker/programdata",
-    "site-packages",
+    "ENV",
+    ".venv",
+    
+    # Distribution & Packaging
     "dist",
     "build",
-    ".pytest_cache",
-    ".mypy_cache",
-    ".ruff_cache"
+    "*.egg-info",
+    
+    # Dependencies
+    "node_modules",
+    "dependencies",
+    
+    # Data, Logs & Databases
+    "logs",
+    "log_dir",
+    "data",
+    "data_dir",
+    "user_data",
+    "databases",
+    
+    # Models and AI directories
+    "models",
+    "aimodels",
+    "models/llm",
+    "models/ml",
+    
+    # IDE & Editor
+    ".vscode",
+    ".idea",
+    
+    # Project-specific directories
+    os.path.join("docker", "programdata"),
+    "plot",
+    "backtest_results",
+    "hyperopt_results",
+    ".next",
+    
+    # Custom directories to exclude
+    "*_backup",
+    "temp",
+    "tmp",
+    "archive"
 ]
 
-# Files to exclude from scanning
+# Files to exclude from scanning, expanded from .gitignore
 EXCLUDED_FILES = [
-    "*.pyc", 
-    "*.pyo", 
-    "*.mo", 
-    "*.o", 
-    "*.so", 
-    "*.egg", 
-    "*.log", 
+    # Python
+    "*.py[cod]",
+    "*$py.class",
+    "*.so",
+    
+    # Distribution
+    "*.egg",
+    
+    # Data & Logs
+    "*.log",
     "*.db",
+    "*.sqlite*",
+    
+    # Model files
     "*.pkl",
-    "*.model",
-    "*.pt",
-    "*.bin",
     "*.h5",
+    "*.pt",
+    "*.pth",
+    "*.onnx",
+    "*.pb",
+    "*.tflite",
+    "*.savedmodel",
+    "*.weights",
+    "*.bin",
     "*.hdf5",
-    "*.feather",
-    "*.parquet",
-    ".DS_Store",
-    "Thumbs.db",
-    "*.lock"
+    "*.safetensors*",
+    
+    # Config & Sensitive files
+    "*.env",
+    "*.key",
+    "*.pem",
+    "*credentials*",
+    "*secret*",
+    "*password*",
+    "*token*",
+    "*config.json",
+    "special_tokens_map.json",
+    "tokenizer*.json",
+    "added_tokens.json",
+    "adapter_config.json",
+    "generation_config.json",
+    "quantize_config.json",
+    
+    # Package files
+    "package-lock.json",
+    
+    # Temp & Backup
+    "*.tmp",
+    "*_backup",
+    "*.swp"
 ]
-
-# Global counters for statistics
-STATS = {
-    "unused_code": 0,
-    "circular_imports": 0,
-    "duplicate_code": 0,
-    "import_issues": 0,
-    "quality_issues": 0,
-    "files_scanned": 0
-}
 
 def load_environment_vars():
     """Load environment variables from .env file"""
-    if not ENV_FILE.exists():
+    try:
+        if not ENV_FILE.exists():
+            logger.debug(".env file not found, skipping environment variable loading")
+            return
+        
+        with open(ENV_FILE, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                try:
+                    key, value = line.split('=', 1)
+                    os.environ[key.strip()] = value.strip().strip('"\'')
+                except ValueError:
+                    logger.warning(f"Skipping invalid environment variable line: {line}")
+                    continue
+        logger.info("Environment variables loaded successfully")
+    except Exception as e:
+        logger.error(f"Error loading environment variables: {e}")
+        # Continue execution even if env vars fail to load
         return
-    
-    with open(ENV_FILE, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
+
+def validate_python_file(file_path: Path) -> bool:
+    """Validate Python file syntax before processing"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            ast.parse(content)
+        return True
+    except SyntaxError as se:
+        logger.error(f"Syntax error in {file_path}: {str(se)}")
+        return False
+    except UnicodeDecodeError:
+        # Try alternate encodings
+        for encoding in ['latin1', 'cp1252', 'iso-8859-1']:
+            try:
+                with open(file_path, 'r', encoding=encoding) as f:
+                    content = f.read()
+                    ast.parse(content)
+                return True
+            except (UnicodeDecodeError, SyntaxError):
                 continue
-            key, value = line.split('=', 1)
-            os.environ[key.strip()] = value.strip().strip('"\'')
+        logger.error(f"Failed to decode {file_path} with any supported encoding")
+        return False
+    except Exception as e:
+        logger.error(f"Error validating {file_path}: {str(e)}")
+        return False
+
+def parallel_file_validation(files: List[Path], max_workers: int) -> List[Path]:
+    """Validate Python files in parallel"""
+    valid_files = []
+    validation_lock = Lock()
+    
+    def validate_file(file_path: Path) -> Optional[Path]:
+        try:
+            if validate_python_file(file_path):
+                with validation_lock:
+                    valid_files.append(file_path)
+                return file_path
+        except Exception as e:
+            logger.error(f"Error validating {file_path}: {e}")
+        return None
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        list(executor.map(validate_file, files))
+    
+    return valid_files
 
 def get_python_files(exclude_dirs: List[str] = None, exclude_files: List[str] = None) -> List[Path]:
-    """Get all Python files in the project, respecting exclusions"""
+    """Get all Python files in parallel"""
     if exclude_dirs is None:
         exclude_dirs = EXCLUDED_DIRS
     if exclude_files is None:
         exclude_files = EXCLUDED_FILES
     
     python_files = []
+    file_lock = Lock()
     
-    # Build the exclude pattern for glob
-    exclude_patterns = []
-    for pattern in exclude_files:
-        exclude_patterns.append(f"**/{pattern}")
-        
-    for root, dirs, files in os.walk(PROJECT_ROOT):
-        # Filter out excluded directories
-        dirs[:] = [d for d in dirs if d not in exclude_dirs]
-        
-        for file in files:
-            if file.endswith('.py'):
-                file_path = Path(os.path.join(root, file))
-                
-                # Check if file matches any exclude pattern
-                exclude = False
-                for pattern in exclude_patterns:
-                    if file_path.match(pattern):
-                        exclude = True
-                        break
-                
-                if not exclude:
-                    python_files.append(file_path)
+    logger.info("Starting parallel Python file scan...")
     
-    return python_files
+    def process_directory(dir_path: Path) -> List[Path]:
+        local_files = []
+        try:
+            for entry in os.scandir(dir_path):
+                if entry.is_file() and entry.name.endswith('.py'):
+                    file_path = Path(entry.path)
+                    # Check exclusions
+                    if not any(pattern in str(file_path) for pattern in exclude_files):
+                        local_files.append(file_path)
+                elif entry.is_dir():
+                    # Check if directory should be excluded
+                    dir_name = entry.name
+                    rel_path = os.path.relpath(entry.path, PROJECT_ROOT)
+                    if not any(excluded in rel_path for excluded in exclude_dirs):
+                        local_files.extend(process_directory(Path(entry.path)))
+        except Exception as e:
+            logger.error(f"Error scanning directory {dir_path}: {e}")
+        return local_files
+    
+    # First collect all Python files
+    all_files = process_directory(PROJECT_ROOT)
+    logger.info(f"Found {len(all_files)} potential Python files")
+    
+    # Then validate them in parallel
+    max_workers = max(2, os.cpu_count() - 1)
+    valid_files = parallel_file_validation(all_files, max_workers)
+    
+    logger.info(f"Validated {len(valid_files)} Python files")
+    return valid_files
 
-def check_unused_code(python_files: List[Path], min_confidence: int = 80) -> List[Dict]:
-    """Use Vulture to find unused code"""
-    logger.info("Checking for unused code with Vulture...")
+def process_file_batch(batch: List[Path], min_confidence: int = 60) -> List[Dict]:
+    """Process a batch of files in parallel for unused code detection"""
     unused_items = []
     
-    # Create a temporary file with all Python file paths
-    temp_file = PROJECT_ROOT / "temp_files.txt"
-    with open(temp_file, 'w') as f:
-        for file_path in python_files:
-            f.write(f"{file_path}\n")
-    
-    try:
-        # Run vulture with the file containing paths
-        result = subprocess.run(
-            ["vulture", "--min-confidence", str(min_confidence), f"@{temp_file}"],
-            capture_output=True,
-            text=True
-        )
-        
-        # Parse vulture output
-        if result.stdout:
-            for line in result.stdout.splitlines():
-                match = re.match(r'(.+):(\d+): (.+) \((\d+)% confidence\)', line)
-                if match:
-                    file_path, line_num, description, confidence = match.groups()
-                    unused_items.append({
-                        "file": file_path,
-                        "line": int(line_num),
-                        "description": description,
-                        "confidence": int(confidence)
-                    })
-        
-        STATS["unused_code"] = len(unused_items)
-        logger.info(f"Found {len(unused_items)} unused code items")
-    except Exception as e:
-        logger.error(f"Error checking unused code: {e}")
-    finally:
-        # Clean up temporary file
-        if temp_file.exists():
-            temp_file.unlink()
-    
+    for file_path in batch:
+        try:
+            logger.debug(f"Processing file: {file_path}")
+            cmd = [
+                "vulture",
+                "--min-confidence", str(min_confidence),
+                "--sort-by-size",
+                "--verbose",
+                str(file_path)
+            ]
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.stdout:
+                for line in result.stdout.splitlines():
+                    for pattern in [
+                        r'(.+):(\d+): (.+) \((\d+)% confidence\)',
+                        r'(.+):(\d+): (.+)',
+                        r'(.+):(\d+):\d+: (.+) \((\d+)% confidence\)',
+                    ]:
+                        match = re.match(pattern, line)
+                        if match:
+                            groups = match.groups()
+                            item = {
+                                "file": groups[0],
+                                "line": int(groups[1]),
+                                "description": groups[2],
+                                "confidence": int(groups[3]) if len(groups) > 3 else min_confidence
+                            }
+                            
+                            if not any(skip in item["description"].lower() for skip in [
+                                "unused import",
+                                "__init__",
+                                "__str__",
+                                "__repr__",
+                                "test_",
+                                "pytest"
+                            ]):
+                                unused_items.append(item)
+                            break
+                            
+        except Exception as e:
+            logger.error(f"Error processing {file_path}: {e}")
+            
     return unused_items
 
-def read_file_with_fallback_encoding(file_path: Path) -> str:
-    """Read a file with fallback encodings if UTF-8 fails"""
-    encodings = ['utf-8', 'latin1', 'cp1252', 'iso-8859-1']
+def get_optimal_thread_count():
+    """Get optimal thread count based on CPU cores"""
+    cpu_count = os.cpu_count()
+    if cpu_count is None:
+        return 4  # Conservative fallback
     
-    for encoding in encodings:
-        try:
-            with open(file_path, 'r', encoding=encoding) as f:
-                return f.read()
-        except UnicodeDecodeError:
-            continue
+    # For your i7-7820X with 8 cores/16 threads, we'll use all threads
+    # but leave 1 for the OS
+    return max(2, cpu_count - 1)
+
+def get_optimal_batch_size(total_files: int) -> int:
+    """Calculate optimal batch size based on file count and CPU cores"""
+    cpu_count = os.cpu_count() or 4
+    # Aim for each core to process at least 2-3 batches for better load balancing
+    target_batch_count = cpu_count * 3
+    return max(5, min(50, -(-total_files // target_batch_count)))  # Ceiling division
+
+def check_unused_code(python_files: List[Path], min_confidence: int = 60) -> List[Dict]:
+    """Multithreaded unused code detection with optimized parallelization"""
+    logger.info("Starting parallel unused code check with Vulture...")
+    all_unused_items = []
+    processed_files = 0
+    total_files = len(python_files)
     
-    # If all encodings fail, skip the file
-    raise UnicodeDecodeError(f"Failed to decode {file_path} with any encoding")
+    # Use optimized thread count
+    max_workers = get_optimal_thread_count()
+    batch_size = get_optimal_batch_size(total_files)
+    
+    logger.info(f"Using {max_workers} worker threads with batch size of {batch_size}")
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_batch = {}
+        
+        # Submit batches to thread pool
+        for i in range(0, total_files, batch_size):
+            batch = python_files[i:i+batch_size]
+            future = executor.submit(process_file_batch, batch, min_confidence)
+            future_to_batch[future] = batch
+        
+        # Process completed batches with progress tracking
+        for future in as_completed(future_to_batch):
+            batch = future_to_batch[future]
+            try:
+                unused_items = future.result()
+                all_unused_items.extend(unused_items)
+                processed_files += len(batch)
+                progress = (processed_files / total_files) * 100
+                
+                # Log progress every 5%
+                if processed_files % max(1, total_files // 20) == 0:
+                    logger.info(f"Progress: {progress:.1f}% ({processed_files}/{total_files} files)")
+                
+                STATS.increment("files_scanned", len(batch))
+            except Exception as e:
+                logger.error(f"Batch processing failed: {e}")
+    
+    # Sort results
+    all_unused_items.sort(key=lambda x: (-x["confidence"], x["file"]))
+    
+    STATS.set("unused_code", len(all_unused_items))
+    logger.info(f"Completed parallel unused code check. Found {len(all_unused_items)} unused code items")
+    
+    # Log some examples of found unused code
+    if all_unused_items:
+        logger.info("Examples of unused code found:")
+        for item in all_unused_items[:5]:
+            logger.info(f"{item['file']}:{item['line']} - {item['description']} ({item['confidence']}% confidence)")
+    
+    return all_unused_items
 
 def detect_circular_imports(python_files: List[Path]) -> List[Dict]:
     """Detect circular imports using a custom implementation"""
     logger.info("Checking for circular imports...")
     circular_imports = []
     
-    # Build import graph
+    # Process files in smaller batches
+    batch_size = 50
     graph = {}
     
-    for file_path in python_files:
-        try:
-            # Use short relative paths to avoid Windows path length issues
-            rel_path = file_path.relative_to(PROJECT_ROOT)
-            module_name = str(rel_path).replace('\\', '.').replace('/', '.').replace('.py', '')
-            
+    for i in range(0, len(python_files), batch_size):
+        batch = python_files[i:i+batch_size]
+        logger.debug(f"Processing batch of {len(batch)} files for circular imports...")
+        
+        for file_path in batch:
             try:
-                file_content = read_file_with_fallback_encoding(file_path)
-                tree = ast.parse(file_content)
-            except UnicodeDecodeError:
-                logger.warning(f"Skipping {file_path} due to encoding issues")
-                continue
+                # Skip files in excluded directories using path parts comparison
+                rel_path = file_path.relative_to(PROJECT_ROOT)
+                path_parts = rel_path.parts
+                
+                if any(excluded in path_parts for excluded in EXCLUDED_DIRS):
+                    continue
+
+                module_name = str(rel_path).replace('\\', '.').replace('/', '.').replace('.py', '')
+                
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    tree = ast.parse(content)
+                except (SyntaxError, UnicodeDecodeError) as e:
+                    logger.error(f"Error parsing {file_path}: {str(e)}")
+                    continue
+                
+                imports = []
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Import):
+                        for name in node.names:
+                            imports.append(name.name)
+                    elif isinstance(node, ast.ImportFrom) and node.module:
+                        imports.append(node.module)
+                
+                graph[module_name] = imports
+                
             except Exception as e:
-                logger.error(f"Error parsing {file_path}: {e}")
-                continue
-            
-            # Track imports for this module
-            imports = []
-            
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Import):
-                    for name in node.names:
-                        imports.append(name.name)
-                elif isinstance(node, ast.ImportFrom) and node.module:
-                    imports.append(node.module)
-            
-            graph[module_name] = imports
-            
-        except Exception as e:
-            logger.error(f"Error analyzing imports in {file_path}: {e}")
-            continue
+                logger.error(f"Error analyzing imports in {file_path}: {e}")
     
-    # Find cycles using DFS
-    def find_cycle(node: str, visited: Set[str], path: List[str]) -> Optional[List[str]]:
-        if node in path:
-            # Found a cycle
-            cycle_start = path.index(node)
-            return path[cycle_start:]
+    # Find cycles in smaller subgraphs to prevent stack overflow
+    def find_cycles_in_subgraph(subgraph):
+        cycles = []
+        visited = set()
         
-        if node in visited:
-            return None
+        def find_cycle(node: str, path: List[str], visited_in_path: Set[str]):
+            if node in visited_in_path:
+                cycle_start = path.index(node)
+                cycles.append(path[cycle_start:])
+                return
+            
+            if node in visited or node not in subgraph:
+                return
+            
+            visited.add(node)
+            visited_in_path.add(node)
+            path.append(node)
+            
+            for neighbor in subgraph.get(node, []):
+                find_cycle(neighbor, path.copy(), visited_in_path.copy())
         
-        visited.add(node)
-        path.append(node)
+        for node in subgraph:
+            if node not in visited:
+                find_cycle(node, [], set())
         
-        if node in graph:
-            for neighbor in graph[node]:
-                cycle = find_cycle(neighbor, visited, path.copy())
-                if cycle:
-                    return cycle
-        
-        return None
+        return cycles
     
-    # Check each node for cycles
-    visited = set()
-    for node in graph:
-        if node not in visited:
-            cycle = find_cycle(node, visited, [])
-            if cycle:
-                circular_imports.append({
-                    "modules": cycle,
-                    "description": " -> ".join(cycle)
-                })
+    # Split graph into smaller subgraphs and find cycles
+    subgraph_size = 50
+    nodes = list(graph.keys())
     
-    STATS["circular_imports"] = len(circular_imports)
+    for i in range(0, len(nodes), subgraph_size):
+        subgraph_nodes = nodes[i:i+subgraph_size]
+        subgraph = {node: graph[node] for node in subgraph_nodes if node in graph}
+        
+        cycles = find_cycles_in_subgraph(subgraph)
+        for cycle in cycles:
+            circular_imports.append({
+                "modules": cycle,
+                "description": " -> ".join(cycle)
+            })
+    
+    STATS.set("circular_imports", len(circular_imports))
     logger.info(f"Found {len(circular_imports)} circular import chains")
     return circular_imports
 
 def check_import_issues(python_files: List[Path]) -> List[Dict]:
-    """Check for import issues (missing imports, unused imports)"""
+    """Check for import issues with improved performance"""
     logger.info("Checking for import issues...")
-    import_issues = []
     
-    for file_path in python_files:
-        try:
-            # First validate file syntax
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    ast.parse(f.read())
-            except SyntaxError:
-                logger.warning(f"Skipping {file_path} due to syntax errors")
+    # Use cached import analysis
+    import_issues, _ = analyze_imports(python_files)
+    
+    # Run isort and pyflakes in parallel for remaining files
+    with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+        futures = []
+        for file_path in python_files:
+            file_hash = file_cache.get_file_hash(file_path)
+            
+            if file_cache.is_cached(file_path, file_hash):
                 continue
-            
-            # Increased timeout to 30 seconds per file
-            timeout_seconds = 30
-            
-            # Run isort check with timeout
+                
+            futures.append(executor.submit(check_file_imports, file_path))
+        
+        for future in as_completed(futures):
             try:
-                result = subprocess.run(
-                    ["isort", "--check", "--diff", str(file_path)],
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout_seconds
-                )
-                
-                if result.returncode != 0:
-                    import_issues.append({
-                        "file": str(file_path),
-                        "type": "unsorted_imports",
-                        "description": "Imports are not properly sorted"
-                    })
-            except subprocess.TimeoutExpired:
-                logger.warning(f"isort check timed out for {file_path}")
+                result = future.result()
+                if result:
+                    import_issues.extend(result)
             except Exception as e:
-                logger.error(f"Error running isort on {file_path}: {e}")
-            
-            # Check for unused imports with pyflakes (with timeout)
-            try:
-                result = subprocess.run(
-                    ["python", "-m", "pyflakes", str(file_path)],
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout_seconds
-                )
-                
-                for line in result.stdout.splitlines():
-                    if "imported but unused" in line or "undefined name" in line:
-                        match = re.match(r'(.+?):(\d+):(\d+): (.*)', line)
-                        if match:
-                            _, line_num, _, message = match.groups()
-                            import_issues.append({
-                                "file": str(file_path),
-                                "line": int(line_num),
-                                "type": "import_issue",
-                                "description": message
-                            })
-            except subprocess.TimeoutExpired:
-                logger.warning(f"pyflakes check timed out for {file_path}")
-            except Exception as e:
-                logger.error(f"Error running pyflakes on {file_path}: {e}")
-                
-        except Exception as e:
-            logger.error(f"Error checking import issues in {file_path}: {e}")
-            continue
+                logger.error(f"Error checking imports: {e}")
     
-    STATS["import_issues"] = len(import_issues)
+    STATS.set("import_issues", len(import_issues))
     logger.info(f"Found {len(import_issues)} import issues")
     return import_issues
 
@@ -468,7 +838,7 @@ def find_duplicate_code(python_files: List[Path], min_lines: int = 3) -> List[Di
                 "size": len(blocks[0]["content"].splitlines())
             })
     
-    STATS["duplicate_code"] = len(duplicate_blocks)
+    STATS.set("duplicate_code", len(duplicate_blocks))
     logger.info(f"Found {len(duplicate_blocks)} sets of duplicate code")
     return duplicate_blocks
 
@@ -605,46 +975,57 @@ def suggest_fixes_for_circular_imports(circular_imports: List[Dict]) -> List[str
     return suggestions
 
 def identify_orphaned_files(python_files: List[Path]) -> List[Path]:
-    """Identify orphaned files that aren't imported anywhere"""
+    """Identify truly orphaned files with improved accuracy"""
     logger.info("Identifying orphaned files...")
     
-    # First get all module names from imports
-    imported_modules = set()
+    # First get all module names that are imported anywhere
+    _, imported_modules = analyze_imports(python_files)
     
+    # Special handling for common module patterns
+    def is_special_module(file_path: Path) -> bool:
+        """Check if file is a special module that shouldn't be considered orphaned"""
+        special_patterns = [
+            "__init__.py",
+            "conftest.py",
+            "test_*.py",
+            "*_test.py",
+            "setup.py",
+            "plugins/*.py",  # Plugin files
+            "commands/*.py"  # Command files
+        ]
+        
+        return any(file_path.match(pattern) for pattern in special_patterns)
+    
+    # Build module map
+    module_map = {}
     for file_path in python_files:
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            tree = ast.parse(content)
-            
-            # Find all import statements
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Import):
-                    for name in node.names:
-                        imported_modules.add(name.name)
-                elif isinstance(node, ast.ImportFrom) and node.module:
-                    imported_modules.add(node.module)
-        except Exception as e:
-            logger.error(f"Error parsing imports in {file_path}: {e}")
+        rel_path = file_path.relative_to(PROJECT_ROOT)
+        module_name = str(rel_path).replace(os.path.sep, '.').replace('.py', '')
+        module_map[module_name] = file_path
+        
+        # Handle package names
+        package_name = module_name.split('.')[0]
+        if package_name not in module_map:
+            module_map[package_name] = file_path
     
-    # Now check which files aren't imported
     orphaned_files = []
     for file_path in python_files:
-        # Convert file path to module name
+        if is_special_module(file_path):
+            continue
+            
         rel_path = file_path.relative_to(PROJECT_ROOT)
         module_name = str(rel_path).replace(os.path.sep, '.').replace('.py', '')
         
-        # Check if this module is imported anywhere
-        if module_name not in imported_modules:
-            # Check if it's a main module or test
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            # Skip files that have a main block or are tests
-            if '__main__' in content or 'test_' in file_path.name:
-                continue
-                
+        # Check if module or any of its parent packages are imported
+        is_imported = False
+        parts = module_name.split('.')
+        for i in range(len(parts)):
+            check_name = '.'.join(parts[:i+1])
+            if check_name in imported_modules:
+                is_imported = True
+                break
+        
+        if not is_imported:
             orphaned_files.append(file_path)
     
     logger.info(f"Found {len(orphaned_files)} potentially orphaned files")
@@ -718,7 +1099,7 @@ def run_code_quality_check(python_files: List[Path]) -> Dict:
                         quality_report["overall_score"] = float(score_match.group(1))
                 
                 quality_report["issues"] = issues
-                STATS["quality_issues"] = len(issues)
+                STATS.set("quality_issues", len(issues))
                 logger.info(f"Found {len(issues)} code quality issues, overall score: {quality_report['overall_score']}/10")
             except json.JSONDecodeError:
                 logger.error("Failed to parse pylint JSON output")
@@ -878,64 +1259,108 @@ class CodeChangeHandler(FileSystemEventHandler):
                 run_full_scan(auto_fix=self.auto_fix)
 
 def run_full_scan(auto_fix=False):
-    """Run a full code base scan"""
+    """Run a full code base scan with optimized parallel processing"""
     start_time = time.time()
+    max_workers = get_optimal_thread_count()
+    logger.info(f"Starting parallel scan with {max_workers} workers...")
     
-    # Reset stats
-    for key in STATS:
-        STATS[key] = 0
-    
-    # Get Python files to scan
-    python_files = get_python_files()
-    STATS["files_scanned"] = len(python_files)
-    
-    # Run all checks
-    unused_items = check_unused_code(python_files)
-    circular_imports = detect_circular_imports(python_files)
-    import_issues = check_import_issues(python_files)
-    duplicate_blocks = find_duplicate_code(python_files)
-    orphaned_files = identify_orphaned_files(python_files)
-    quality_report = run_code_quality_check(python_files)
-    
-    # Generate and save report
-    report = generate_report(
-        python_files,
-        unused_items,
-        circular_imports,
-        import_issues,
-        duplicate_blocks,
-        orphaned_files,
-        quality_report
-    )
-    report_path = save_report(report)
-    
-    # Fix issues if requested
-    if auto_fix:
-        fixes_count = 0
-        fixes_count += clean_unused_code(unused_items, auto_fix=True)
-        fixes_count += fix_import_issues(import_issues, auto_fix=True)
-        fixes_count += clean_orphaned_files(orphaned_files, auto_fix=True)
+    try:
+        # Reset stats
+        for key in STATS._stats:
+            STATS.set(key, 0)
         
-        if fixes_count > 0:
-            logger.info(f"Applied {fixes_count} automatic fixes")
-    
-    elapsed_time = time.time() - start_time
-    logger.info(f"Full scan completed in {elapsed_time:.2f} seconds")
-    
-    # Print summary to console
-    print("\n" + "=" * 50)
-    print("CODE CLEANER SCAN SUMMARY")
-    print("=" * 50)
-    print(f"Files scanned: {STATS['files_scanned']}")
-    print(f"Unused code items: {STATS['unused_code']}")
-    print(f"Circular import chains: {STATS['circular_imports']}")
-    print(f"Import issues: {STATS['import_issues']}")
-    print(f"Duplicate code blocks: {STATS['duplicate_code']}")
-    print(f"Code quality issues: {STATS['quality_issues']}")
-    print(f"Report saved to: {report_path}")
-    print("=" * 50)
-    
-    return report_path
+        # Get Python files
+        python_files = get_python_files()
+        if not python_files:
+            logger.warning("No Python files found to scan")
+            return None
+            
+        total_files = len(python_files)
+        STATS.set("files_scanned", total_files)
+        logger.info(f"Found {total_files} Python files to scan")
+        
+        # Create thread pool for parallel tasks with dynamic task allocation
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all analysis tasks
+            futures = {
+                "unused": executor.submit(check_unused_code, python_files),
+                "circular": executor.submit(detect_circular_imports, python_files),
+                "imports": executor.submit(check_import_issues, python_files),
+                "duplicate": executor.submit(find_duplicate_code, python_files),
+                "orphaned": executor.submit(identify_orphaned_files, python_files),
+                "quality": executor.submit(run_code_quality_check, python_files)
+            }
+            
+            # Process results as they complete with timeout
+            results = {}
+            timeout_per_task = 300  # 5 minutes per task
+            
+            for name, future in futures.items():
+                try:
+                    results[name] = future.result(timeout=timeout_per_task)
+                    logger.info(f"Completed {name} analysis")
+                except concurrent.futures.TimeoutError:
+                    logger.error(f"{name} analysis timed out after {timeout_per_task} seconds")
+                    results[name] = []
+                except Exception as e:
+                    logger.error(f"Error in {name} analysis: {e}")
+                    results[name] = []
+        
+        # Generate and save report
+        report = generate_report(
+            python_files,
+            results.get("unused", []),
+            results.get("circular", []),
+            results.get("imports", []),
+            results.get("duplicate", []),
+            results.get("orphaned", []),
+            results.get("quality", {})
+        )
+        report_path = save_report(report)
+        
+        # Fix issues if requested
+        if auto_fix:
+            with ThreadPoolExecutor(max_workers=max(2, max_workers // 2)) as fix_executor:
+                fix_futures = [
+                    fix_executor.submit(clean_unused_code, results.get("unused", []), True),
+                    fix_executor.submit(fix_import_issues, results.get("imports", []), True),
+                    fix_executor.submit(clean_orphaned_files, results.get("orphaned", []), True)
+                ]
+                
+                fixes_count = sum(f.result(timeout=300) for f in as_completed(fix_futures))
+                if fixes_count > 0:
+                    logger.info(f"Applied {fixes_count} automatic fixes")
+        
+        elapsed_time = time.time() - start_time
+        logger.info(f"Full parallel scan completed in {elapsed_time:.2f} seconds")
+        
+        # Print summary
+        stats = STATS.get_all()
+        summary = f"""
+{'='*50}
+CODE CLEANER SCAN SUMMARY
+{'='*50}
+Files scanned: {stats['files_scanned']}
+Unused code items: {stats['unused_code']}
+Circular import chains: {stats['circular_imports']}
+Import issues: {stats['import_issues']}
+Duplicate code blocks: {stats['duplicate_code']}
+Code quality issues: {stats['quality_issues']}
+Report saved to: {report_path}
+Scan duration: {elapsed_time:.2f} seconds
+{'='*50}
+"""
+        print(summary)
+        logger.info(summary)
+        
+        return report_path
+        
+    except KeyboardInterrupt:
+        logger.info("Scan interrupted by user")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error during parallel scan: {e}")
+        return None
 
 def main():
     """Main entry point"""
@@ -968,4 +1393,14 @@ def main():
         observer.join()
 
 if __name__ == "__main__":
-    main()
+    # Force stdout to be unbuffered
+    sys.stdout.reconfigure(line_buffering=True)
+    
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nCode cleaner interrupted by user")
+        sys.exit(0)
+    except Exception as e:
+        print(f"\nUnexpected error: {e}")
+        sys.exit(1)

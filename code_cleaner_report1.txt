@@ -1,0 +1,353 @@
+==================================================
+ALGOTRADEPRO5 CODE CLEANER REPORT
+==================================================
+
+Files scanned: 461
+Unused code items: 3513
+Circular import chains: 0
+Import issues: 0
+Duplicate code blocks: 5926
+Orphaned files: 294
+Code quality issues: 0
+Overall code quality score: 0/10
+
+--------------------------------------------------
+UNUSED CODE
+--------------------------------------------------
+code_cleaner.py:337: unused variable 'file_lock' (60% confidence, 1 line) (60% confidence)
+code_cleaner.py:352: unused variable 'dir_name' (60% confidence, 1 line) (60% confidence)
+code_cleaner.py:1119: unused method 'on_created' (60% confidence, 7 lines) (60% confidence)
+code_cleaner.py:1108: unused method 'on_modified' (60% confidence, 10 lines) (60% confidence)
+code_cleaner.py:132: unused function 'is_path_excluded' (60% confidence, 14 lines) (60% confidence)
+freqai\api.py:10: unused variable 'is_running' (60% confidence, 1 line) (60% confidence)
+freqai\api.py:11: unused variable 'active_models' (60% confidence, 1 line) (60% confidence)
+freqai\api.py:12: unused variable 'current_trades' (60% confidence, 1 line) (60% confidence)
+freqai\api.py:13: unused variable 'current_balance' (60% confidence, 1 line) (60% confidence)
+freqai\api.py:14: unused variable 'drawdown' (60% confidence, 1 line) (60% confidence)
+... and 3503 more unused items
+
+--------------------------------------------------
+DUPLICATE CODE
+--------------------------------------------------
+Duplicate block (14 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:2-15
+  - C:\AlgoTradPro5\code_cleaner.py:2-15
+
+Duplicate block (9 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:50-58
+  - C:\AlgoTradPro5\code_cleaner.py:50-58
+
+Duplicate block (3 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:66-68
+  - C:\AlgoTradPro5\code_cleaner.py:66-68
+  - C:\AlgoTradPro5\code_cleaner.py:66-68
+
+Duplicate block (56 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:148-203
+  - C:\AlgoTradPro5\code_cleaner.py:148-203
+
+Duplicate block (52 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:206-257
+  - C:\AlgoTradPro5\code_cleaner.py:206-257
+
+... and 5921 more duplicate blocks
+
+--------------------------------------------------
+ORPHANED FILES
+--------------------------------------------------
+C:\AlgoTradPro5\freqai\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\analyze_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\build_config_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\arguments.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\db_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\cli_options.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\data_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\deploy_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\hyperopt_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\deploy_ui.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\optimize_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\list_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\pairlist_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\plot_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\trade_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\webserver_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\config_setup.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\configuration.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\config_validation.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\commands\strategy_utils_commands.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\config_schema.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\directory_operations.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\config_secrets.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\deprecated_settings.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\load_config.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\detect_environment.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\deploy_config.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\exittype.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\timerange.py
+C:\AlgoTradPro5\freqtrade\freqtrade\edge\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\configuration\environment_vars.py
+C:\AlgoTradPro5\freqtrade\freqtrade\constants.py
+C:\AlgoTradPro5\freqtrade\freqtrade\edge\edge_positioning.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\candletype.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\backteststate.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\rpcmessagetype.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\exitchecktuple.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\hyperoptstate.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\pricetype.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\ordertypevalue.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\tradingmode.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\runmode.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exceptions.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\marginmode.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\marketstatetype.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\state.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\signaltype.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\binance_public_data.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\binance.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\bitmart.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\bybit.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\bitpanda.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\check_exchange.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\bitvavo.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\exchange.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\bingx.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\gate.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\exchange_utils.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\idex.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\exchange_ws.py
+C:\AlgoTradPro5\freqtrade\freqtrade\enums\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\common.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\cryptocom.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\hitbtc.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\exchange_types.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\hyperliquid.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\htx.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\kucoin.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\exchange_utils_timeframe.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\kraken.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\data_drawer.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\lbank.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\exchange\okx.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\RL\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\RL\Base3ActionRLEnv.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\freqai_interface.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\RL\BaseEnvironment.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\data_kitchen.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\tensorboard\tensorboard.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\RL\Base5ActionRLEnv.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\torch\datasets.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\torch\PyTorchDataConvertor.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\RL\Base4ActionRLEnv.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\RL\BaseReinforcementLearningModel.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\tensorboard\TensorboardCallback.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\tensorboard\base_tensorboard.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\torch\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\tensorboard\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\torch\PyTorchMLPModel.py
+C:\AlgoTradPro5\freqtrade\freqtrade\ft_types\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\torch\PyTorchTrainerInterface.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\torch\PyTorchModelTrainer.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\utils.py
+C:\AlgoTradPro5\freqtrade\freqtrade\ft_types\valid_exchanges_type.py
+C:\AlgoTradPro5\freqtrade\freqtrade\leverage\liquidation_price.py
+C:\AlgoTradPro5\freqtrade\freqtrade\leverage\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqai\torch\PyTorchTransformerModel.py
+C:\AlgoTradPro5\freqtrade\freqtrade\loggers\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\freqtradebot.py
+C:\AlgoTradPro5\freqtrade\freqtrade\leverage\interest.py
+C:\AlgoTradPro5\freqtrade\freqtrade\loggers\std_err_stream_handler.py
+C:\AlgoTradPro5\freqtrade\freqtrade\loggers\ft_rich_handler.py
+C:\AlgoTradPro5\freqtrade\freqtrade\loggers\set_log_levels.py
+C:\AlgoTradPro5\freqtrade\freqtrade\misc.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\analysis\lookahead.py
+C:\AlgoTradPro5\freqtrade\freqtrade\mixins\logging_mixin.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\analysis\lookahead_helpers.py
+C:\AlgoTradPro5\freqtrade\freqtrade\loggers\buffering_handler.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt\hyperopt.py
+C:\AlgoTradPro5\freqtrade\freqtrade\mixins\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\edge_cli.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\analysis\recursive.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\analysis\recursive_helpers.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt\hyperopt_interface.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\backtesting.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\analysis\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt\hyperopt_optimizer.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt\hyperopt_auto.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\base_analysis.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_max_drawdown.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt\hyperopt_logger.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\bt_progress.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt\hyperopt_output.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_profit_drawdown.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_max_drawdown_relative.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_epoch_filters.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_calmar.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_onlyprofit.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_short_trade_dur.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_multi_metric.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_sortino_daily.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_sortino.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\optimize_reports\bt_output.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\optimize_reports\bt_storage.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_tools.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_sharpe.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_sharpe_daily.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\optimize_reports\optimize_reports.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\custom_data.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\hyperopt_loss\hyperopt_loss_interface.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\key_value_store.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\optimize_reports\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\space\decimalspace.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\usedb_context.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\base.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\space\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\optimize\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\pairlock.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\models.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\pairlock_middleware.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\AgeFilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\migrations.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\IPairList.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\OffsetFilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\persistence\trade_model.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\MarketCapPairList.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\ProducerPairList.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\PercentChangePairList.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\PriceFilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\SpreadFilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\pairlist_helpers.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\FullTradesFilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\rangestabilityfilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlistmanager.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\PrecisionFilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\PerformanceFilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\VolatilityFilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\ShuffleFilter.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\RemotePairList.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\StaticPairList.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\protectionmanager.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\pairlist\VolumePairList.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\protections\stoploss_guard.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\protections\cooldown_period.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\protections\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\protections\max_drawdown_protection.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\protections\iprotection.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\resolvers\iresolver.py
+C:\AlgoTradPro5\freqtrade\freqtrade\plugins\protections\low_profit_pairs.py
+C:\AlgoTradPro5\freqtrade\freqtrade\resolvers\hyperopt_resolver.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\api_download_data.py
+C:\AlgoTradPro5\freqtrade\freqtrade\resolvers\protection_resolver.py
+C:\AlgoTradPro5\freqtrade\freqtrade\resolvers\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\resolvers\exchange_resolver.py
+C:\AlgoTradPro5\freqtrade\freqtrade\resolvers\freqaimodel_resolver.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\api_pairlists.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\api_background_tasks.py
+C:\AlgoTradPro5\freqtrade\freqtrade\resolvers\strategy_resolver.py
+C:\AlgoTradPro5\freqtrade\freqtrade\resolvers\pairlist_resolver.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\api_backtest.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\api_pair_history.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\api_v1.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\api_schemas.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\api_ws.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\api_auth.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\uvicorn_threaded.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\web_ui.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\deps.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\webserver_bgwork.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\webserver.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\ws\channel.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\fiat_convert.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\ws\proxy.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\ws\serializer.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\ws_schemas.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\ws\ws_types.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\ws\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\ws\message_stream.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\external_message_consumer.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\api_server\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\rpc_manager.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\discord.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\rpc.py
+C:\AlgoTradPro5\freqtrade\freqtrade\strategy\hyper.py
+C:\AlgoTradPro5\freqtrade\freqtrade\strategy\informative_decorator.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\system\asyncio_config.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\rpc_types.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\webhook.py
+C:\AlgoTradPro5\freqtrade\freqtrade\strategy\strategyupdater.py
+C:\AlgoTradPro5\freqtrade\freqtrade\strategy\interface.py
+C:\AlgoTradPro5\freqtrade\freqtrade\strategy\strategy_helper.py
+C:\AlgoTradPro5\freqtrade\freqtrade\system\version_info.py
+C:\AlgoTradPro5\freqtrade\freqtrade\strategy\strategy_wrapper.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\coin_gecko.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\datetime_helpers.py
+C:\AlgoTradPro5\freqtrade\freqtrade\strategy\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\strategy\parameters.py
+C:\AlgoTradPro5\freqtrade\freqtrade\system\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\ft_precise.py
+C:\AlgoTradPro5\freqtrade\freqtrade\system\gc_setup.py
+C:\AlgoTradPro5\freqtrade\freqtrade\rpc\telegram.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\dry_run_wallet.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\rich_progress.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\progress_tracker.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\formatters.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\migrations\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\vendor\qtpylib\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\template_renderer.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\periodic_cache.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\migrations\funding_rate_mig.py
+C:\AlgoTradPro5\freqtrade\freqtrade\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\vendor\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\measure_time.py
+C:\AlgoTradPro5\freqtrade\freqtrade\vendor\qtpylib\indicators.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\rich_tables.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\__init__.py
+C:\AlgoTradPro5\freqtrade\freqtrade\util\migrations\binance_mig.py
+C:\AlgoTradPro5\freqtrade\freqtrade\worker.py
+C:\AlgoTradPro5\freqtrade\ft_client\test_client\__init__.py
+C:\AlgoTradPro5\freqtrade\ft_client\freqtrade_client\ft_client.py
+C:\AlgoTradPro5\freqtrade\freqtrade\wallets.py
+C:\AlgoTradPro5\freqtrade\tests\commands\__init__.py
+C:\AlgoTradPro5\freqtrade\ft_client\freqtrade_client\__init__.py
+C:\AlgoTradPro5\freqtrade\ft_client\freqtrade_client\ft_rest_client.py
+C:\AlgoTradPro5\freqtrade\setup.py
+C:\AlgoTradPro5\freqtrade\tests\edge\__init__.py
+C:\AlgoTradPro5\freqtrade\tests\conftest.py
+C:\AlgoTradPro5\freqtrade\tests\exchange\__init__.py
+C:\AlgoTradPro5\freqtrade\tests\exchange_online\conftest.py
+C:\AlgoTradPro5\freqtrade\tests\exchange_online\__init__.py
+C:\AlgoTradPro5\freqtrade\tests\freqai\conftest.py
+C:\AlgoTradPro5\freqtrade\tests\optimize\conftest.py
+C:\AlgoTradPro5\freqtrade\tests\freqtradebot\__init__.py
+C:\AlgoTradPro5\freqtrade\tests\persistence\__init__.py
+C:\AlgoTradPro5\freqtrade\tests\optimize\__init__.py
+C:\AlgoTradPro5\freqtrade\tests\plugins\__init__.py
+C:\AlgoTradPro5\freqtrade\tests\rpc\__init__.py
+C:\AlgoTradPro5\freqtrade\tests\strategy\strats\failing_strategy.py
+C:\AlgoTradPro5\freqtrade\tests\strategy\strats\broken_strats\legacy_strategy_v1.py
+C:\AlgoTradPro5\freqtrade\tests\strategy\strats\broken_strats\broken_futures_strategies.py
+C:\AlgoTradPro5\freqtrade\tests\strategy\strats\informative_decorator_strategy.py
+C:\AlgoTradPro5\freqtrade\tests\strategy\strats\hyperoptable_strategy.py
+C:\AlgoTradPro5\freqtrade\tests\strategy\__init__.py
+C:\AlgoTradPro5\freqtrade\tests\strategy\strats\hyperoptable_strategy_v2.py
+C:\AlgoTradPro5\freqtrade\tests\__init__.py
+C:\AlgoTradPro5\src\api\health_check.py
+C:\AlgoTradPro5\src\api\trading_control.py
+C:\AlgoTradPro5\src\api\ai_control.py
+C:\AlgoTradPro5\src\api\system_metrics.py
+C:\AlgoTradPro5\src\api\ml_control.py
+C:\AlgoTradPro5\src\core\data_manager.py
+C:\AlgoTradPro5\src\core\strategy_optimizer.py
+C:\AlgoTradPro5\src\monitoring\cache_monitor.py
+C:\AlgoTradPro5\src\monitoring\system_health_checker.py
+C:\AlgoTradPro5\src\monitoring\gpu_monitor.py
+
+==================================================

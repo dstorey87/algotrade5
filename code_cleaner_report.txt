@@ -2,29 +2,29 @@
 ALGOTRADEPRO5 CODE CLEANER REPORT
 ==================================================
 
-Files scanned: 112
-Unused code items: 0
+Files scanned: 461
+Unused code items: 3513
 Circular import chains: 0
-Import issues: 334
-Duplicate code blocks: 1060
-Orphaned files: 45
+Import issues: 0
+Duplicate code blocks: 5923
+Orphaned files: 0
 Code quality issues: 0
 Overall code quality score: 0/10
 
 --------------------------------------------------
-IMPORT ISSUES
+UNUSED CODE
 --------------------------------------------------
-C:\AlgoTradPro5\code_cleaner.py: Imports are not properly sorted
-C:\AlgoTradPro5\code_cleaner.py:18: 'sys' imported but unused
-C:\AlgoTradPro5\code_cleaner.py:24: 'glob' imported but unused
-C:\AlgoTradPro5\code_cleaner.py:27: 'importlib' imported but unused
-C:\AlgoTradPro5\code_cleaner.py:28: 'typing.Tuple' imported but unused
-C:\AlgoTradPro5\archive\strategies\QuantumHybridStrategy.py:14: 'numpy as np' imported but unused
-C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py:9: 'datetime.datetime' imported but unused
-C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py:9: 'datetime.timezone' imported but unused
-C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py:11: 'typing.Dict' imported but unused
-C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py:11: 'typing.List' imported but unused
-... and 324 more import issues
+code_cleaner.py:339: unused variable 'file_lock' (60% confidence, 1 line) (60% confidence)
+code_cleaner.py:354: unused variable 'dir_name' (60% confidence, 1 line) (60% confidence)
+code_cleaner.py:1091: unused method 'on_created' (60% confidence, 7 lines) (60% confidence)
+code_cleaner.py:1080: unused method 'on_modified' (60% confidence, 10 lines) (60% confidence)
+code_cleaner.py:134: unused function 'is_path_excluded' (60% confidence, 14 lines) (60% confidence)
+freqai\api.py:10: unused variable 'is_running' (60% confidence, 1 line) (60% confidence)
+freqai\api.py:11: unused variable 'active_models' (60% confidence, 1 line) (60% confidence)
+freqai\api.py:12: unused variable 'current_trades' (60% confidence, 1 line) (60% confidence)
+freqai\api.py:13: unused variable 'current_balance' (60% confidence, 1 line) (60% confidence)
+freqai\api.py:14: unused variable 'drawdown' (60% confidence, 1 line) (60% confidence)
+... and 3503 more unused items
 
 --------------------------------------------------
 DUPLICATE CODE
@@ -33,71 +33,23 @@ Duplicate block (14 lines) found in:
   - C:\AlgoTradPro5\code_cleaner.py:2-15
   - C:\AlgoTradPro5\code_cleaner.py:2-15
 
-Duplicate block (8 lines) found in:
-  - C:\AlgoTradPro5\code_cleaner.py:36-43
-  - C:\AlgoTradPro5\code_cleaner.py:36-43
+Duplicate block (9 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:52-60
+  - C:\AlgoTradPro5\code_cleaner.py:52-60
 
-Duplicate block (22 lines) found in:
-  - C:\AlgoTradPro5\code_cleaner.py:51-72
-  - C:\AlgoTradPro5\code_cleaner.py:51-72
+Duplicate block (3 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:68-70
+  - C:\AlgoTradPro5\code_cleaner.py:68-70
+  - C:\AlgoTradPro5\code_cleaner.py:68-70
 
-Duplicate block (4 lines) found in:
-  - C:\AlgoTradPro5\code_cleaner.py:75-78
-  - C:\AlgoTradPro5\code_cleaner.py:75-78
+Duplicate block (56 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:150-205
+  - C:\AlgoTradPro5\code_cleaner.py:150-205
 
-Duplicate block (29 lines) found in:
-  - C:\AlgoTradPro5\code_cleaner.py:81-109
-  - C:\AlgoTradPro5\code_cleaner.py:81-109
+Duplicate block (52 lines) found in:
+  - C:\AlgoTradPro5\code_cleaner.py:208-259
+  - C:\AlgoTradPro5\code_cleaner.py:208-259
 
-... and 1055 more duplicate blocks
-
---------------------------------------------------
-ORPHANED FILES
---------------------------------------------------
-C:\AlgoTradPro5\archive\strategies\QuantumHybridStrategy.py
-C:\AlgoTradPro5\archive\strategies\quantum_hybrid_strategy.py
-C:\AlgoTradPro5\archive\strategies\quantum_simple_strategy.py
-C:\AlgoTradPro5\scripts\generate_manifest.py
-C:\AlgoTradPro5\scripts\manage_dependencies.py
-C:\AlgoTradPro5\src\ai_model_manager.py
-C:\AlgoTradPro5\src\dependency_manager.py
-C:\AlgoTradPro5\src\initialize_system.py
-C:\AlgoTradPro5\src\api\main.py
-C:\AlgoTradPro5\src\core\cache_config.py
-C:\AlgoTradPro5\src\core\continuous_backtester.py
-C:\AlgoTradPro5\src\core\package_manager.py
-C:\AlgoTradPro5\src\core\system_integration.py
-C:\AlgoTradPro5\src\core\trade_journal.py
-C:\AlgoTradPro5\src\core\backtest\continuous_backtester.py
-C:\AlgoTradPro5\src\core\config\config_manager.py
-C:\AlgoTradPro5\src\core\data\data_manager.py
-C:\AlgoTradPro5\src\core\patterns\pattern_catalog.py
-C:\AlgoTradPro5\src\core\quantum\quantum_optimizer.py
-C:\AlgoTradPro5\src\core\risk\risk_manager.py
-C:\AlgoTradPro5\src\core\risk\risk_validator.py
-C:\AlgoTradPro5\src\core\trading\quantum_hybrid_strategy.py
-C:\AlgoTradPro5\src\monitoring\doc_validator.py
-C:\AlgoTradPro5\src\quantum\quantum_optimizer.py
-C:\AlgoTradPro5\src\risk\risk_manager.py
-C:\AlgoTradPro5\src\scripts\doc_validator.py
-C:\AlgoTradPro5\src\scripts\trade_journal.py
-C:\AlgoTradPro5\src\services\cache_cleanup_scheduler.py
-C:\AlgoTradPro5\src\services\system_metrics_service.py
-C:\AlgoTradPro5\src\strategies\quantum_hybrid_strategy.py
-C:\AlgoTradPro5\src\utils\cuda\cuda_utils.py
-C:\AlgoTradPro5\strategies\QuantumLoopStrategy.py
-C:\AlgoTradPro5\tests\integration\continuous_backtester.py
-C:\AlgoTradPro5\user_data\hyperopts\QuantumSimpleHyperopt.py
-C:\AlgoTradPro5\user_data\strategies\ai_enhanced_strategy.py
-C:\AlgoTradPro5\user_data\strategies\ai_model_manager.py
-C:\AlgoTradPro5\user_data\strategies\BasicTestStrategy.py
-C:\AlgoTradPro5\user_data\strategies\QuantumHybrid.py
-C:\AlgoTradPro5\user_data\strategies\QuantumHybridStrategy.py
-C:\AlgoTradPro5\user_data\strategies\quantum_hybrid_strategy.py
-C:\AlgoTradPro5\user_data\strategies\quantum_optimizer.py
-C:\AlgoTradPro5\user_data\strategies\trade_analyzer.py
-C:\AlgoTradPro5\user_data\strategies\__init__.py
-C:\AlgoTradPro5\user_data\strategies\utils\quantum_optimizer.py
-C:\AlgoTradPro5\user_data\strategies\utils\__init__.py
+... and 5918 more duplicate blocks
 
 ==================================================
