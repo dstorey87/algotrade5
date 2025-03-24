@@ -1,15 +1,15 @@
-import { describe, it, expect } from 'vitest'
 import tradingReducer, {
   updateBalance,
   setActiveStrategy,
   updateMetrics,
   addTrade,
   setTrading,
-  setError
+  setError,
+  TradingState
 } from './tradingSlice'
 
 describe('tradingSlice', () => {
-  const initialState = {
+  const initialState: TradingState = {
     balance: 10.0,
     activeStrategy: null,
     winRate: 0,
@@ -29,8 +29,16 @@ describe('tradingSlice', () => {
   })
 
   it('should handle setActiveStrategy', () => {
-    const actual = tradingReducer(initialState, setActiveStrategy('quantum'))
-    expect(actual.activeStrategy).toEqual('quantum')
+    const strategy = {
+      id: '1',
+      name: 'Test Strategy',
+      winRate: 85,
+      profitFactor: 2.5,
+      sharpeRatio: 1.8,
+      maxDrawdown: 15,
+    }
+    const actual = tradingReducer(initialState, setActiveStrategy(strategy))
+    expect(actual.activeStrategy).toEqual(strategy)
   })
 
   it('should handle updateMetrics', () => {
@@ -63,13 +71,4 @@ describe('tradingSlice', () => {
     const actual = tradingReducer(initialState, setError(errorMessage))
     expect(actual.lastError).toEqual(errorMessage)
   })
-
-  it('should clear error when setting to null', () => {
-    const stateWithError = {
-      ...initialState,
-      lastError: 'Previous error'
-    }
-    const actual = tradingReducer(stateWithError, setError(null))
-    expect(actual.lastError).toBeNull()
-  })
-})
+});

@@ -1,9 +1,10 @@
 'use client'
 
-import { Button, Title, Text, Badge } from "@tremor/react"
-import { useSelector, useDispatch } from 'react-redux'
-import { startTrading, stopTrading } from "@/lib/slices/tradingSlice"
+import { useState } from "react"
+import { useDispatch, useSelector } from "react-redux"
 import { AppDispatch, RootState } from "@/lib/store"
+import { Button, Title, Text, Badge } from "@tremor/react"
+import { startTrading, stopTrading } from "@/store/slices/tradingSlice"
 
 export default function TradingControls() {
   const dispatch = useDispatch<AppDispatch>()

@@ -1,9 +1,10 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
-import { Provider } from 'react-redux'
-import { configureStore } from '@reduxjs/toolkit'
-import TradingControls from './index'
-import tradingReducer from '../../store/slices/tradingSlice'
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import TradingControls from './index';
+import tradingReducer from '../../store/slices/tradingSlice';
 
 const createTestStore = (initialState = {}) => {
   return configureStore({
@@ -12,55 +13,76 @@ const createTestStore = (initialState = {}) => {
     },
     preloadedState: {
       trading: {
-        balance: 100.50,
-        totalProfit: 25.75,
-        winRate: 0.85,
-        activeTrades: 3,
+        balance: 10.0,
+        activeStrategy: null,
+        winRate: 0,
+        drawdown: 0,
+        trades: [],
+        isTrading: false,
+        lastError: null,
         ...initialState
       }
     }
-  })
-}
+  });
+};
 
 describe('TradingControls', () => {
-  it('renders account status correctly', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+  });
+
+  it('renders trading controls in initial state', () => {
+    const store = createTestStore();
+    
     render(
-      <Provider store={createTestStore()}>
-        <TradingControls />
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <TradingControls />
+        </QueryClientProvider>
       </Provider>
-    )
+    );
 
-    expect(screen.getByText('Trading Controls')).toBeInTheDocument()
-    expect(screen.getByText('Balance: £100.50')).toBeInTheDocument()
-    expect(screen.getByText('Total Profit: £25.75')).toBeInTheDocument()
-    expect(screen.getByText('Win Rate: 85.00%')).toBeInTheDocument()
-    expect(screen.getByText('Active Trades: 3')).toBeInTheDocument()
-  })
+    expect(screen.getByTestId('start-button')).toBeInTheDocument();
+    expect(screen.getByTestId('balance-display')).toHaveTextContent('£10.00');
+  });
 
-  it('displays trading control buttons', () => {
+  it('handles start/stop trading', () => {
+    const store = createTestStore();
+    
     render(
-      <Provider store={createTestStore()}>
-        <TradingControls />
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <TradingControls />
+        </QueryClientProvider>
       </Provider>
-    )
+    );
 
-    expect(screen.getByText('Start Trading')).toBeInTheDocument()
-    expect(screen.getByText('Stop Trading')).toBeInTheDocument()
-  })
+    const startButton = screen.getByTestId('start-button');
+    fireEvent.click(startButton);
+    
+    expect(store.getState().trading.isTrading).toBe(true);
+    expect(screen.getByTestId('stop-button')).toBeInTheDocument();
+  });
 
-  it('handles button clicks', () => {
-    const consoleSpy = vitest.spyOn(console, 'log')
-
+  it('displays error state when error occurs', () => {
+    const store = createTestStore({ lastError: 'API connection failed' });
+    
     render(
-      <Provider store={createTestStore()}>
-        <TradingControls />
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <TradingControls />
+        </QueryClientProvider>
       </Provider>
-    )
+    );
 
-    fireEvent.click(screen.getByText('Start Trading'))
-    expect(consoleSpy).toHaveBeenCalledWith('Starting trading...')
-
-    fireEvent.click(screen.getByText('Stop Trading'))
-    expect(consoleSpy).toHaveBeenCalledWith('Stopping trading...')
-  })
-})
+    expect(screen.getByTestId('error-message')).toHaveTextContent('API connection failed');
+  });
+});

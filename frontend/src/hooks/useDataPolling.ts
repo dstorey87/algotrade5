@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '@/lib/store'
-import { fetchTradeData } from '@/lib/slices/tradingSlice'
+import { fetchTradeData } from '@/store/slices/tradingSlice'
 
 export function useDataPolling(interval: number = 5000) {
   const dispatch = useDispatch<AppDispatch>()

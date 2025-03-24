@@ -5,8 +5,12 @@ import {
   fetchTradeData, 
   fetchCurrentTrades, 
   fetchTradeHistory,
-  setRealTimeEnabled
-} from '@/lib/slices/tradingSlice'
+  setRealTimeEnabled,
+  updateSystemStatus,
+  updateBalance,
+  updateTrades,
+  updatePerformanceStats
+} from '@/store/slices/tradingSlice'
 import websocketService from '@/services/websocket'
 import apiSettings from '@/config/api'
 

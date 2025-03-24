@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
-interface SystemState {
+export interface SystemState {
   isLoading: boolean
   error: string | null
   status: 'running' | 'stopped' | 'error'

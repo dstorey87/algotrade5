@@ -1,61 +1,63 @@
-import React, { useEffect, useState } from 'react';
-import { useWebSocket } from '@/hooks/useWebSocket';
-import { Trade, WSMessage } from '@/types';
-import { Card, CardContent, Typography, Box, CircularProgress } from '@mui/material';
+import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { Card, CardContent, Stack } from '@mui/material';
+import { RootState } from '@/lib/store';
+import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
+import { VirtualizedTradeList } from './VirtualizedTradeList';
+import { PerformanceMetricsDashboard } from './PerformanceMetricsDashboard';
+import { useModelLoader } from '@/hooks/useModelLoader';
+import { Trade } from '@/types';
 
-interface TradeMonitorProps {
-  wsEndpoint: string;
-}
+const REQUIRED_MODELS = ['trade_analyzer', 'risk_calculator'];
 
-export const RealTimeTradeMonitor: React.FC<TradeMonitorProps> = ({ wsEndpoint }) => {
-  const [trades, setTrades] = useState<Trade[]>([]);
-  const { lastMessage, readyState, isConnected, error } = useWebSocket({
-    url: wsEndpoint,
-    onMessage: (message: WSMessage) => {
-      if (message.type === 'trade') {
-        setTrades(prev => [...prev, message.data as Trade].slice(-100));
-      }
-    }
+export const TradeMonitor: React.FC = React.memo(() => {
+  // Set up real-time updates with WebSocket
+  useRealTimeUpdates({ enableWebSocket: true });
+
+  // Initialize model loader with preloading
+  const { loadModel } = useModelLoader({
+    preloadModels: REQUIRED_MODELS,
+    maxCacheSize: 10
   });
 
+  // Memoized selectors
+  const trades = useSelector((state: RootState) => state.trading.trades);
+  const performance = useSelector((state: RootState) => state.trading.performanceStats);
+
+  // Memoized performance calculations
+  const performanceMetrics = useMemo(() => ({
+    winRate: (performance.wins / (performance.wins + performance.losses)) * 100 || 0,
+    profitFactor: performance.totalProfit / Math.abs(performance.totalLoss) || 0,
+    avgProfit: performance.totalProfit / performance.trades || 0
+  }), [performance]);
+
+  // Memoized trade analysis
+  const analyzeRisk = useCallback(async (trade: Trade) => {
+    const analyzer = await loadModel('trade_analyzer');
+    return analyzer.analyzeRisk(trade);
+  }, [loadModel]);
+
   return (
-    <Card>
-      <CardContent>
-        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h6">Live Trades</Typography>
-          {!isConnected && <CircularProgress size={20} />}
-          {error && (
-            <Typography color="error" variant="body2">
-              Connection Error
-            </Typography>
-          )}
-        </Box>
-        
-        {trades.length === 0 ? (
-          <Typography color="text.secondary">No trades yet</Typography>
-        ) : (
-          <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-            {trades.map((trade) => (
-              <Box key={trade.id} sx={{ mb: 1, p: 1, borderRadius: 1, bgcolor: 'background.paper' }}>
-                <Typography variant="subtitle2">
-                  {trade.pair} - {trade.type.toUpperCase()}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Amount: {trade.amount} @ {trade.price}
-                </Typography>
-                {trade.profit !== undefined && (
-                  <Typography
-                    variant="body2"
-                    color={trade.profit >= 0 ? 'success.main' : 'error.main'}
-                  >
-                    Profit: {trade.profit.toFixed(2)}%
-                  </Typography>
-                )}
-              </Box>
-            ))}
-          </Box>
-        )}
-      </CardContent>
-    </Card>
+    <Stack spacing={2}>
+      <PerformanceMetricsDashboard />
+      
+      <Card>
+        <CardContent>
+          <div className="monitor-grid">
+            {/* Performance Metrics */}
+            <div className="metrics-panel">
+              <div>Win Rate: {performanceMetrics.winRate.toFixed(2)}%</div>
+              <div>Profit Factor: {performanceMetrics.profitFactor.toFixed(2)}</div>
+              <div>Avg Profit: {performanceMetrics.avgProfit.toFixed(2)}</div>
+            </div>
+            
+            {/* Virtualized Trade List */}
+            <div className="trades-panel" style={{ height: '500px' }}>
+              <VirtualizedTradeList trades={trades} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </Stack>
   );
-};
+});

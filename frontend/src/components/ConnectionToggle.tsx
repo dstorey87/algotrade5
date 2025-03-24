@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '@/lib/store'
 import { Button } from '@tremor/react'
 import { BoltIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
-import { setRealTimeEnabled } from '@/lib/slices/tradingSlice'
+import { setRealTimeEnabled } from '@/store/slices/tradingSlice'
 import websocketService from '@/services/websocket'
 // Use MUI Tooltip instead since we're already using MUI components elsewhere
 import { Tooltip } from '@mui/material'

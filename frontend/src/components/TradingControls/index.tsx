@@ -2,7 +2,7 @@ import { Button, Grid, Paper, Typography, Chip, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { startTrading, stopTrading, emergencyStop } from '../../store/tradingSlice';
+import { startTrading, stopTrading, emergencyStop } from '@/store/slices/tradingSlice';
 
 const Item = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
