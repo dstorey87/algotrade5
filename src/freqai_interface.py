@@ -4,10 +4,9 @@ import logging
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-# REMOVED_UNUSED_CODE: from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 import numpy as np
-# REMOVED_UNUSED_CODE: import pandas as pd
 import torch
 import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -29,26 +28,26 @@ logger = logging.getLogger("freqai")
 
 # Enhanced monitoring metrics
 class ModelActivity(BaseModel):
-# REMOVED_UNUSED_CODE:     timestamp: str
+    timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
     model_name: str
     action: str
     success: bool
     details: Dict[str, Any]
-    metrics: Optional[Dict[str, float]]
+    metrics: Optional[Dict[str, float]] = None
 
 class SystemMetrics(BaseModel):
-# REMOVED_UNUSED_CODE:     gpu_usage: float
-# REMOVED_UNUSED_CODE:     memory_usage: float
+    gpu_usage: float = 0.0
+    memory_usage: float = 0.0
     model_cache_size: int
-# REMOVED_UNUSED_CODE:     active_requests: int
-# REMOVED_UNUSED_CODE:     last_error: Optional[str]
+    active_requests: int = 0
+    last_error: Optional[str] = None
 
 class TradingStatus(BaseModel):
-# REMOVED_UNUSED_CODE:     is_running: bool
-# REMOVED_UNUSED_CODE:     active_models: List[str] = []
-# REMOVED_UNUSED_CODE:     current_trades: List[Dict[str, Any]] = []
-# REMOVED_UNUSED_CODE:     current_balance: float = 10.0
-# REMOVED_UNUSED_CODE:     drawdown: float = 0.0
+    is_running: bool = True
+    active_models: List[str] = []
+    current_trades: List[Dict[str, Any]] = []
+    current_balance: float = 10.0
+    drawdown: float = 0.0
 
 class PredictionRequest(BaseModel):
     pair: str
@@ -65,7 +64,7 @@ class PredictionRequest(BaseModel):
 # REMOVED_UNUSED_CODE:     @field_validator("timeframe")
 # REMOVED_UNUSED_CODE:     def validate_timeframe(cls, v):
 # REMOVED_UNUSED_CODE:         valid_timeframes = {"1m", "5m", "15m", "30m", "1h", "4h", "1d"}
-# REMOVED_UNUSED_CODE:         if v not in valid_timeframes:
+# REMOVED_UNUSED_CODE:         if v not in valid timeframes:
 # REMOVED_UNUSED_CODE:             raise ValueError(f"Timeframe must be one of {valid_timeframes}")
 # REMOVED_UNUSED_CODE:         return v
     
@@ -77,12 +76,12 @@ class PredictionRequest(BaseModel):
 # REMOVED_UNUSED_CODE:         return v
 
 class ModelMetrics(BaseModel):
-# REMOVED_UNUSED_CODE:     accuracy: float = Field(ge=0, le=1)
-# REMOVED_UNUSED_CODE:     precision: float = Field(ge=0, le=1)
-# REMOVED_UNUSED_CODE:     recall: float = Field(ge=0, le=1)
-# REMOVED_UNUSED_CODE:     f1_score: float = Field(ge=0, le=1)
-# REMOVED_UNUSED_CODE:     win_rate: float = Field(ge=0, le=1)
-# REMOVED_UNUSED_CODE:     drawdown: float = Field(ge=0, le=1)
+    accuracy: float = Field(ge=0, le=1)
+    precision: float = Field(ge=0, le=1)
+    recall: float = Field(ge=0, le=1)
+    f1_score: float = Field(ge=0, le=1)
+    win_rate: float = Field(ge=0, le=1)
+    drawdown: float = Field(ge=0, le=1)
 
 class PredictionResponse(BaseModel):
     prediction: float
@@ -145,12 +144,13 @@ class ModelLoader:
     def update_system_metrics(self):
         try:
             if torch.cuda.is_available():
-# REMOVED_UNUSED_CODE:                 self.system_metrics.gpu_usage = torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated()
+                max_memory = torch.cuda.max_memory_allocated()
+                self.system_metrics.gpu_usage = torch.cuda.memory_allocated() / max_memory if max_memory > 0 else 0.0
             self.system_metrics.model_cache_size = len(self.loaded_models)
-# REMOVED_UNUSED_CODE:             self.system_metrics.memory_usage = self.system_metrics.model_cache_size * 0.1  # Approximate GB per model
+            self.system_metrics.memory_usage = self.system_metrics.model_cache_size * 0.1  # Approximate GB per model
         except Exception as e:
             logger.error(f"Failed to update system metrics: {str(e)}")
-# REMOVED_UNUSED_CODE:             self.system_metrics.last_error = str(e)
+            self.system_metrics.last_error = str(e)
         
     def load_llm(self, model_name: str):
         """Load an LLM model with optimizations"""
@@ -197,14 +197,14 @@ class ModelLoader:
             model_path = model_path / "quantum"
             # Load model configuration
             with open(model_path / "config.json") as f:
-# REMOVED_UNUSED_CODE:                 config = json.load(f)
-            
+                config = json.load(f)
+                
             # TODO: Implement actual quantum model loading
             # For now return a mock model that generates realistic predictions
-# REMOVED_UNUSED_CODE:             model = lambda x: (
-# REMOVED_UNUSED_CODE:                 float(np.clip(np.random.normal(0.5, 0.2), 0, 1)), 
-# REMOVED_UNUSED_CODE:                 float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
-# REMOVED_UNUSED_CODE:             )
+            model = lambda x: (
+                float(np.clip(np.random.normal(0.5, 0.2), 0, 1)), 
+                float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
+            )
             
         else:
             model_path = model_path / "ml" / model_name
@@ -216,10 +216,10 @@ class ModelLoader:
             
             # TODO: Implement loading of other ML models
             # For now return a mock model
-# REMOVED_UNUSED_CODE:             model = lambda x: (
-# REMOVED_UNUSED_CODE:                 float(np.clip(np.random.normal(0.5, 0.2), 0, 1)),
-# REMOVED_UNUSED_CODE:                 float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
-# REMOVED_UNUSED_CODE:             )
+            model = lambda x: (
+                float(np.clip(np.random.normal(0.5, 0.2), 0, 1)),
+                float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
+            )
             
         self.loaded_models[model_name] = model
         return model
@@ -255,19 +255,19 @@ def get_model_metrics(model_name: str) -> ModelMetrics:
         drawdown=0.10 - np.random.random() * 0.05
     )
 
-# REMOVED_UNUSED_CODE: @app.get("/")
+@app.get("/")
 async def root():
     """Root endpoint to verify API is running"""
     return {"status": "ok", "message": "FreqAI API is running"}
 
-# REMOVED_UNUSED_CODE: @app.get("/health")
+@app.get("/health")
 async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat()
     }
 
-# REMOVED_UNUSED_CODE: @app.get("/api/v1/status", response_model=TradingStatus)
+@app.get("/api/v1/status", response_model=TradingStatus)
 async def get_status():
     return {
         "is_running": True,
@@ -277,7 +277,7 @@ async def get_status():
         "drawdown": 0.0
     }
 
-# REMOVED_UNUSED_CODE: @app.get("/models")
+@app.get("/models")
 async def list_models():
     """List available AI models"""
     return {
@@ -297,7 +297,7 @@ async def list_models():
         ]
     }
 
-# REMOVED_UNUSED_CODE: @app.post("/predict", response_model=PredictionResponse)
+@app.post("/predict", response_model=PredictionResponse)
 async def predict(data: PredictionRequest):
     """Make trading predictions using FreqAI models"""
     try:
@@ -356,7 +356,7 @@ async def predict(data: PredictionRequest):
         )
         raise HTTPException(status_code=500, detail=error_msg)
 
-# REMOVED_UNUSED_CODE: @app.get("/metrics")
+@app.get("/metrics")
 async def get_metrics():
     """Get model performance metrics"""
     return {
@@ -365,19 +365,18 @@ async def get_metrics():
         "win_rate": 0.85
     }
 
-# Add new monitoring endpoints
-# REMOVED_UNUSED_CODE: @app.get("/api/v1/system/metrics")
+@app.get("/api/v1/system/metrics")
 async def get_system_metrics():
     """Get current system metrics"""
     model_loader.update_system_metrics()
     return model_loader.system_metrics
 
-# REMOVED_UNUSED_CODE: @app.get("/api/v1/system/activity")
+@app.get("/api/v1/system/activity")
 async def get_model_activity(limit: int = 100):
     """Get recent model activity"""
     return {"activities": model_loader.model_activity[-limit:]}
 
-# REMOVED_UNUSED_CODE: @app.get("/api/v1/system/logs")
+@app.get("/api/v1/system/logs")
 async def get_system_logs(limit: int = 100):
     """Get recent system logs"""
     try:
@@ -416,7 +415,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # Add background task to periodically broadcast metrics
-# REMOVED_UNUSED_CODE: @app.on_event("startup")
+@app.on_event("startup")
 async def start_metrics_broadcast():
     async def broadcast_metrics_periodically():
         while True:
@@ -434,7 +433,7 @@ async def start_metrics_broadcast():
 
     asyncio.create_task(broadcast_metrics_periodically())
 
-# REMOVED_UNUSED_CODE: @app.websocket("/ws/{client_id}")
+@app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
     await manager.connect(websocket, client_id)
     try:
@@ -455,8 +454,9 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
 
 if __name__ == "__main__":
     uvicorn.run(
-        app,
+        "freqai_interface:app",
         host="0.0.0.0",
         port=int(os.getenv("API_PORT", 8001)),
-        reload=True
+        reload=True,
+        workers=2
     )

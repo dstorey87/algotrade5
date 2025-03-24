@@ -13,10 +13,12 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements first for better caching
 COPY requirements-freqai.txt .
 
-# Install dependencies into a virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir -r requirements-freqai.txt
+# Use BuildKit cache mount to avoid downloading packages repeatedly
+# This ensures dependencies are cached between builds
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m venv /opt/venv && \
+    . /opt/venv/bin/activate && \
+    pip install --cache-dir=/root/.cache/pip -r requirements-freqai.txt
 
 # Stage 2: Runtime
 FROM python:3.11-slim as runtime
@@ -41,12 +43,15 @@ ENV DOCKER_BUILDKIT=1
 ENV LOG_LEVEL=INFO
 ENV LOG_FILE=/app/logs/freqai.log
 
-# Copy source files
-COPY src/freqai_interface.py /app/src/
-COPY src/freqai_service.py /app/src/
+# Copy the entire src directory
+COPY src /app/src
+
+# Ensure __init__.py exists in src directory
+RUN touch /app/src/__init__.py
 
 # Use non-root user for security
-RUN useradd -m -u 1000 freqai
+RUN useradd -m -u 1000 freqai && \
+    chown -R freqai:freqai /app
 USER freqai
 
 # Health check
@@ -54,4 +59,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8001/health || exit 1
 
 # Start FreqAI service
-CMD ["python", "-m", "uvicorn", "src.freqai_interface:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "src.freqai_interface:app", "--host", "0.0.0.0", "--port", "8001"]

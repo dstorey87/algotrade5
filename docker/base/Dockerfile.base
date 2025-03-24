@@ -1,0 +1,44 @@
+# syntax=docker/dockerfile:1.4
+FROM python:3.11-slim as base
+
+# Set build arguments and environment variables
+ARG DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Create cache directories
+RUN mkdir -p /root/.cache/pip \
+    /root/.cache/huggingface \
+    /root/.cache/deps
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    curl \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy cache mounts first for better layer caching
+COPY docker/programdata/pip_cache /root/.cache/pip
+COPY docker/programdata/model_cache /root/.cache/huggingface
+COPY docker/programdata/dependency_cache /root/.cache/deps
+
+# Install base requirements using cache
+COPY requirements.txt requirements-freqai.txt ./
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-freqai.txt
+
+# Create necessary directories and set permissions
+RUN mkdir -p /app/logs /app/models /app/cache /app/src && \
+    groupadd -r freqai && \
+    useradd -r -g freqai -d /app freqai && \
+    chown -R freqai:freqai /app /root/.cache
+
+# Health check for base image
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1

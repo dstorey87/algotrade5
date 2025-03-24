@@ -73,6 +73,7 @@ docs/
 *
 
 # Allow specific directories and files
+!src/
 !docker/programdata/pip_cache
 !docker/programdata/model_cache
 !docker/programdata/dependency_cache
