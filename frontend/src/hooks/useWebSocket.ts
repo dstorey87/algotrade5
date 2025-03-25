@@ -1,135 +1,101 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { WSMessage } from '@/types';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import msgpack from 'msgpack-lite';
 
 interface UseWebSocketOptions {
   url: string;
-  onMessage?: (message: WSMessage | WSMessage[]) => void;
-  reconnectAttempts?: number;
+  onMessage?: (message: any) => void;
   reconnectInterval?: number;
-  batchInterval?: number;
-  enableCompression?: boolean;
+  maxReconnectAttempts?: number;
 }
 
-export function useWebSocket({
+export type WebSocketConnectionStatus = 'connecting' | 'connected' | 'disconnected';
+
+export const useWebSocket = ({
   url,
   onMessage,
-  reconnectAttempts = 5,
   reconnectInterval = 3000,
-  batchInterval = 100,
-  enableCompression = true
-}: UseWebSocketOptions) {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const attempts = useRef(0);
-  const messageQueue = useRef<WSMessage[]>([]);
-  const batchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [readyState, setReadyState] = useState<number>(WebSocket.CONNECTING);
+  maxReconnectAttempts = 5
+}: UseWebSocketOptions) => {
+  const [connectionStatus, setConnectionStatus] = useState<WebSocketConnectionStatus>('disconnected');
+  const [lastMessage, setLastMessage] = useState<any>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Connection management with exponential backoff
   const connect = useCallback(() => {
     try {
       const ws = new WebSocket(url);
+      wsRef.current = ws;
+      setConnectionStatus('connecting');
+
+      ws.binaryType = 'arraybuffer';
 
       ws.onopen = () => {
-        setIsConnected(true);
-        setError(null);
-        attempts.current = 0;
-        setReadyState(WebSocket.OPEN);
+        setConnectionStatus('connected');
+        reconnectAttemptsRef.current = 0;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const message = msgpack.decode(new Uint8Array(event.data));
+          setLastMessage(message);
+          onMessage?.(message);
+        } catch (error) {
+          console.error('Failed to decode message:', error);
+        }
       };
 
       ws.onclose = () => {
-        setIsConnected(false);
-        setReadyState(WebSocket.CLOSED);
-        
-        // Implement exponential backoff for reconnection
-        if (attempts.current < reconnectAttempts) {
-          const delay = reconnectInterval * Math.pow(2, attempts.current);
-          setTimeout(() => {
-            attempts.current++;
+        setConnectionStatus('disconnected');
+        wsRef.current = null;
+
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectAttemptsRef.current += 1;
             connect();
-          }, delay);
+          }, reconnectInterval);
         }
       };
 
-      ws.onerror = (event) => {
-        setError('WebSocket connection error');
-        setReadyState(WebSocket.CLOSED);
-        console.error('WebSocket error:', event);
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
       };
-
-      // Enhanced message handling with batching and compression
-      ws.onmessage = (event) => {
-        try {
-          const data = enableCompression ? 
-            decompress(event.data) : 
-            JSON.parse(event.data);
-          
-          messageQueue.current.push(data);
-
-          if (!batchTimeout.current) {
-            batchTimeout.current = setTimeout(() => {
-              if (messageQueue.current.length > 0) {
-                onMessage?.(messageQueue.current);
-                messageQueue.current = [];
-              }
-              batchTimeout.current = null;
-            }, batchInterval);
-          }
-        } catch (err) {
-          console.error('Error processing WebSocket message:', err);
-          setError('Failed to process message');
-        }
-      };
-
-      setSocket(ws);
-      return () => {
-        ws.close();
-        if (batchTimeout.current) {
-          clearTimeout(batchTimeout.current);
-          batchTimeout.current = null;
-        }
-      };
-    } catch (err) {
-      setError('Failed to create WebSocket connection');
-      setReadyState(WebSocket.CLOSED);
-      console.error('WebSocket connection error:', err);
+    } catch (error) {
+      console.error('Failed to create WebSocket:', error);
+      setConnectionStatus('disconnected');
     }
-  }, [url, reconnectAttempts, reconnectInterval, batchInterval, enableCompression, onMessage]);
+  }, [url, onMessage, reconnectInterval, maxReconnectAttempts]);
 
-  // Initialize connection
+  const disconnect = useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
+    setConnectionStatus('disconnected');
+  }, []);
+
+  const sendMessage = useCallback((message: any) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      const encoded = msgpack.encode(message);
+      wsRef.current.send(encoded);
+      return true;
+    }
+    return false;
+  }, []);
+
   useEffect(() => {
-    const cleanup = connect();
-    return () => cleanup?.();
-  }, [connect]);
-
-  // Message compression helper
-  const decompress = useCallback((data: string): WSMessage => {
-    // Implement your compression algorithm here
-    return JSON.parse(data);
-  }, []);
-
-  // Optimized send function with compression
-  const sendMessage = useCallback((message: string | object) => {
-    if (socket?.readyState === WebSocket.OPEN) {
-      const data = typeof message === 'string' ? message : JSON.stringify(message);
-      socket.send(enableCompression ? compress(data) : data);
-    } else {
-      console.warn('WebSocket is not connected');
-    }
-  }, [socket, enableCompression]);
-
-  // Message compression helper
-  const compress = useCallback((data: string): string => {
-    // Implement your compression algorithm here
-    return data;
-  }, []);
+    connect();
+    return () => {
+      disconnect();
+    };
+  }, [connect, disconnect]);
 
   return {
-    isConnected,
-    error,
-    sendMessage,
-    readyState,
-    messageQueue: messageQueue.current
+    connectionStatus,
+    lastMessage,
+    sendMessage
   };
-}
+};

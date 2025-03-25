@@ -11,7 +11,7 @@ import torch
 import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, field_validator
+# REMOVED_UNUSED_CODE: from pydantic import BaseModel, Field, field_validator
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import asyncio
 
@@ -28,7 +28,7 @@ logger = logging.getLogger("freqai")
 
 # Enhanced monitoring metrics
 class ModelActivity(BaseModel):
-    timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
+# REMOVED_UNUSED_CODE:     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
     model_name: str
     action: str
     success: bool
@@ -36,18 +36,18 @@ class ModelActivity(BaseModel):
     metrics: Optional[Dict[str, float]] = None
 
 class SystemMetrics(BaseModel):
-    gpu_usage: float = 0.0
-    memory_usage: float = 0.0
+# REMOVED_UNUSED_CODE:     gpu_usage: float = 0.0
+# REMOVED_UNUSED_CODE:     memory_usage: float = 0.0
     model_cache_size: int
-    active_requests: int = 0
-    last_error: Optional[str] = None
+# REMOVED_UNUSED_CODE:     active_requests: int = 0
+# REMOVED_UNUSED_CODE:     last_error: Optional[str] = None
 
 class TradingStatus(BaseModel):
-    is_running: bool = True
-    active_models: List[str] = []
-    current_trades: List[Dict[str, Any]] = []
-    current_balance: float = 10.0
-    drawdown: float = 0.0
+# REMOVED_UNUSED_CODE:     is_running: bool = True
+# REMOVED_UNUSED_CODE:     active_models: List[str] = []
+# REMOVED_UNUSED_CODE:     current_trades: List[Dict[str, Any]] = []
+# REMOVED_UNUSED_CODE:     current_balance: float = 10.0
+# REMOVED_UNUSED_CODE:     drawdown: float = 0.0
 
 class PredictionRequest(BaseModel):
     pair: str
@@ -76,12 +76,12 @@ class PredictionRequest(BaseModel):
 # REMOVED_UNUSED_CODE:         return v
 
 class ModelMetrics(BaseModel):
-    accuracy: float = Field(ge=0, le=1)
-    precision: float = Field(ge=0, le=1)
-    recall: float = Field(ge=0, le=1)
-    f1_score: float = Field(ge=0, le=1)
-    win_rate: float = Field(ge=0, le=1)
-    drawdown: float = Field(ge=0, le=1)
+# REMOVED_UNUSED_CODE:     accuracy: float = Field(ge=0, le=1)
+# REMOVED_UNUSED_CODE:     precision: float = Field(ge=0, le=1)
+# REMOVED_UNUSED_CODE:     recall: float = Field(ge=0, le=1)
+# REMOVED_UNUSED_CODE:     f1_score: float = Field(ge=0, le=1)
+# REMOVED_UNUSED_CODE:     win_rate: float = Field(ge=0, le=1)
+# REMOVED_UNUSED_CODE:     drawdown: float = Field(ge=0, le=1)
 
 class PredictionResponse(BaseModel):
     prediction: float
@@ -145,12 +145,12 @@ class ModelLoader:
         try:
             if torch.cuda.is_available():
                 max_memory = torch.cuda.max_memory_allocated()
-                self.system_metrics.gpu_usage = torch.cuda.memory_allocated() / max_memory if max_memory > 0 else 0.0
+# REMOVED_UNUSED_CODE:                 self.system_metrics.gpu_usage = torch.cuda.memory_allocated() / max_memory if max_memory > 0 else 0.0
             self.system_metrics.model_cache_size = len(self.loaded_models)
-            self.system_metrics.memory_usage = self.system_metrics.model_cache_size * 0.1  # Approximate GB per model
+# REMOVED_UNUSED_CODE:             self.system_metrics.memory_usage = self.system_metrics.model_cache_size * 0.1  # Approximate GB per model
         except Exception as e:
             logger.error(f"Failed to update system metrics: {str(e)}")
-            self.system_metrics.last_error = str(e)
+# REMOVED_UNUSED_CODE:             self.system_metrics.last_error = str(e)
         
     def load_llm(self, model_name: str):
         """Load an LLM model with optimizations"""
@@ -197,14 +197,14 @@ class ModelLoader:
             model_path = model_path / "quantum"
             # Load model configuration
             with open(model_path / "config.json") as f:
-                config = json.load(f)
+# REMOVED_UNUSED_CODE:                 config = json.load(f)
                 
             # TODO: Implement actual quantum model loading
             # For now return a mock model that generates realistic predictions
-            model = lambda x: (
-                float(np.clip(np.random.normal(0.5, 0.2), 0, 1)), 
-                float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
-            )
+# REMOVED_UNUSED_CODE:             model = lambda x: (
+# REMOVED_UNUSED_CODE:                 float(np.clip(np.random.normal(0.5, 0.2), 0, 1)), 
+# REMOVED_UNUSED_CODE:                 float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
+# REMOVED_UNUSED_CODE:             )
             
         else:
             model_path = model_path / "ml" / model_name
@@ -216,10 +216,10 @@ class ModelLoader:
             
             # TODO: Implement loading of other ML models
             # For now return a mock model
-            model = lambda x: (
-                float(np.clip(np.random.normal(0.5, 0.2), 0, 1)),
-                float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
-            )
+# REMOVED_UNUSED_CODE:             model = lambda x: (
+# REMOVED_UNUSED_CODE:                 float(np.clip(np.random.normal(0.5, 0.2), 0, 1)),
+# REMOVED_UNUSED_CODE:                 float(np.clip(np.random.normal(0.9, 0.05), 0.85, 1))
+# REMOVED_UNUSED_CODE:             )
             
         self.loaded_models[model_name] = model
         return model
@@ -255,19 +255,19 @@ def get_model_metrics(model_name: str) -> ModelMetrics:
         drawdown=0.10 - np.random.random() * 0.05
     )
 
-@app.get("/")
+# REMOVED_UNUSED_CODE: @app.get("/")
 async def root():
     """Root endpoint to verify API is running"""
     return {"status": "ok", "message": "FreqAI API is running"}
 
-@app.get("/health")
+# REMOVED_UNUSED_CODE: @app.get("/health")
 async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat()
     }
 
-@app.get("/api/v1/status", response_model=TradingStatus)
+# REMOVED_UNUSED_CODE: @app.get("/api/v1/status", response_model=TradingStatus)
 async def get_status():
     return {
         "is_running": True,
@@ -277,7 +277,7 @@ async def get_status():
         "drawdown": 0.0
     }
 
-@app.get("/models")
+# REMOVED_UNUSED_CODE: @app.get("/models")
 async def list_models():
     """List available AI models"""
     return {
@@ -297,7 +297,7 @@ async def list_models():
         ]
     }
 
-@app.post("/predict", response_model=PredictionResponse)
+# REMOVED_UNUSED_CODE: @app.post("/predict", response_model=PredictionResponse)
 async def predict(data: PredictionRequest):
     """Make trading predictions using FreqAI models"""
     try:
@@ -356,7 +356,7 @@ async def predict(data: PredictionRequest):
         )
         raise HTTPException(status_code=500, detail=error_msg)
 
-@app.get("/metrics")
+# REMOVED_UNUSED_CODE: @app.get("/metrics")
 async def get_metrics():
     """Get model performance metrics"""
     return {
@@ -365,18 +365,18 @@ async def get_metrics():
         "win_rate": 0.85
     }
 
-@app.get("/api/v1/system/metrics")
+# REMOVED_UNUSED_CODE: @app.get("/api/v1/system/metrics")
 async def get_system_metrics():
     """Get current system metrics"""
     model_loader.update_system_metrics()
     return model_loader.system_metrics
 
-@app.get("/api/v1/system/activity")
+# REMOVED_UNUSED_CODE: @app.get("/api/v1/system/activity")
 async def get_model_activity(limit: int = 100):
     """Get recent model activity"""
     return {"activities": model_loader.model_activity[-limit:]}
 
-@app.get("/api/v1/system/logs")
+# REMOVED_UNUSED_CODE: @app.get("/api/v1/system/logs")
 async def get_system_logs(limit: int = 100):
     """Get recent system logs"""
     try:
@@ -415,7 +415,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # Add background task to periodically broadcast metrics
-@app.on_event("startup")
+# REMOVED_UNUSED_CODE: @app.on_event("startup")
 async def start_metrics_broadcast():
     async def broadcast_metrics_periodically():
         while True:
@@ -433,7 +433,7 @@ async def start_metrics_broadcast():
 
     asyncio.create_task(broadcast_metrics_periodically())
 
-@app.websocket("/ws/{client_id}")
+# REMOVED_UNUSED_CODE: @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
     await manager.connect(websocket, client_id)
     try:

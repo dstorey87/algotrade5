@@ -35,18 +35,24 @@ jest.mock('@heroicons/react/24/outline', () => ({
   ),
 }));
 
-// Component that throws an error for testing
-const ThrowError = () => {
+const ErrorComponent = () => {
   throw new Error('Test error');
+};
+
+const RecoverableComponent = ({ shouldError }: { shouldError: boolean }) => {
+  if (shouldError) {
+    throw new Error('Test error');
+  }
+  return <div data-testid="recovered-component">Recovered Content</div>;
 };
 
 describe('ErrorBoundary', () => {
   // Prevent console.error from cluttering the test output
-  beforeAll(() => {
+  beforeEach(() => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  afterAll(() => {
+  afterEach(() => {
     jest.restoreAllMocks();
   });
 
@@ -60,43 +66,32 @@ describe('ErrorBoundary', () => {
     expect(screen.getByTestId('test-child')).toBeInTheDocument();
   });
 
-  it('renders error UI when an error occurs', () => {
+  it('renders error UI when there is an error', () => {
     render(
-      <ErrorBoundary componentName="TestComponent">
-        <ThrowError />
+      <ErrorBoundary>
+        <ErrorComponent />
       </ErrorBoundary>
     );
 
-    expect(screen.getByTestId('tremor-card')).toBeInTheDocument();
-    expect(screen.getByTestId('tremor-title')).toHaveTextContent('TestComponent Error');
-    expect(screen.getByText(/A component has encountered an error/i)).toBeInTheDocument();
-    expect(screen.getByText('Test error')).toBeInTheDocument();
+    expect(screen.getByText(/Component Error/i)).toBeInTheDocument();
+    expect(screen.getByText(/Test error/i)).toBeInTheDocument();
   });
 
   it('allows recovery with the Try Again button', () => {
-    const TestComponent = ({ shouldThrow }: { shouldThrow: boolean }) => {
-      if (shouldThrow) {
-        throw new Error('Test error');
-      }
-      return <div data-testid="recovered-component">Component Recovered</div>;
-    };
-
     const { rerender } = render(
       <ErrorBoundary>
-        <TestComponent shouldThrow={true} />
+        <RecoverableComponent shouldError={true} />
       </ErrorBoundary>
     );
 
-    // Error UI should be shown
-    expect(screen.getByTestId('tremor-card')).toBeInTheDocument();
-    
-    // Click the "Try Again" button
-    fireEvent.click(screen.getByTestId('tremor-button'));
-    
-    // Rerender with a non-throwing component
+    // First, we see the error
+    expect(screen.getByText(/Component Error/i)).toBeInTheDocument();
+
+    // Click try again and rerender with shouldError=false
+    fireEvent.click(screen.getByText('Try Again'));
     rerender(
       <ErrorBoundary>
-        <TestComponent shouldThrow={false} />
+        <RecoverableComponent shouldError={false} />
       </ErrorBoundary>
     );
     

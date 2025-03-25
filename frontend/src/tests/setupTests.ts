@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { TextDecoder, TextEncoder } from 'util';
 import { configure } from '@testing-library/react';
 import { QueryClient } from '@tanstack/react-query';
+import { enableFetchMocks } from 'jest-fetch-mock';
 
 // Mock TextEncoder/TextDecoder for msgpack-lite
 global.TextEncoder = TextEncoder;
@@ -9,6 +10,9 @@ global.TextDecoder = TextDecoder;
 
 // Configure testing library
 configure({ testIdAttribute: 'data-testid' });
+
+// Enable fetch mocks
+enableFetchMocks();
 
 // Create a shared QueryClient for testing
 export const createTestQueryClient = () => new QueryClient({
@@ -56,10 +60,14 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),
 }));
 
-// Mock for WebSocket
-global.WebSocket = jest.fn().mockImplementation(() => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  send: jest.fn(),
-  close: jest.fn(),
-}));
+// Mock WebSocket
+class MockWebSocket {
+  onopen: () => void = () => {};
+  onclose: () => void = () => {};
+  onmessage: (data: any) => void = () => {};
+  onerror: () => void = () => {};
+  send = jest.fn();
+  close = jest.fn();
+}
+
+global.WebSocket = MockWebSocket as any;

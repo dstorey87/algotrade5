@@ -33,15 +33,15 @@ from pathlib import Path
 # REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     CRITICAL = 4  # System-stopping issues
 
 
-class ErrorCategory(enum.Enum):
-    """Error categories for classification"""
-
-# REMOVED_UNUSED_CODE:     SYSTEM = "System"
-    TRADE = "Trade"
-    MODEL = "Model"
-    DATA = "Data"
-# REMOVED_UNUSED_CODE:     NETWORK = "Network"
-    GPU = "GPU"
+# REMOVED_UNUSED_CODE: class ErrorCategory(enum.Enum):
+# REMOVED_UNUSED_CODE:     """Error categories for classification"""
+# REMOVED_UNUSED_CODE: 
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     SYSTEM = "System"
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     TRADE = "Trade"
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     MODEL = "Model"
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     DATA = "Data"
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     NETWORK = "Network"
+# REMOVED_UNUSED_CODE: # REMOVED_UNUSED_CODE:     GPU = "GPU"
 # REMOVED_UNUSED_CODE:     QUANTUM = "Quantum"
 # REMOVED_UNUSED_CODE:     SETUP = "Setup"
 # REMOVED_UNUSED_CODE:     CUDA = "CUDA"

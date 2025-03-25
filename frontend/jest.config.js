@@ -1,13 +1,14 @@
 /** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/src/tests/setupTests.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   transform: {
-    '^.+\\.(t|j)sx?$': ['@swc/jest'],
+    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
   },
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
@@ -16,4 +17,10 @@ module.exports = {
   transformIgnorePatterns: [
     '/node_modules/(?!(@tanstack|react-query)/)',
   ],
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.json',
+      babelConfig: true,
+    },
+  }
 };

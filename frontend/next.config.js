@@ -1,11 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  poweredByHeader: false,
-  images: {
-    domains: ['localhost'],
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:8080/api/:path*',
+      },
+      {
+        source: '/ws',
+        destination: 'http://localhost:8080/ws',
+      },
+    ];
   },
-  pageExtensions: ['tsx', 'ts', 'jsx', 'js']
-}
+  webpack: (config) => {
+    config.experiments = {
+      ...config.experiments,
+      topLevelAwait: true,
+    };
+    return config;
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

@@ -93,3 +93,4 @@ docker/programdata/
 
 # Next.js build output
 .next/
+code_backup_*

@@ -1,77 +1,69 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
-import { FixedSizeList as RWList, ListChildComponentProps } from 'react-window';
-import RawAutoSizer from 'react-virtualized-auto-sizer';
-import { Trade } from '@/types';
-import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
+import React, { memo } from 'react';
+import { FixedSizeList } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { Paper, Typography, Box } from '@mui/material';
+import type { Trade } from '../../services/websocket';
 
-// Type assertions to fix the component type issues
-const FixedSizeList = RWList as unknown as React.FC<any>;
-const AutoSizer = RawAutoSizer as unknown as React.FC<any>;
-
-interface VirtualizedTradeListProps {
+interface Props {
   trades: Trade[];
-  rowHeight?: number;
 }
 
-const TradeRow = React.memo(({ index, style, data }: ListChildComponentProps<Trade[]>) => {
+const TradeRow = memo(({ index, style, data }: any) => {
   const trade = data[index];
+  const profit = trade.profit;
+  const color = profit >= 0 ? '#00ff88' : '#ff0088';
+
   return (
-    <div style={style} className="trade-row">
-      <span>{trade.pair}</span>
-      <span>{trade.type}</span>
-      <span>{trade.profit}</span>
-    </div>
+    <Box
+      style={style}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        padding: 2,
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        backgroundColor: index % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent',
+        '&:hover': {
+          backgroundColor: 'rgba(0,0,0,0.1)',
+        }
+      }}
+    >
+      <Typography sx={{ flex: 1 }}>{trade.pair}</Typography>
+      <Typography sx={{ flex: 1 }}>{trade.type.toUpperCase()}</Typography>
+      <Typography sx={{ flex: 1, color }}>
+        {profit.toFixed(8)} BTC
+      </Typography>
+      <Typography sx={{ flex: 1 }}>
+        {new Date(trade.timestamp).toLocaleTimeString()}
+      </Typography>
+    </Box>
   );
 });
 
 TradeRow.displayName = 'TradeRow';
 
-export const VirtualizedTradeList = React.forwardRef<HTMLDivElement, VirtualizedTradeListProps>(({ 
-  trades,
-  rowHeight = 35
-}, ref) => {
-  const { logRenderTime } = usePerformanceMonitor('VirtualizedTradeList');
-
-  const sortedTrades = useMemo(() => {
-    const startTime = performance.now();
-    const sorted = [...trades].sort((a, b) => {
-      const aTime = new Date(a.timestamp).getTime();
-      const bTime = new Date(b.timestamp).getTime();
-      return bTime - aTime;
-    });
-    logRenderTime(performance.now() - startTime);
-    return sorted;
-  }, [trades, logRenderTime]);
-
-  // Performance monitoring for render cycles
-  useEffect(() => {
-    const startTime = performance.now();
-    return () => {
-      logRenderTime(performance.now() - startTime);
-    };
-  });
-
-  const getItemKey = useCallback((index: number) => {
-    return sortedTrades[index].id;
-  }, [sortedTrades]);
-
+export const VirtualizedTradeList: React.FC<Props> = ({ trades }) => {
   return (
-    <div ref={ref} style={{ height: '100%', width: '100%' }}>
+    <Paper sx={{ height: '60vh', bgcolor: 'background.paper' }}>
+      <Box sx={{ display: 'flex', p: 2, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <Typography sx={{ flex: 1, fontWeight: 'bold' }}>Pair</Typography>
+        <Typography sx={{ flex: 1, fontWeight: 'bold' }}>Type</Typography>
+        <Typography sx={{ flex: 1, fontWeight: 'bold' }}>Profit</Typography>
+        <Typography sx={{ flex: 1, fontWeight: 'bold' }}>Time</Typography>
+      </Box>
       <AutoSizer>
-        {({ height, width }: { height: number; width: number }) => (
+        {({ height, width }) => (
           <FixedSizeList
-            height={height}
+            height={height - 56} // Subtract header height
             width={width}
-            itemCount={sortedTrades.length}
-            itemSize={rowHeight}
-            itemData={sortedTrades}
-            itemKey={getItemKey}
-            overscanCount={5} // Optimize rendering by pre-rendering additional items
+            itemCount={trades.length}
+            itemSize={64}
+            itemData={trades}
+            overscanCount={5}
           >
             {TradeRow}
           </FixedSizeList>
         )}
       </AutoSizer>
-    </div>
+    </Paper>
   );
-});
+};

@@ -4,6 +4,7 @@
         "test": "echo \"No tests specified yet\" && exit 0"
     },
     "devDependencies": {
+        "@emotion/babel-plugin": "^11.13.5",
         "@types/msgpack-lite": "^0.1.11",
         "@types/react-virtualized-auto-sizer": "^1.0.4",
         "@types/react-window": "^1.8.8",

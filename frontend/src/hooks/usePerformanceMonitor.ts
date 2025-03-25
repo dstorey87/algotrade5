@@ -1,57 +1,88 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { PerformanceMetrics } from '../services/websocket';
 
-interface PerformanceMetrics {
-  messageProcessingTime: number[];
-  batchSize: number[];
-  renderTime: number[];
-  timestamp: number;
+interface ComponentMetrics {
+  componentRenderTime: number;
+  lastUpdateTimestamp: number;
+  memoryUsage?: number;
 }
 
-export function usePerformanceMonitor(componentName: string) {
-  const metrics = useRef<PerformanceMetrics>({
-    messageProcessingTime: [],
-    batchSize: [],
-    renderTime: [],
-    timestamp: Date.now()
+export interface PerformanceData extends PerformanceMetrics, ComponentMetrics {}
+
+export const usePerformanceMonitor = (componentName: string) => {
+  const [metrics, setMetrics] = useState<PerformanceData>({
+    messageProcessingRate: 0,
+    batchSize: 0,
+    compressionRatio: 0,
+    latency: 0,
+    componentRenderTime: 0,
+    lastUpdateTimestamp: Date.now()
   });
 
-  const logMetric = (type: keyof Omit<PerformanceMetrics, 'timestamp'>, value: number) => {
-    metrics.current[type].push(value);
-    
-    // Keep only last 100 measurements
-    if (metrics.current[type].length > 100) {
-      metrics.current[type].shift();
-    }
-  };
+  const frameRef = useRef<number>();
+  const startTimeRef = useRef<number>(performance.now());
 
-  const getAverageMetrics = () => {
-    const avg = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
+  const measureRenderTime = useCallback(() => {
+    const renderTime = performance.now() - startTimeRef.current;
     
-    return {
-      avgProcessingTime: avg(metrics.current.messageProcessingTime),
-      avgBatchSize: avg(metrics.current.batchSize),
-      avgRenderTime: avg(metrics.current.renderTime)
-    };
-  };
+    setMetrics(prev => ({
+      ...prev,
+      componentRenderTime: renderTime,
+      lastUpdateTimestamp: Date.now()
+    }));
 
-  // Report metrics every minute
+    // Reset for next render
+    startTimeRef.current = performance.now();
+  }, []);
+
+  const updateMetrics = useCallback((wsMetrics: Partial<PerformanceMetrics>) => {
+    setMetrics(prev => ({
+      ...prev,
+      ...wsMetrics,
+      lastUpdateTimestamp: Date.now()
+    }));
+  }, []);
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      const avgMetrics = getAverageMetrics();
-      console.log(`Performance metrics for ${componentName}:`, {
-        ...avgMetrics,
-        timestamp: new Date().toISOString(),
-        sampleSize: metrics.current.messageProcessingTime.length
-      });
-    }, 60000);
+    const measurePerformance = () => {
+      // Skip measurement if document is hidden
+      if (document.hidden) {
+        return;
+      }
 
-    return () => clearInterval(interval);
-  }, [componentName]);
+      const currentMemory = (performance as any).memory?.usedJSHeapSize;
+      
+      // Update performance metrics
+      setMetrics(prev => ({
+        ...prev,
+        memoryUsage: currentMemory,
+        lastUpdateTimestamp: Date.now()
+      }));
+
+      frameRef.current = requestAnimationFrame(measurePerformance);
+    };
+
+    frameRef.current = requestAnimationFrame(measurePerformance);
+
+    return () => {
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
+
+  // Log performance data periodically for debugging
+  useEffect(() => {
+    const logInterval = setInterval(() => {
+      console.debug(`[${componentName}] Performance Metrics:`, metrics);
+    }, 5000); // Log every 5 seconds
+
+    return () => clearInterval(logInterval);
+  }, [componentName, metrics]);
 
   return {
-    logMessageProcessing: (time: number) => logMetric('messageProcessingTime', time),
-    logBatchSize: (size: number) => logMetric('batchSize', size),
-    logRenderTime: (time: number) => logMetric('renderTime', time),
-    getAverageMetrics
+    metrics,
+    measureRenderTime,
+    updateMetrics
   };
-}
+};

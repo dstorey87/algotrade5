@@ -1,116 +1,30 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { AppProps } from 'next/app';
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { Provider } from 'react-redux';
-import { store } from '../store';
-import Layout from '../components/Layout';
+import * as React from 'react';
+import Head from 'next/head';
+import { AppProps } from 'next/app';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { CacheProvider, EmotionCache } from '@emotion/react';
+import theme from '@/lib/theme';
+import createEmotionCache from '@/lib/createEmotionCache';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1
-    },
-  },
-});
+// Client-side cache, shared for the whole session of the user in the browser.
+const clientSideEmotionCache = createEmotionCache();
 
-// Create the theme
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#3f51b5',
-      light: '#757de8',
-      dark: '#002984',
-    },
-    secondary: {
-      main: '#f50057',
-      light: '#ff4081',
-      dark: '#c51162',
-    },
-    background: {
-      default: '#0a1929',
-      paper: '#132f4c',
-    },
-    error: {
-      main: '#f44336',
-    },
-    warning: {
-      main: '#ff9800',
-    },
-    success: {
-      main: '#4caf50',
-    },
-    info: {
-      main: '#2196f3',
-    },
-  },
-  typography: {
-    fontFamily: "'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif",
-    h1: {
-      fontSize: '2.5rem',
-      fontWeight: 600,
-    },
-    h2: {
-      fontSize: '2rem',
-      fontWeight: 600,
-    },
-    h3: {
-      fontSize: '1.75rem',
-      fontWeight: 600,
-    },
-    h4: {
-      fontSize: '1.5rem',
-      fontWeight: 500,
-    },
-    h5: {
-      fontSize: '1.25rem',
-      fontWeight: 500,
-    },
-    h6: {
-      fontSize: '1rem',
-      fontWeight: 500,
-    },
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none',
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none',
-          borderRadius: 12,
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          fontWeight: 500,
-        },
-      },
-    },
-  },
-});
+export interface MyAppProps extends AppProps {
+  emotionCache?: EmotionCache;
+}
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function MyApp({ Component, emotionCache = clientSideEmotionCache, pageProps }: MyAppProps) {
   return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </Provider>
+    <CacheProvider value={emotionCache}>
+      <Head>
+        <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <title>AlgoTradePro5</title>
+      </Head>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Component {...pageProps} />
+      </ThemeProvider>
+    </CacheProvider>
   );
 }

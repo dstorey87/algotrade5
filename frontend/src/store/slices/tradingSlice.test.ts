@@ -1,74 +1,95 @@
 import tradingReducer, {
-  updateBalance,
-  setActiveStrategy,
-  updateMetrics,
-  addTrade,
-  setTrading,
+  setTradingEnabled,
   setError,
-  TradingState
-} from './tradingSlice'
+  updateBalance,
+  updateSystemStatus,
+  emergencyStop
+} from './tradingSlice';
 
 describe('tradingSlice', () => {
-  const initialState: TradingState = {
-    balance: 10.0,
-    activeStrategy: null,
-    winRate: 0,
-    drawdown: 0,
+  const initialState = {
+    tradingEnabled: false,
+    currentStrategy: null,
+    balance: {
+      total: 0,
+      free: 0,
+      used: 0
+    },
+    performanceStats: null,
+    error: null,
+    systemStatus: {
+      freqtrade: false,
+      database: false,
+      models: false,
+      quantum: false
+    },
+    isLoading: false,
+    realTimeEnabled: false,
+    isConnected: false,
+    currentTrade: null,
     trades: [],
-    isTrading: false,
-    lastError: null
-  }
+    openPositions: [],
+    tradeHistory: [],
+    aiMetrics: {
+      accuracy: 0,
+      precision: 0,
+      recall: 0,
+      f1Score: 0,
+      latency: 0,
+      ensembleAccuracy: 0,
+      activeModels: 0,
+      trainingInProgress: false
+    }
+  };
 
   it('should handle initial state', () => {
-    expect(tradingReducer(undefined, { type: 'unknown' })).toEqual(initialState)
-  })
+    expect(tradingReducer(undefined, { type: 'unknown' })).toEqual(initialState);
+  });
 
-  it('should handle updateBalance', () => {
-    const actual = tradingReducer(initialState, updateBalance(15.5))
-    expect(actual.balance).toEqual(15.5)
-  })
-
-  it('should handle setActiveStrategy', () => {
-    const strategy = {
-      id: '1',
-      name: 'Test Strategy',
-      winRate: 85,
-      profitFactor: 2.5,
-      sharpeRatio: 1.8,
-      maxDrawdown: 15,
-    }
-    const actual = tradingReducer(initialState, setActiveStrategy(strategy))
-    expect(actual.activeStrategy).toEqual(strategy)
-  })
-
-  it('should handle updateMetrics', () => {
-    const metrics = { winRate: 0.85, drawdown: 0.05 }
-    const actual = tradingReducer(initialState, updateMetrics(metrics))
-    expect(actual.winRate).toEqual(0.85)
-    expect(actual.drawdown).toEqual(0.05)
-  })
-
-  it('should handle addTrade', () => {
-    const trade = {
-      id: '1',
-      pair: 'BTC/USDT',
-      type: 'buy',
-      amount: 0.001,
-      price: 50000
-    }
-    const actual = tradingReducer(initialState, addTrade(trade))
-    expect(actual.trades).toHaveLength(1)
-    expect(actual.trades[0]).toEqual(trade)
-  })
-
-  it('should handle setTrading', () => {
-    const actual = tradingReducer(initialState, setTrading(true))
-    expect(actual.isTrading).toBe(true)
-  })
+  it('should handle setTradingEnabled', () => {
+    const actual = tradingReducer(initialState, setTradingEnabled(true));
+    expect(actual.tradingEnabled).toEqual(true);
+  });
 
   it('should handle setError', () => {
-    const errorMessage = 'API connection failed'
-    const actual = tradingReducer(initialState, setError(errorMessage))
-    expect(actual.lastError).toEqual(errorMessage)
-  })
+    const actual = tradingReducer(initialState, setError('Test error'));
+    expect(actual.error).toEqual('Test error');
+  });
+
+  it('should handle updateBalance', () => {
+    const newBalance = {
+      total: 100,
+      free: 80,
+      used: 20
+    };
+    const actual = tradingReducer(initialState, updateBalance(newBalance));
+    expect(actual.balance).toEqual(newBalance);
+  });
+
+  it('should handle updateSystemStatus', () => {
+    const newStatus = {
+      freqtrade: true,
+      database: true,
+      models: true,
+      quantum: false
+    };
+    const actual = tradingReducer(initialState, updateSystemStatus(newStatus));
+    expect(actual.systemStatus).toEqual(newStatus);
+  });
+
+  it('should handle emergencyStop', () => {
+    const state = {
+      ...initialState,
+      tradingEnabled: true,
+      trades: [
+        { id: 1, status: 'open' },
+        { id: 2, status: 'closed' }
+      ]
+    };
+    const actual = tradingReducer(state, emergencyStop());
+    expect(actual.tradingEnabled).toBe(false);
+    expect(actual.trades[0].status).toBe('cancelled');
+    expect(actual.trades[1].status).toBe('closed');
+    expect(actual.error).toBe('Emergency stop initiated - all trades cancelled');
+  });
 });

@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { TradeList } from './TradeList';
-import { TradeStats } from './TradeStats';
-import { TradeChart } from './TradeChart';
+import { TradeList } from '../TradeList';
+import { TradeStats } from '../TradeStats';
+import { TradeChart } from '../TradeChart';
 import { Trade, TradeStats as TradeStatsType } from '@/types/trade';
 
 export const TradeMonitor: React.FC = () => {
