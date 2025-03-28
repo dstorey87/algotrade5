@@ -16,7 +16,7 @@ services:
       - "8080:8080"
     command: >
       trade
-      --strategy QuantumLoopStrategy
+      --strategy QuantumFreqAIStrategy
       --db-url sqlite:///databases/tradesv3.sqlite
       --logfile /freqtrade/user_data/logs/freqtrade.log
     environment:
@@ -40,12 +40,11 @@ services:
     container_name: freqai
     restart: unless-stopped
     volumes:
-      - ./src:/app/src:ro  # Mount src as read-only
-      - ./models:/app/models:ro  # Mount models as read-only
-      - ./freqai_interface.py:/app/freqai_interface.py:ro  # Mount main interface file directly
+      - ./src:/app/src
+      - ./models:/app/models
+      - ./freqai_config.json:/app/freqai_config.json
       - freqai_logs:/app/logs
       - freqai_cache:/root/.cache  # Mount cache directory for pip and models
-      - ./docker/programdata/pip_cache:/root/.cache/pip  # Mount pip cache directory
     ports:
       - "8001:8001"  # Expose FastAPI port
     environment:
@@ -58,8 +57,9 @@ services:
       - API_PORT=8001
       - CUDA_VISIBLE_DEVICES=0
       - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
-      - PYTHONPATH=/app  # Fixed PYTHONPATH to point to src directory
-      - DOCKER_BUILDKIT=1
+      - PYTHONPATH=/app
+      - FREQAI_CONFIG_PATH=/app/freqai_config.json
+      - ML_MODELS_PATH=/app/models
     networks:
       - algo_network
     healthcheck:

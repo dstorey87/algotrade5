@@ -25,6 +25,12 @@ requests==2.31.0
 pytest==7.4.0
 pytest-asyncio==0.21.1
 
+# ML Libraries for FreqAI predictors
+xgboost==2.0.0
+lightgbm==4.1.0
+catboost==1.2.2
+optuna>=3.4.0
+
 # Data handling
 pyarrow>=7.0.0
 sqlalchemy>=2.0.0

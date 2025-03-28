@@ -23,6 +23,7 @@ RUN pip install --no-cache-dir -r requirements-quantum.txt
 # Copy application code
 COPY src/ /app/src/
 COPY models/ /app/models/
+COPY freqai_config.json /app/
 COPY config/ /app/config/
 
 # Create logs directory
@@ -37,6 +38,8 @@ ENV INITIAL_CAPITAL=10.0
 ENV MIN_MODEL_CONFIDENCE=0.85
 ENV MODEL_CACHE_SIZE=10
 ENV PYTHONPATH=/app
+ENV FREQAI_CONFIG_PATH=/app/freqai_config.json
+ENV ML_MODELS_PATH=/app/models
 
-# Start FreqAI interface using uvicorn - changed to match PYTHONPATH in docker-compose.yml
-CMD ["uvicorn", "freqai_interface:app", "--host", "0.0.0.0", "--port", "8001"]
+# Start FreqAI interface using uvicorn
+CMD ["uvicorn", "src.freqai_interface:app", "--host", "0.0.0.0", "--port", "8001"]
