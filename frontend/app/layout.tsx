@@ -1,11 +1,6 @@
+// Root layout (Server Component)
 import { Metadata } from 'next'
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
-import { WebSocketErrorBoundary } from '@/components/ErrorBoundary/WebSocketErrorBoundary'
-import { Chart as ChartJS } from 'chart.js'
-
-// Configure global chart styles for dark theme
-ChartJS.defaults.color = 'rgba(255, 255, 255, 0.87)'
-ChartJS.defaults.borderColor = 'rgba(255, 255, 255, 0.1)'
+import ClientLayout from './ClientLayout'
 
 export const metadata: Metadata = {
   title: 'AlgoTradePro5',
@@ -20,11 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppRouterCacheProvider>
-          <WebSocketErrorBoundary>
-            {children}
-          </WebSocketErrorBoundary>
-        </AppRouterCacheProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )

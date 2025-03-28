@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": ".git"
+		}
+	],
+	"settings": {
+		"github.copilot.advanced": {
+			"useProjectContext": true,
+			"inlineSuggest.enable": true
+		}
+	}
+}

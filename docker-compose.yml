@@ -42,9 +42,12 @@ services:
     volumes:
       - ./src:/app/src:ro  # Mount src as read-only
       - ./models:/app/models:ro  # Mount models as read-only
+      - ./freqai_interface.py:/app/freqai_interface.py:ro  # Mount main interface file directly
       - freqai_logs:/app/logs
       - freqai_cache:/root/.cache  # Mount cache directory for pip and models
       - ./docker/programdata/pip_cache:/root/.cache/pip  # Mount pip cache directory
+    ports:
+      - "8001:8001"  # Expose FastAPI port
     environment:
       - MODEL_DIR=/app/models
       - LOG_LEVEL=INFO
@@ -55,11 +58,8 @@ services:
       - API_PORT=8001
       - CUDA_VISIBLE_DEVICES=0
       - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
-      - PYTHONPATH=/app/src  # Fixed PYTHONPATH to point to src directory
+      - PYTHONPATH=/app  # Fixed PYTHONPATH to point to src directory
       - DOCKER_BUILDKIT=1
-    ports:
-      - "8001:8001"
-      - "8002:8002"
     networks:
       - algo_network
     healthcheck:

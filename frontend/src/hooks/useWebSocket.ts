@@ -1,101 +1,142 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import msgpack from 'msgpack-lite';
+/**
+ * WebSocket Hook for AlgoTradePro5
+ * 
+ * Provides React components with WebSocket functionality:
+ * - Connection management
+ * - Real-time data subscription
+ * - Error handling
+ * - Auto-reconnection
+ * 
+ * @example
+ * ```tsx
+ * function TradeComponent() {
+ *   const { 
+ *     subscribe, 
+ *     send, 
+ *     connectionState 
+ *   } = useWebSocket();
+ * 
+ *   useEffect(() => {
+ *     const unsubscribe = subscribe(WSEventType.TRADE_UPDATE, handleTrade);
+ *     return () => unsubscribe();
+ *   }, []);
+ * }
+ * ```
+ */
 
-interface UseWebSocketOptions {
-  url: string;
-  onMessage?: (message: any) => void;
-  reconnectInterval?: number;
-  maxReconnectAttempts?: number;
-}
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { WebSocketService, WSEventType, ConnectionState } from '../services/WebSocketService';
+import { logger } from '@/src/utils/logger';
 
-export type WebSocketConnectionStatus = 'connecting' | 'connected' | 'disconnected';
+// Load WebSocket configuration from environment variables
+const WS_CONFIG = {
+  url: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080',
+  reconnectInterval: Number(process.env.NEXT_PUBLIC_WS_RECONNECT_INTERVAL) || 5000,
+  maxReconnectAttempts: Number(process.env.NEXT_PUBLIC_WS_MAX_RECONNECT_ATTEMPTS) || 5
+};
 
-export const useWebSocket = ({
-  url,
-  onMessage,
-  reconnectInterval = 3000,
-  maxReconnectAttempts = 5
-}: UseWebSocketOptions) => {
-  const [connectionStatus, setConnectionStatus] = useState<WebSocketConnectionStatus>('disconnected');
-  const [lastMessage, setLastMessage] = useState<any>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+/**
+ * Hook for managing WebSocket connections in React components
+ * @returns WebSocket management functions and state
+ */
+export function useWebSocket() {
+  // Maintain WebSocket service instance across renders
+  const wsRef = useRef<WebSocketService | null>(null);
+  
+  // Track connection state for UI updates
+  const [connectionState, setConnectionState] = useState<ConnectionState>(
+    ConnectionState.DISCONNECTED
+  );
 
-  const connect = useCallback(() => {
+  /**
+   * Initialize WebSocket service
+   */
+  const initializeWebSocket = useCallback(() => {
     try {
-      const ws = new WebSocket(url);
-      wsRef.current = ws;
-      setConnectionStatus('connecting');
+      if (!wsRef.current) {
+        logger.info('Initializing WebSocket hook', {
+          config: WS_CONFIG,
+          timestamp: new Date().toISOString()
+        });
 
-      ws.binaryType = 'arraybuffer';
+        wsRef.current = new WebSocketService(WS_CONFIG);
+        
+        // Subscribe to connection state changes
+        wsRef.current.subscribe(WSEventType.SYSTEM_STATUS, (status) => {
+          setConnectionState(status.connectionState);
+        });
 
-      ws.onopen = () => {
-        setConnectionStatus('connected');
-        reconnectAttemptsRef.current = 0;
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const message = msgpack.decode(new Uint8Array(event.data));
-          setLastMessage(message);
-          onMessage?.(message);
-        } catch (error) {
-          console.error('Failed to decode message:', error);
-        }
-      };
-
-      ws.onclose = () => {
-        setConnectionStatus('disconnected');
-        wsRef.current = null;
-
-        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-          reconnectTimeoutRef.current = setTimeout(() => {
-            reconnectAttemptsRef.current += 1;
-            connect();
-          }, reconnectInterval);
-        }
-      };
-
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
+        wsRef.current.connect();
+      }
     } catch (error) {
-      console.error('Failed to create WebSocket:', error);
-      setConnectionStatus('disconnected');
+      logger.error('Failed to initialize WebSocket hook', {
+        error: error instanceof Error ? {
+          message: error.message,
+          stack: error.stack
+        } : error,
+        timestamp: new Date().toISOString()
+      });
     }
-  }, [url, onMessage, reconnectInterval, maxReconnectAttempts]);
-
-  const disconnect = useCallback(() => {
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-    }
-    setConnectionStatus('disconnected');
   }, []);
 
-  const sendMessage = useCallback((message: any) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      const encoded = msgpack.encode(message);
-      wsRef.current.send(encoded);
-      return true;
+  /**
+   * Subscribe to WebSocket events
+   */
+  const subscribe = useCallback(<T = any>(
+    type: WSEventType,
+    handler: (data: T) => void
+  ) => {
+    if (!wsRef.current) {
+      logger.warn('Attempted to subscribe before WebSocket initialization', {
+        eventType: type,
+        timestamp: new Date().toISOString()
+      });
+      return () => {};
     }
-    return false;
+
+    logger.debug('Component subscribing to WebSocket event', {
+      type,
+      timestamp: new Date().toISOString()
+    });
+
+    return wsRef.current.subscribe(type, handler);
   }, []);
 
+  /**
+   * Send message through WebSocket
+   */
+  const send = useCallback((type: WSEventType, payload: any) => {
+    if (!wsRef.current) {
+      logger.warn('Attempted to send message before WebSocket initialization', {
+        eventType: type,
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+
+    wsRef.current.send(type, payload);
+  }, []);
+
+  /**
+   * Initialize WebSocket on mount
+   */
   useEffect(() => {
-    connect();
+    initializeWebSocket();
+
+    // Cleanup on unmount
     return () => {
-      disconnect();
+      logger.info('Cleaning up WebSocket hook', {
+        timestamp: new Date().toISOString()
+      });
+      
+      wsRef.current?.disconnect();
+      wsRef.current = null;
     };
-  }, [connect, disconnect]);
+  }, [initializeWebSocket]);
 
   return {
-    connectionStatus,
-    lastMessage,
-    sendMessage
+    subscribe,
+    send,
+    connectionState
   };
-};
+}

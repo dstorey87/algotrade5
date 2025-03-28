@@ -1,70 +1,42 @@
-# syntax=docker/dockerfile:1.4
+FROM python:3.11-slim
 
-# Stage 1: Base with CUDA dependencies
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04 as cuda-base
-
-# Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    NVIDIA_VISIBLE_DEVICES=all \
-    NVIDIA_DRIVER_CAPABILITIES=compute,utility
-
-# Stage 2: Builder with cached dependencies
-FROM cuda-base as builder
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    python3.10 \
-    python3-pip \
-    python3-dev \
-    build-essential \
-    git \
-    sqlite3 \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /build
-
-# Copy only requirements files first to leverage cache
-COPY requirements*.txt ./
-
-# Mount cache and install Python packages
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install --no-cache-dir -r requirements-freqai-custom.txt \
-    && pip3 install --no-cache-dir -r requirements-freqai.txt \
-    && pip3 install --no-cache-dir -r requirements-llm.txt \
-    && pip3 install --no-cache-dir -r requirements-quantum.txt \
-    && pip3 install --no-cache-dir fastapi uvicorn
-
-# Stage 3: Final runtime image
-FROM cuda-base as runtime
-
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
-    python3.10 \
-    python3-pip \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create app structure
 WORKDIR /app
-RUN mkdir -p /app/logs /app/models /app/cache
 
-# Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements-freqai-custom.txt .
+COPY requirements-llm.txt .
+COPY requirements-quantum.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements-freqai-custom.txt
+RUN pip install --no-cache-dir -r requirements-llm.txt
+RUN pip install --no-cache-dir -r requirements-quantum.txt
 
 # Copy application code
-COPY src /app/src
+COPY src/ /app/src/
+COPY models/ /app/models/
+COPY config/ /app/config/
 
-# Set Python path and environment
-ENV PYTHONPATH=/app
+# Create logs directory
+RUN mkdir -p /app/logs
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8001/health || exit 1
-
-# Expose port
+# Expose FastAPI port
 EXPOSE 8001
 
-# Command
-CMD ["python3", "/app/src/freqai_interface.py"]
+# Set environment variables
+ENV MODEL_DIR=/app/models
+ENV INITIAL_CAPITAL=10.0
+ENV MIN_MODEL_CONFIDENCE=0.85
+ENV MODEL_CACHE_SIZE=10
+ENV PYTHONPATH=/app
+
+# Start FreqAI interface using uvicorn - changed to match PYTHONPATH in docker-compose.yml
+CMD ["uvicorn", "freqai_interface:app", "--host", "0.0.0.0", "--port", "8001"]
